@@ -229,6 +229,12 @@ class Product(TimeStampedModel):
         verbose_name="Base price",
         help_text="Default price before variant deltas.",
     )
+    mrp = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="MRP")
+    purchase_price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Purchase Price")
+    wholesale_rate = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Wholesale Rate")
+    is_rental = models.BooleanField(default=False, db_index=True, verbose_name="Is Rental Eligible")
+    rental_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name="Rental Price")
+    show_rental_storefront = models.BooleanField(default=True, db_index=True, verbose_name="Show Rental in Storefront")
     color = models.CharField(
         max_length=50,
         blank=True,
@@ -304,6 +310,14 @@ class Product(TimeStampedModel):
     def is_in_stock(self) -> bool:
         """True when aggregate product stock is available."""
         return self.stock_quantity > 0
+
+    @property
+    def price(self):
+        return self.base_price
+
+    @price.setter
+    def price(self, value):
+        self.base_price = value
 
 
 class VariantType(models.TextChoices):

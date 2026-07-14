@@ -22,6 +22,9 @@
             <div class="col-md-6">{% include "dashboard/partials/_field.html" with field=form.primary_occasion %}</div>
             <div class="col-md-6">{% include "dashboard/partials/_field.html" with field=form.brand %}</div>
             <div class="col-md-3">{% include "dashboard/partials/_field.html" with field=form.base_price %}</div>
+            <div class="col-md-3">{% include "dashboard/partials/_field.html" with field=form.mrp %}</div>
+            <div class="col-md-3">{% include "dashboard/partials/_field.html" with field=form.purchase_price %}</div>
+            <div class="col-md-3">{% include "dashboard/partials/_field.html" with field=form.wholesale_rate %}</div>
             <div class="col-md-3">{% include "dashboard/partials/_field.html" with field=form.color %}</div>
           </div>
         </div>
@@ -161,6 +164,32 @@
             {% include "dashboard/partials/_field.html" with field=form.low_stock_threshold %}
           </div>
         </div>
+
+        <div class="card mb-3">
+          <div class="card-header panel-header"><h3 class="panel-title">Rental Options</h3></div>
+          <div class="card-body">
+            {% include "dashboard/partials/_field.html" with field=form.is_rental %}
+            <div id="rental-price-group" style="display: none;">
+              {% include "dashboard/partials/_field.html" with field=form.rental_price %}
+            </div>
+            {% include "dashboard/partials/_field.html" with field=form.show_rental_storefront %}
+          </div>
+        </div>
+        <script>
+          document.addEventListener("DOMContentLoaded", function() {
+            const isRentalInput = document.getElementById("id_is_rental");
+            const rentalPriceGroup = document.getElementById("rental-price-group");
+            function updateRentalVisibility() {
+              if (isRentalInput && rentalPriceGroup) {
+                rentalPriceGroup.style.display = isRentalInput.checked ? "block" : "none";
+              }
+            }
+            if (isRentalInput) {
+              isRentalInput.addEventListener("change", updateRentalVisibility);
+              updateRentalVisibility();
+            }
+          });
+        </script>
 
         <div class="card mb-3">
           <div class="card-header panel-header"><h3 class="panel-title">Organization</h3></div>

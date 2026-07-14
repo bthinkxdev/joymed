@@ -8,6 +8,8 @@ from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_GET
 
+from catalog.models import Product
+
 from catalog.selectors import (
     get_category_by_slug,
     get_plp_filter_options,
@@ -199,3 +201,9 @@ def delivery_estimate_view(request: HttpRequest, product_id: int) -> JsonRespons
         raise Http404("City not found")
     estimate = get_earliest_delivery_estimate(product=product, destination_city=city)
     return JsonResponse(estimate)
+
+
+@require_GET
+def rental_list_view(request: HttpRequest) -> HttpResponse:
+    products = Product.objects.filter(is_active=True, is_rental=True, show_rental_storefront=True)
+    return render(request, "catalog/rentals.html", {"products": products})
