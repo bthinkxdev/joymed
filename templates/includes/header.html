@@ -57,7 +57,10 @@
         </div>
       </div>
 
-      <a class="navbar-brand navbar-col navbar-col--brand" href="{% url 'cms:homepage' %}">JOYMED HEALTHCARE</a>
+      <a class="navbar-brand navbar-col navbar-col--brand d-flex align-items-center" href="{% url 'cms:homepage' %}">
+        <img src="{% static 'dashboard/images/logo.png' %}" alt="JOYMED HEALTHCARE" style="height: 48px; width: auto; object-fit: contain;">
+        JOYMED HEALTHCARE
+      </a>
 
       <div class="navbar-col navbar-col--end">
         <div class="search-wrap search-wrap--header position-relative d-none d-lg-block">
