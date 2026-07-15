@@ -26,7 +26,7 @@ def in_display_currency(amount, currency) -> str:
 
 @register.simple_tag
 def money_label(amount, currency) -> str:
-    """Format amount with currency code for templates."""
-    code = getattr(currency, "code", "QAR") if currency else "QAR"
+    """Format amount with currency symbol for templates."""
+    symbol = getattr(currency, "symbol", "₹") if currency else "₹"
     value = in_display_currency(amount, currency)
-    return f"{value} {code}"
+    return f"{symbol}{value}"

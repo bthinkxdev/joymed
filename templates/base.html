@@ -4,7 +4,7 @@
 
 <!DOCTYPE html>
 
-<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
+<html lang="en" dir="ltr">
 
 <head>
 
@@ -30,15 +30,13 @@
 
   <link href="{% static 'css/main.css' %}" rel="stylesheet">
 
-  {% if LANGUAGE_BIDI %}<link id="rtl-stylesheet" href="{% static 'css/rtl.css' %}" rel="stylesheet">{% endif %}
-
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 
   {% block extra_head %}{% endblock %}
 
 </head>
 
-<body class="floward-body" data-rtl-stylesheet="{% static 'css/rtl.css' %}">
+<body class="floward-body">
 
   <div id="htmx-progress" class="htmx-progress" hidden aria-hidden="true"></div>
 

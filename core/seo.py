@@ -89,6 +89,10 @@ def build_product_json_ld(
     Includes Offer (price/availability) and AggregateRating when reviews exist.
     """
     from django.urls import reverse
+    from core.selectors import get_default_currency
+
+    currency = get_default_currency()
+    currency_code = currency.code if currency else "INR"
 
     availability = (
         "https://schema.org/InStock" if product.is_in_stock else "https://schema.org/OutOfStock"
@@ -108,7 +112,7 @@ def build_product_json_ld(
         "url": request.build_absolute_uri(reverse("catalog:pdp", kwargs={"slug": product.slug})),
         "offers": {
             "@type": "Offer",
-            "priceCurrency": "QAR",
+            "priceCurrency": currency_code,
             "price": str(price),
             "availability": availability,
             "url": request.build_absolute_uri(

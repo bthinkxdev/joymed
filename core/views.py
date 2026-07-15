@@ -25,8 +25,8 @@ def about_us_view(request: HttpRequest) -> HttpResponse:
     """Render the static About Us page."""
     context = seo_context(
         request=request,
-        title=_("About Us | Floward Qatar"),
-        description=_("Learn more about Floward Qatar and our mission to deliver flowers and gifts."),
+        title=_("About Us | JOYMED HEALTHCARE"),
+        description=_("Learn more about JOYMED HEALTHCARE and our mission to deliver products and services."),
     )
     return render(request, "core/about_us.html", context)
 
@@ -36,8 +36,8 @@ def privacy_policy_view(request: HttpRequest) -> HttpResponse:
     """Render the static Privacy Policy page."""
     context = seo_context(
         request=request,
-        title=_("Privacy Policy | Floward Qatar"),
-        description=_("Read Floward Qatar's privacy policy to learn how we collect and use your data."),
+        title=_("Privacy Policy | JOYMED HEALTHCARE"),
+        description=_("Read JOYMED HEALTHCARE's privacy policy to learn how we collect and use your data."),
     )
     return render(request, "core/privacy_policy.html", context)
 
@@ -47,8 +47,8 @@ def contact_us_view(request: HttpRequest) -> HttpResponse:
     """Render the static Contact Us page."""
     context = seo_context(
         request=request,
-        title=_("Contact Us | Floward Qatar"),
-        description=_("Get in touch with Floward Qatar customer support."),
+        title=_("Contact Us | JOYMED HEALTHCARE"),
+        description=_("Get in touch with JOYMED HEALTHCARE customer support."),
     )
     return render(request, "core/contact_us.html", context)
 
@@ -58,46 +58,16 @@ def faq_view(request: HttpRequest) -> HttpResponse:
     """Render the static FAQ page."""
     context = seo_context(
         request=request,
-        title=_("FAQ | Floward Qatar"),
-        description=_("Frequently asked questions about ordering, delivery, and payments at Floward Qatar."),
+        title=_("FAQ | JOYMED HEALTHCARE"),
+        description=_("Frequently asked questions about ordering, delivery, and payments at JOYMED HEALTHCARE."),
     )
     return render(request, "core/faq.html", context)
 
 
 @require_POST
-def set_language_view(request: HttpRequest) -> HttpResponse:
-    """Persist language choice to session and activate translation."""
-    language = request.POST.get("language", "en")
-    if language not in ("en", "ar"):
-        if is_htmx_request(request):
-            return HttpResponse("Invalid language", status=400)
-        return redirect("/")
-
-    request.session["django_language"] = language
-    translation.activate(language)
-
-    if not is_htmx_request(request):
-        response = redirect(request.META.get("HTTP_REFERER", "/"))
-        response.set_cookie(settings.LANGUAGE_COOKIE_NAME, language)
-        return response
-
-    response = rerender_app_shell(request)
-    response.set_cookie(settings.LANGUAGE_COOKIE_NAME, language)
-    response["HX-Trigger"] = json.dumps(
-        {
-            "preferencesUpdated": {
-                "lang": language,
-                "dir": "rtl" if language == "ar" else "ltr",
-            }
-        }
-    )
-    return response
-
-
-@require_POST
 def set_currency_view(request: HttpRequest) -> HttpResponse:
     """Persist currency code to session."""
-    code = request.POST.get("currency", "QAR")
+    code = request.POST.get("currency", "INR")
     request.session["storefront_currency"] = code
 
     if not is_htmx_request(request):

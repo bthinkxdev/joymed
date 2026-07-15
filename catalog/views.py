@@ -76,15 +76,15 @@ def plp_view(request: HttpRequest, category_slug: str | None = None) -> HttpResp
         else "Shop All Flowers & Gifts"
     )
     description = (
-        f"Browse {category.name} flowers and gifts with same-day delivery in Qatar."
+        f"Browse {category.name} and delivery available in Kerala."
         if category
-        else "Browse premium flowers and gifts with same-day delivery across Qatar."
+        else "Browse the medical equipments and delivery available across Kerala."
     )
 
     context = seo_context(
         request=request,
         obj=category,
-        title=f"{title} | Floward",
+        title=f"{title} | JOYMED HEALTHCARE",
         description=description,
         canonical_url=build_plp_canonical_url(request=request, category_slug=category_slug),
     )
@@ -117,8 +117,11 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
     viewer_key = str(request.session.session_key or request.user.pk or "anon")
     record_product_view(viewer_key=viewer_key, product_id=product.pk)
 
-    city_slug = request.GET.get("city", "doha")
+    city_slug = request.GET.get("city", "ernakulam")
     destination_city = get_city_by_slug(slug=city_slug)
+    if not destination_city:
+        active_cities = get_active_cities()
+        destination_city = active_cities[0] if active_cities else None
     delivery_estimate = None
     if destination_city:
         delivery_estimate = get_earliest_delivery_estimate(
@@ -139,8 +142,8 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
     context = seo_context(
         request=request,
         obj=product,
-        title=f"{product.name} | Floward",
-        description=f"{product.name} — premium flowers and gifts delivered in Qatar.",
+        title=f"{product.name} | JOYMED HEALTHCARE",
+        description=f"{product.name} —  Quality medical equipments and delivered in Kerala.",
     )
     context.update(
         {
@@ -199,8 +202,11 @@ def delivery_estimate_view(request: HttpRequest, product_id: int) -> JsonRespons
     if not products:
         raise Http404("Product not found")
     product = products[0]
-    city_slug = request.GET.get("city", "doha")
+    city_slug = request.GET.get("city", "ernakulam")
     city = get_city_by_slug(slug=city_slug)
+    if city is None:
+        active_cities = get_active_cities()
+        city = active_cities[0] if active_cities else None
     if city is None:
         raise Http404("City not found")
     estimate = get_earliest_delivery_estimate(product=product, destination_city=city)

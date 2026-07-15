@@ -8,7 +8,8 @@
         .then(function (r) { return r.json(); })
         .then(function (data) {
           var el = document.getElementById('pdp-price');
-          if (el) el.textContent = data.price + ' QAR';
+          var symbol = variantSelect.getAttribute('data-currency-symbol') || '₹';
+          if (el) el.textContent = symbol + data.price;
         });
     });
   }

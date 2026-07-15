@@ -152,8 +152,6 @@ class CustomerProfileForm(forms.ModelForm):
         fields = [
             "phone",
             "phone_verified",
-            "preferred_language",
-            "preferred_currency",
             "notify_via_email",
             "notify_via_sms",
             "notify_via_whatsapp",
@@ -328,8 +326,6 @@ class SiteSettingsForm(forms.ModelForm):
             "instagram_url",
             "twitter_url",
             "whatsapp_number",
-            "default_currency",
-            "default_language",
             "tax_rate_percent",
             "default_shipping_charge",
         ]

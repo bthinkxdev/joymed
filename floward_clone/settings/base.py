@@ -41,7 +41,6 @@ LOCAL_APPS = [
 ]
 
 INSTALLED_APPS = [
-    "modeltranslation",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -54,7 +53,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -132,7 +130,7 @@ CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://localhost:
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = "Asia/Qatar"
+CELERY_TIMEZONE = "Asia/Kolkata"
 CELERY_BEAT_SCHEDULE = {
     "celery-health-check-every-minute": {
         "task": "core.tasks.celery_health_check",
@@ -204,26 +202,18 @@ ACCOUNTS_OTP_EXPIRY_SECONDS = env.int("ACCOUNTS_OTP_EXPIRY_SECONDS", default=300
 ACCOUNTS_OTP_MAX_ATTEMPTS = env.int("ACCOUNTS_OTP_MAX_ATTEMPTS", default=5)
 ACCOUNTS_GUEST_TOKEN_MAX_AGE = env.int("ACCOUNTS_GUEST_TOKEN_MAX_AGE", default=86400)
 
-LANGUAGE_CODE = env("LANGUAGE_CODE", default="en")
+LANGUAGE_CODE = "en"
 
 LANGUAGES = [
     ("en", "English"),
-    ("ar", "Arabic"),
 ]
 
 LOCALE_PATHS = [BASE_DIR / "locale"]
 
-TIME_ZONE = "Asia/Qatar"
+TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-
-MODELTRANSLATION_DEFAULT_LANGUAGE = "en"
-MODELTRANSLATION_LANGUAGES = ("en", "ar")
-MODELTRANSLATION_FALLBACK_LANGUAGES = {
-    "default": ("en", "ar"),
-    "ar": ("en",),
-}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

@@ -16,7 +16,7 @@
     </div>
     <div class="cart-line__info">
       <a href="{% url 'catalog:pdp' slug=line.product.slug %}" class="cart-line__name text-dark">{{ line.product.name }}</a>
-      <div class="cart-line__meta">{{ line.quantity }} × {{ line.unit_price_at_add }} QAR</div>
+      <div class="cart-line__meta">{{ line.quantity }} × {{ display_currency.symbol }}{{ line.unit_price_at_add }}</div>
       {% if line.gift_snapshot %}<div class="small text-floward">{% trans "Gift customized" %}</div>{% endif %}
     </div>
     <form method="post" action="{% url 'cart:remove' %}" hx-post="{% url 'cart:remove' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
@@ -29,10 +29,10 @@
   </ul>
 </div>
 <div class="cart-drawer-footer">
-  <div class="cart-summary-row"><span>{% trans "Subtotal" %}</span><span>{{ summary.subtotal }} QAR</span></div>
-  {% if summary.coupon_discount %}<div class="cart-summary-row text-success"><span>{% trans "Coupon" %}</span><span>-{{ summary.coupon_discount }} QAR</span></div>{% endif %}
-  <div class="cart-summary-row"><span>{% trans "Delivery" %}</span><span>{{ summary.delivery_charge }} QAR</span></div>
-  <div class="cart-summary-row cart-summary-total"><span>{% trans "Total" %}</span><span class="text-floward">{{ summary.grand_total }} QAR</span></div>
+  <div class="cart-summary-row"><span>{% trans "Subtotal" %}</span><span>{{ display_currency.symbol }}{{ summary.subtotal }}</span></div>
+  {% if summary.coupon_discount %}<div class="cart-summary-row text-success"><span>{% trans "Coupon" %}</span><span>-{{ display_currency.symbol }}{{ summary.coupon_discount }}</span></div>{% endif %}
+  <div class="cart-summary-row"><span>{% trans "Delivery" %}</span><span>{{ display_currency.symbol }}{{ summary.delivery_charge }}</span></div>
+  <div class="cart-summary-row cart-summary-total"><span>{% trans "Total" %}</span><span class="text-floward">{{ display_currency.symbol }}{{ summary.grand_total }}</span></div>
   <a href="{% url 'cart:page' %}" class="btn btn-outline-floward w-100 py-2 mt-2">{% trans "View Cart" %}</a>
   <a href="{% url 'checkout:checkout' %}" class="btn btn-floward w-100 py-2 mt-2">{% trans "Checkout" %}</a>
 </div>

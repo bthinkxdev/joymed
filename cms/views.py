@@ -27,8 +27,8 @@ def homepage_view(request: HttpRequest) -> HttpResponse:
     ]
     context = seo_context(
         request=request,
-        title="Luxury Flowers & Gifts | Floward Qatar",
-        description="Send premium flowers and gifts with same-day delivery across Qatar.",
+        title="Quality medical equipments | JOYMED HEALTHCARE",
+        description="Browse the medical equipments and delivery available across Kerala.",
     )
     context["section_contexts"] = section_contexts
     return render(request, "cms/homepage.html", context)

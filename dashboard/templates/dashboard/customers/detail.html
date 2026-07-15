@@ -16,7 +16,6 @@
         <p class="mb-1"><strong>{{ profile.user.get_full_name|default:profile.user.get_username }}</strong></p>
         <p class="mb-1 text-muted">{{ profile.user.email }}</p>
         <p class="mb-1">Phone: {{ profile.phone|default:"—" }} {% if profile.phone_verified %}<span class="badge bg-success-subtle text-success">verified</span>{% endif %}</p>
-        <p class="mb-1">Language: {{ profile.preferred_language }}</p>
         <p class="mb-0">Joined: {{ profile.created_at|date:"M d, Y" }}</p>
       </div>
     </div>

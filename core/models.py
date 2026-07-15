@@ -169,6 +169,12 @@ class Currency(TimeStampedModel):
         verbose_name="Is default",
         help_text="When True, this currency is the storefront default.",
     )
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name="Is active",
+        help_text="When False, this currency is hidden/inactive on the storefront.",
+    )
 
     class Meta:
         verbose_name = "Currency"
@@ -189,7 +195,7 @@ class SiteSettings(TimeStampedModel):
     and template slugs are stored here.
     """
 
-    site_name = models.CharField(max_length=120, default="Floward")
+    site_name = models.CharField(max_length=120, default="JOYMED HEALTHCARE")
     logo_url = models.URLField(blank=True, verbose_name="Logo URL")
     primary_color = models.CharField(max_length=7, default="#1B4332")
     secondary_color = models.CharField(max_length=7, default="#D4A574")
@@ -207,7 +213,7 @@ class SiteSettings(TimeStampedModel):
     )
     default_language = models.CharField(max_length=5, default="en")
     tax_rate_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    default_shipping_charge = models.DecimalField(max_digits=10, decimal_places=2, default=25)
+    default_shipping_charge = models.DecimalField(max_digits=10, decimal_places=2, default=50)
     card_gateway_public_key_env = models.CharField(
         max_length=80,
         default="CARD_GATEWAY_PUBLIC_KEY",

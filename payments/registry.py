@@ -9,7 +9,6 @@ from payments.adapters.concrete import (
     CardGatewayAdapter,
     GiftVoucherAdapter,
     GooglePayAdapter,
-    QatarLocalGatewayAdapter,
 )
 
 if TYPE_CHECKING:
@@ -17,7 +16,6 @@ if TYPE_CHECKING:
 
 PAYMENT_GATEWAYS: dict[str, PaymentGatewayAdapter] = {
     CardGatewayAdapter.key: CardGatewayAdapter(),
-    QatarLocalGatewayAdapter.key: QatarLocalGatewayAdapter(),
     ApplePayAdapter.key: ApplePayAdapter(),
     GooglePayAdapter.key: GooglePayAdapter(),
     GiftVoucherAdapter.key: GiftVoucherAdapter(),

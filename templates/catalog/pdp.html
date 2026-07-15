@@ -34,7 +34,7 @@
       {% if product.variant_list %}
       <div class="mb-3">
         <label class="form-label small fw-medium">{% trans "Select Option" %}</label>
-        <select id="variant-select" class="form-select" data-price-url="{% url 'catalog:variant-price' product_id=product.pk %}">
+        <select id="variant-select" class="form-select" data-price-url="{% url 'catalog:variant-price' product_id=product.pk %}" data-currency-symbol="{{ display_currency.symbol }}">
           <option value="">{% trans "Standard" %}</option>
           {% for v in product.variant_list %}
           <option value="{{ v.pk }}">{{ v.name }} (+{{ v.price_delta }})</option>
@@ -63,7 +63,7 @@
 
         {% if product.is_rental and product.show_rental_storefront %}
         <div id="rent-action" class="flex-grow-1 d-none">
-          <a href="https://wa.me/{{ whatsapp_number|default:'+97400000000' }}?text=Hello%2C%20I%20am%20interested%20in%20renting%20the%20product%3A%20{{ product.name|urlencode }}%20(SKU%3A%20{{ product.sku|urlencode }})"
+          <a href="https://wa.me/{{ whatsapp_number|default:'+910000000000' }}?text=Hello%2C%20I%20am%20interested%20in%20renting%20the%20product%3A%20{{ product.name|urlencode }}%20(SKU%3A%20{{ product.sku|urlencode }})"
             target="_blank" class="btn btn-success w-100 py-2 d-flex align-items-center justify-content-center gap-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path
@@ -103,7 +103,7 @@
     </form>
     {% if product.is_rental and product.show_rental_storefront %}
     <div id="sticky-rent-action" class="flex-grow-1 d-none">
-      <a href="https://wa.me/{{ whatsapp_number|default:'+97400000000' }}?text=Hello%2C%20I%20am%20interested%20in%20renting%20the%20product%3A%20{{ product.name|urlencode }}%20(SKU%3A%20{{ product.sku|urlencode }})"
+      <a href="https://wa.me/{{ whatsapp_number|default:'+910000000000' }}?text=Hello%2C%20I%20am%20interested%20in%20renting%20the%20product%3A%20{{ product.name|urlencode }}%20(SKU%3A%20{{ product.sku|urlencode }})"
         target="_blank" class="btn btn-success w-100 py-2 d-flex align-items-center justify-content-center gap-2">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path
@@ -166,10 +166,10 @@
         if (stickyBuyForm) stickyBuyForm.classList.add("d-none");
         if (stickyRentAction) stickyRentAction.classList.remove("d-none");
         if (priceDisplay && rentalPrice) {
-          priceDisplay.innerHTML = "QAR " + rentalPrice + " / month";
+          priceDisplay.innerHTML = "{{ display_currency.symbol }}" + rentalPrice + " / day";
         }
         if (stickyPriceDisplay && rentalPrice) {
-          stickyPriceDisplay.innerHTML = "QAR " + rentalPrice + " / month";
+          stickyPriceDisplay.innerHTML = "{{ display_currency.symbol }}" + rentalPrice + " / day";
         }
       } else {
         if (buyForm) buyForm.classList.remove("d-none");

@@ -15,8 +15,7 @@
       <div class="card p-3">
         <h2 class="h6 mb-3">{% trans "Profile" %}</h2>
         <p class="small mb-1"><strong>{% trans "Email" %}:</strong> {{ request.user.email }}</p>
-        <p class="small mb-1"><strong>{% trans "Phone" %}:</strong> {{ dashboard.profile.phone|default:"—" }}</p>
-        <p class="small mb-0"><strong>{% trans "Currency" %}:</strong> {{ dashboard.profile.preferred_currency.code }}</p>
+        <p class="small mb-0"><strong>{% trans "Phone" %}:</strong> {{ dashboard.profile.phone|default:"—" }}</p>
       </div>
     </div>
     <div class="col-md-8">

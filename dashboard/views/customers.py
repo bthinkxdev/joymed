@@ -25,7 +25,6 @@ class CustomerListView(DashboardListView):
         {"label": "Name", "name": "user.get_full_name"},
         {"label": "Email", "name": "user.email"},
         {"label": "Phone", "name": "phone"},
-        {"label": "Language", "name": "preferred_language"},
         {"label": "Verified", "name": "phone_verified", "type": "bool"},
     ]
 

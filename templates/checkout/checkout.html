@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Checkout" %} | Floward{% endblock %}
+{% block title %}{% trans "Checkout" %} | JOYMED HEALTHCARE{% endblock %}
 
 {% block content %}
 <div class="container page-container checkout-page">
@@ -68,12 +68,12 @@
         {% for line in summary.lines %}
         <div class="d-flex justify-content-between small py-2 border-bottom">
           <span class="text-truncate me-2">{{ line.product.name }} × {{ line.quantity }}</span>
-          <span class="flex-shrink-0">{{ line.line_subtotal }} QAR</span>
+          <span class="flex-shrink-0">{{ display_currency.symbol }}{{ line.line_subtotal }}</span>
         </div>
         {% endfor %}
         <div class="d-flex justify-content-between fw-semibold mt-3 pt-2 border-top">
           <span>{% trans "Total" %}</span>
-          <span class="text-floward">{{ summary.grand_total }} QAR</span>
+          <span class="text-floward">{{ display_currency.symbol }}{{ summary.grand_total }}</span>
         </div>
         <button type="submit" form="checkout-form" class="btn btn-floward w-100 py-2 mt-3 d-none d-lg-block">{% trans "Place Order & Pay" %}</button>
       </div>

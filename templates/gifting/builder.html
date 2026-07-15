@@ -114,7 +114,7 @@
                          class="form-check-input me-2"
                          {% if addon.pk in selected_addon_ids %}checked{% endif %}>
                   <span class="small fw-semibold">{{ addon.name }}</span>
-                  <div class="text-floward small">{{ addon.base_price }} QAR</div>
+                  <div class="text-floward small">{{ display_currency.symbol }}{{ addon.base_price }}</div>
                 </div>
               </label>
             </div>
