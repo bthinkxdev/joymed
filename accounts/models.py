@@ -505,3 +505,92 @@ class GiftReminder(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.occasion_type} for {self.recipient_name}"
+
+
+class Wholesaler(TimeStampedModel):
+    """Wholesaler account profile linked to a Django User."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="wholesaler_profile",
+        verbose_name="User",
+        help_text="Wholesaler manager login.",
+    )
+    company_name = models.CharField(
+        max_length=200,
+        verbose_name="Company name",
+        help_text="Registered legal or trading name of the wholesaler.",
+    )
+    phone_number = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        verbose_name="Phone number",
+        help_text="Contact phone number of the wholesaler.",
+    )
+    place = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name="Place",
+        help_text="Location or city of the wholesaler.",
+    )
+    approval_status = models.CharField(
+        max_length=20,
+        choices=CorporateApprovalStatus.choices,
+        default=CorporateApprovalStatus.PENDING,
+        db_index=True,
+        verbose_name="Approval status",
+    )
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_wholesalers",
+        verbose_name="Approved by",
+    )
+    referrer_page = models.CharField(
+        max_length=500,
+        blank=True,
+        verbose_name="Referrer page",
+        help_text="The page URL the user came from during registration.",
+    )
+
+    class Meta:
+        verbose_name = "Wholesaler"
+        verbose_name_plural = "Wholesalers"
+        indexes = [
+            models.Index(fields=["approval_status"], name="wholesaler_approval_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return self.company_name
+
+
+class EmailOTPRequest(TimeStampedModel):
+    """Hashed one-time password issued for email-based passwordless authentication."""
+
+    email = models.EmailField(db_index=True, verbose_name="Email address")
+    otp_hash = models.CharField(max_length=128, verbose_name="OTP hash")
+    purpose = models.CharField(
+        max_length=20,
+        choices=OTPPurpose.choices,
+        db_index=True,
+        verbose_name="Purpose",
+    )
+    expires_at = models.DateTimeField(db_index=True, verbose_name="Expires at")
+    is_used = models.BooleanField(default=False, db_index=True, verbose_name="Is used")
+    attempt_count = models.PositiveSmallIntegerField(default=0, verbose_name="Attempt count")
+
+    class Meta:
+        verbose_name = "Email OTP request"
+        verbose_name_plural = "Email OTP requests"
+        indexes = [
+            models.Index(fields=["email", "purpose", "is_used"], name="acct_email_otp_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"Email OTP {self.purpose} for {self.email}"
+

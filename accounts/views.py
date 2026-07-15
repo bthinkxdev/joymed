@@ -28,6 +28,9 @@ from accounts.forms import (
     OTPRequestForm,
     OTPVerifyForm,
     ResetPasswordForm,
+    WholesalerRegistrationForm,
+    EmailOTPRequestForm,
+    EmailOTPVerifyForm,
 )
 from accounts.models import CustomerProfile, OTPPurpose
 from accounts.selectors import (
@@ -53,6 +56,10 @@ from accounts.services import (
     reset_password_with_otp,
     update_address,
     verify_otp,
+    request_email_otp,
+    verify_email_otp,
+    register_wholesaler,
+    login_or_create_customer_by_email,
 )
 from core.decorators import role_required
 
@@ -68,6 +75,9 @@ from accounts.subscription_services import (
 
 def _json_body(request: HttpRequest) -> dict[str, Any]:
     """Parse JSON request body; return empty dict for non-JSON requests."""
+    content_type = request.headers.get("Content-Type", "")
+    if not content_type.startswith("application/json"):
+        return {}
     if not request.body:
         return {}
     try:
@@ -317,7 +327,31 @@ def reset_password_view(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_GET
 def dashboard_view(request: HttpRequest) -> HttpResponse:
-    """Customer account dashboard."""
+    """Customer or Wholesaler account dashboard."""
+    is_wholesaler = hasattr(request.user, "wholesaler_profile")
+    show_modal = request.session.pop("show_wholesaler_approval_modal", False)
+
+    if is_wholesaler:
+        wholesaler = request.user.wholesaler_profile
+        context = {
+            "is_wholesaler": True,
+            "company_name": wholesaler.company_name,
+            "phone_number": wholesaler.phone_number,
+            "place": wholesaler.place,
+            "approval_status": wholesaler.approval_status,
+            "approval_status_display": wholesaler.get_approval_status_display(),
+        }
+        if _wants_json(request):
+            return _success_response({
+                "wholesaler": context,
+                "show_wholesaler_approval_modal": show_modal
+            })
+        return render(
+            request, 
+            "accounts/dashboard.html", 
+            {"wholesaler": context, "show_wholesaler_approval_modal": show_modal}
+        )
+
     context = get_customer_dashboard_context(user=request.user)
     if context is None:
         if _wants_json(request):
@@ -345,7 +379,7 @@ def dashboard_view(request: HttpRequest) -> HttpResponse:
                 "unread_notification_count": context.unread_notification_count,
             }
         )
-    return render(request, "accounts/dashboard.html", {"dashboard": context})
+    return render(request, "accounts/dashboard.html", {"dashboard": context, "show_wholesaler_approval_modal": show_modal})
 
 
 @login_required
@@ -641,3 +675,166 @@ def subscription_cancel_view(request: HttpRequest, subscription_id: int) -> Http
         return _error_response("Subscription not found.", status=404)
     cancel_subscription(subscription=subscription)
     return _success_response()
+
+
+@require_http_methods(["GET", "POST"])
+def wholesaler_register_view(request: HttpRequest) -> HttpResponse:
+    """Handle passwordless Wholesaler registration."""
+    if request.method == "GET":
+        #track http referrer in session
+        referer = request.META.get("HTTP_REFERER", "")
+        if referer:
+            request.session["wholesaler_referrer"] = referer
+        return render(request, "accounts/wholesaler_register.html", {"form": WholesalerRegistrationForm()})
+
+    data = _json_body(request) or request.POST.dict()
+    form = WholesalerRegistrationForm(data)
+    if not form.is_valid():
+        return render(request, "accounts/wholesaler_register.html", {"form": form}, status=400)
+
+    #save details to session pending otp verification
+    request.session["pending_wholesaler_registration"] = form.cleaned_data
+    email = form.cleaned_data["email"]
+
+    try:
+        request_email_otp(email=email, purpose=OTPPurpose.SIGNUP)
+    except Exception as exc:
+        form.add_error(None, f"Error generating OTP: {str(exc)}")
+        return render(request, "accounts/wholesaler_register.html", {"form": form}, status=400)
+
+    return redirect(f"/accounts/verify-email-otp/?email={email}&purpose=signup")
+
+
+@require_http_methods(["GET", "POST"])
+def email_otp_request_view(request: HttpRequest) -> HttpResponse:
+    """Request a passwordless login OTP for General Customers."""
+    next_url = request.GET.get("next") or request.POST.get("next", "")
+    
+    #if no next_url is specified, look at the http referer
+    if not next_url:
+        referer = request.META.get("HTTP_REFERER", "")
+        if referer:
+            from urllib.parse import urlparse
+            try:
+                parsed_url = urlparse(referer)
+                #avoid redirecting back to login/registration pages themselves to prevent redirect loops
+                if not any(path in parsed_url.path for path in ("/accounts/login/", "/accounts/verify-email-otp/", "/accounts/register/")):
+                    next_url = referer
+            except Exception:
+                pass
+
+    if request.method == "GET":
+        return render(request, "accounts/email_otp_request.html", {"form": EmailOTPRequestForm(), "next": next_url})
+
+    data = _json_body(request) or request.POST.dict()
+    form = EmailOTPRequestForm(data)
+    if not form.is_valid():
+        return render(request, "accounts/email_otp_request.html", {"form": form, "next": next_url}, status=400)
+
+    email = form.cleaned_data["email"]
+    name = form.cleaned_data["name"]
+    try:
+        request_email_otp(email=email, purpose=OTPPurpose.LOGIN)
+    except Exception as exc:
+        form.add_error(None, f"Error generating OTP: {str(exc)}")
+        return render(request, "accounts/email_otp_request.html", {"form": form, "next": next_url}, status=400)
+
+    #save details to session pending otp verification
+    request.session["pending_customer_name"] = name
+
+    from django.utils.http import urlencode
+    query_params = urlencode({"email": email, "purpose": "login", "next": next_url})
+    return redirect(f"/accounts/verify-email-otp/?{query_params}")
+
+
+@require_http_methods(["GET", "POST"])
+def email_otp_verify_view(request: HttpRequest) -> HttpResponse:
+    """Verify email 4-digit OTP for signup (Wholesaler) or login (Customer/Wholesaler)."""
+    email = request.GET.get("email") or request.POST.get("email", "")
+    purpose = request.GET.get("purpose") or request.POST.get("purpose", OTPPurpose.LOGIN)
+    next_url = request.GET.get("next") or request.POST.get("next", "")
+
+    if request.method == "GET":
+        form = EmailOTPVerifyForm(initial={"email": email})
+        return render(
+            request, 
+            "accounts/email_otp_verify.html", 
+            {"form": form, "email": email, "purpose": purpose, "next": next_url}
+        )
+
+    data = _json_body(request) or request.POST.dict()
+    form = EmailOTPVerifyForm(data)
+    if not form.is_valid():
+        return render(
+            request, 
+            "accounts/email_otp_verify.html", 
+            {"form": form, "email": email, "purpose": purpose, "next": next_url}, 
+            status=400
+        )
+
+    otp_code = form.cleaned_data["otp_code"]
+
+    try:
+        verify_email_otp(email=email, otp_code=otp_code, purpose=purpose)
+    except Exception as exc:
+        form.add_error("otp_code", str(exc))
+        return render(
+            request, 
+            "accounts/email_otp_verify.html", 
+            {"form": form, "email": email, "purpose": purpose, "next": next_url}, 
+            status=400
+        )
+
+    #perform action based on purpose
+    if purpose == OTPPurpose.SIGNUP:
+        pending_data = request.session.pop("pending_wholesaler_registration", None)
+        if not pending_data:
+            form.add_error(None, "Registration session expired. Please start over.")
+            return render(
+                request, 
+                "accounts/email_otp_verify.html", 
+                {"form": form, "email": email, "purpose": purpose, "next": next_url}, 
+                status=400
+            )
+
+        referrer = request.session.pop("wholesaler_referrer", "Direct")
+        try:
+            wholesaler = register_wholesaler(
+                email=pending_data["email"],
+                name=pending_data["name"],
+                company_name=pending_data["company_name"],
+                phone_number=pending_data["phone_number"],
+                place=pending_data["place"],
+                referrer_page=referrer,
+            )
+            login(request, wholesaler.user, backend="django.contrib.auth.backends.ModelBackend")
+            #set session variable to trigger popup notification modal on page load
+            request.session["show_wholesaler_approval_modal"] = True
+        except Exception as exc:
+            form.add_error(None, f"Error saving account: {str(exc)}")
+            return render(
+                request, 
+                "accounts/email_otp_verify.html", 
+                {"form": form, "email": email, "purpose": purpose, "next": next_url}, 
+                status=400
+            )
+        return redirect("accounts:dashboard")
+
+    else:  #OTPPurpose.LOGIN
+        #find if user has a Wholesaler profile or Customer profile
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.filter(email=email).first()
+
+        if user and hasattr(user, "wholesaler_profile"):
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+        else:
+            name = request.session.pop("pending_customer_name", "")
+            profile = login_or_create_customer_by_email(email=email, name=name)
+            login(request, profile.user, backend="django.contrib.auth.backends.ModelBackend")
+
+        if next_url:
+            from django.utils.http import url_has_allowed_host_and_scheme
+            if url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}):
+                return redirect(next_url)
+        return redirect("accounts:dashboard")

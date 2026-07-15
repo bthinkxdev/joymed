@@ -17,8 +17,17 @@ def send_sms(*, phone: str, message: str) -> None:
 
 
 def send_email(*, email: str, subject: str, message: str) -> None:
-    """Dispatch an email — provider-agnostic stub that logs the payload."""
+    """Dispatch an email via Django's configured backend (console in dev, SMTP in production)."""
+    from django.core.mail import send_mail
+    from django.conf import settings
     logger.info("Email to %s [%s]: %s", email, subject, message)
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[email],
+        fail_silently=False,
+    )
 
 
 def send_whatsapp(*, phone: str, message: str) -> None:

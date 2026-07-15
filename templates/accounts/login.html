@@ -26,8 +26,9 @@
           <button type="submit" class="btn btn-floward w-100 mb-3">{% trans "Sign in" %}</button>
         </form>
         <p class="small text-muted mb-0 text-center">
-          {% trans "Don't have an account?" %}
-          <a href="{% url 'accounts:register' %}">{% trans "Register" %}</a>
+          {% trans "Don't have an account as a wholesaler?" %}
+          <a href="{% url 'accounts:wholesaler-register' %}" class="fw-semibold text-decoration-none text-floward">{%
+            trans "Register" %}</a>
         </p>
       </div>
     </div>

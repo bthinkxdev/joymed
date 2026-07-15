@@ -135,3 +135,71 @@ class SubscriptionCreateForm(forms.Form):
             self.fields["delivery_address_id"].queryset = Address.objects.filter(
                 customer_profile=customer_profile
             )
+
+
+class WholesalerRegistrationForm(forms.Form):
+    """Passwordless Wholesaler registration form."""
+
+    email = forms.EmailField(
+        label="Work Email",
+        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "name@company.com"}),
+    )
+    name = forms.CharField(
+        max_length=150,
+        label="Contact Name",
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "John Doe"}),
+    )
+    company_name = forms.CharField(
+        max_length=200,
+        label="Company Name",
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Acme Corp"}),
+    )
+    phone_number = forms.CharField(
+        max_length=20,
+        label="Phone Number",
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "+1234567890"}),
+    )
+    place = forms.CharField(
+        max_length=255,
+        label="Place",
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "New York, USA"}),
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("A user with this email address already exists.")
+        return email
+
+
+class EmailOTPRequestForm(forms.Form):
+    """Form to request an OTP for email-based login/signup."""
+
+    name = forms.CharField(
+        max_length=150,
+        label="Full name",
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "John Doe"}),
+    )
+    email = forms.EmailField(
+        label="Email address",
+        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "you@example.com"}),
+    )
+
+
+class EmailOTPVerifyForm(forms.Form):
+    """Form to verify an email OTP code."""
+
+    email = forms.EmailField(widget=forms.HiddenInput())
+    otp_code = forms.CharField(
+        max_length=4,
+        min_length=4,
+        label="4-Digit OTP Code",
+        widget=forms.TextInput(attrs={
+            "class": "form-control text-center fs-2 letter-spacing-lg",
+            "placeholder": "• • • •",
+            "autocomplete": "one-time-code",
+            "maxlength": "4",
+        }),
+    )

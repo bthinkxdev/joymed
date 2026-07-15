@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "My Account" %} | Floward{% endblock %}
+{% block title %}{% trans "My Account" %} | Joymed{% endblock %}
 
 {% block content %}
 <div class="container page-container py-4">
@@ -12,12 +12,28 @@
   {% else %}
   <div class="row g-4">
     <div class="col-md-4">
-      <div class="card p-3">
-        <h2 class="h6 mb-3">{% trans "Profile" %}</h2>
-        <p class="small mb-1"><strong>{% trans "Email" %}:</strong> {{ request.user.email }}</p>
-        <p class="small mb-0"><strong>{% trans "Phone" %}:</strong> {{ dashboard.profile.phone|default:"—" }}</p>
+      <div class="card p-4 rounded-3 border-0 shadow-sm bg-white">
+        {% if wholesaler %}
+          <h2 class="h5 fw-bold text-dark mb-3">{% trans "Wholesaler Profile" %}</h2>
+          <div class="mb-3">
+            <span class="badge {% if wholesaler.approval_status == 'approved' %}bg-success{% elif wholesaler.approval_status == 'rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+              {{ wholesaler.approval_status_display }}
+            </span>
+          </div>
+          <p class="small mb-1"><strong>{% trans "Name" %}:</strong> {{ request.user.get_full_name|default:"—" }}</p>
+          <p class="small mb-1"><strong>{% trans "Company" %}:</strong> {{ wholesaler.company_name }}</p>
+          <p class="small mb-1"><strong>{% trans "Email" %}:</strong> {{ request.user.email }}</p>
+          <p class="small mb-1"><strong>{% trans "Phone" %}:</strong> {{ wholesaler.phone_number }}</p>
+          <p class="small mb-0"><strong>{% trans "Place" %}:</strong> {{ wholesaler.place }}</p>
+        {% else %}
+          <h2 class="h6 mb-3">{% trans "Profile" %}</h2>
+          <p class="small mb-1"><strong>{% trans "Name" %}:</strong> {{ request.user.get_full_name|default:"—" }}</p>
+          <p class="small mb-1"><strong>{% trans "Email" %}:</strong> {{ request.user.email }}</p>
+        {% endif %}
       </div>
     </div>
+    
+    {% if not wholesaler %}
     <div class="col-md-8">
       <div class="card p-3 mb-4">
         <h2 class="h6 mb-3">{% trans "Recent orders" %}</h2>
@@ -42,6 +58,31 @@
         <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary btn-sm">{% trans "Logout" %}</a>
       </div>
     </div>
+    {% else %}
+    <div class="col-md-8">
+      <div class="card p-4 rounded-3 border-0 shadow-sm bg-white mb-4">
+        <h2 class="h5 fw-bold text-dark mb-3">{% trans "Wholesale Dashboard" %}</h2>
+        {% if wholesaler.approval_status == 'pending' %}
+          <div class="alert alert-warning border-0 rounded-3 py-3 px-4 mb-0">
+            <h6 class="fw-bold mb-1 text-dark">{% trans "Under Review" %}</h6>
+            <p class="small mb-0 text-muted">
+              {% trans "Your wholesaler application is currently under review by our team. Once approved, you will receive an email containing your generated password, after which you can access full wholesale rates and place orders." %}
+            </p>
+          </div>
+        {% else %}
+          <div class="alert alert-success border-0 rounded-3 py-3 px-4 mb-0">
+            <h6 class="fw-bold mb-1">{% trans "Account Approved" %}</h6>
+            <p class="small mb-0 text-muted">
+              {% trans "Your wholesaler account is approved. You can now purchase items at wholesale prices." %}
+            </p>
+          </div>
+        {% endif %}
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary btn-sm">{% trans "Logout" %}</a>
+      </div>
+    </div>
+    {% endif %}
   </div>
   {% endif %}
 </div>

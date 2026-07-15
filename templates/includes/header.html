@@ -105,20 +105,41 @@
           </span>
         </button>
 
-        <div class="dropdown">
+        {% if user.is_authenticated %}
+        <div class="dropdown d-inline-block">
           <button class="header-icon header-icon--account btn-ghost dropdown-toggle border-0" type="button" data-bs-toggle="dropdown" aria-label="{% trans 'Account' %}">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
-            {% if user.is_authenticated %}
-            <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}">{% trans "My Account" %}</a></li>
+            <li>
+              <a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'accounts:dashboard' %}">
+                {% trans "My Account" %}
+                {% if user.wholesaler_profile %}
+                  <span class="badge {% if user.wholesaler_profile.approval_status == 'approved' %}bg-success{% else %}bg-warning text-dark{% endif %} ms-1 small" style="font-size: 0.7rem;">
+                    {{ user.wholesaler_profile.get_approval_status_display }}
+                  </span>
+                {% endif %}
+              </a>
+            </li>
             <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">{% trans "Logout" %}</a></li>
-            {% else %}
-            <li><a class="dropdown-item" href="{% url 'accounts:login-email' %}">{% trans "Login" %}</a></li>
-            <li><a class="dropdown-item" href="{% url 'accounts:register' %}">{% trans "Register" %}</a></li>
-            {% endif %}
           </ul>
         </div>
+        {% else %}
+        <a class="header-icon border-0 d-flex" href="{% url 'accounts:login-email-otp' %}?next={{ request.get_full_path|urlencode }}" title="{% trans 'Login' %}" aria-label="{% trans 'Login' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+        </a>
+
+        <a href="{% url 'accounts:wholesaler-register' %}" class="btn btn-sm btn-outline-floward d-none d-md-inline-flex align-items-center ms-2 px-3 py-1 fw-bold text-uppercase" style="font-size: 0.7rem; border-radius: 20px; letter-spacing: 0.5px; height: 32px;">
+          {% trans "Wholesaler" %}
+        </a>
+        {% endif %}
       </div>
 
     </div>
@@ -164,3 +185,40 @@
   <p class="text-muted small mb-0">{% trans "Your cart items will appear here." %}</p>
 </div>
 </div>
+
+{% if show_wholesaler_approval_modal %}
+<div class="modal fade" id="wholesalerApprovalModal" tabindex="-1" aria-labelledby="wholesalerApprovalModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-0 bg-light py-3 px-4">
+        <h5 class="modal-title fw-bold text-dark d-flex align-items-center" id="wholesalerApprovalModalLabel">
+          <svg class="text-warning me-2" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          {% trans "Registration Successful" %}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body px-4 py-3">
+        <p class="mb-0 text-muted small">
+          {% trans "Your wholesaler application has been submitted successfully and is currently in a <strong>Pending Approval</strong> state. Our admin team will review your application shortly. A verification confirmation/password setup link will be emailed to you upon approval." %}
+        </p>
+      </div>
+      <div class="modal-footer border-0 px-4 pb-4">
+        <button type="button" class="btn text-white px-4 fw-semibold" style="background-color: #1B4332;" data-bs-dismiss="modal">
+          {% trans "Got it" %}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var modalEl = document.getElementById('wholesalerApprovalModal');
+    if (modalEl) {
+      var modal = new bootstrap.Modal(modalEl);
+      modal.show();
+    }
+  });
+</script>
+{% endif %}

@@ -23,6 +23,7 @@ from accounts.exceptions import (
     OTPMaxAttemptsError,
     OTPMismatchError,
     OTPRateLimitError,
+    OTPVerificationError,
 )
 from accounts.models import (
     Address,
@@ -32,6 +33,8 @@ from accounts.models import (
     OTPPurpose,
     OTPRequest,
     SavedPaymentMethod,
+    Wholesaler,
+    EmailOTPRequest,
 )
 from core.selectors import get_default_currency
 from notifications.services import create_notification
@@ -586,3 +589,197 @@ def notify_admins_corporate_pending(*, corporate_account_id: int) -> None:
             title="New corporate account pending approval",
             body=f"{account.company_name} ({account.trade_license_number}) awaits review.",
         )
+
+
+#helper to generate a cryptographically secure 4-digit OTP code
+def _generate_email_otp_code() -> str:
+    """Return a cryptographically secure 4-digit OTP."""
+    import secrets
+    return f"{secrets.randbelow(10000):04d}"
+
+
+@transaction.atomic
+def request_email_otp(*, email: str, purpose: str) -> EmailOTPRequest:
+    """Create a hashed email OTP request and dispatch it synchronously (single thread)."""
+    from notifications.services import send_email
+
+    normalized_email = email.strip().lower()
+    
+    #rate limit check (using the email address as the key)
+    rate_limit_key = f"accounts:email_otp_rate:{normalized_email}"
+    count = cache.get(rate_limit_key, 0)
+    if count >= OTP_RATE_LIMIT_MAX:
+        raise OTPRateLimitError("Maximum OTP requests exceeded. Please try again later.")
+    
+    try:
+        cache.incr(rate_limit_key)
+    except ValueError:
+        cache.set(rate_limit_key, 1, timeout=OTP_RATE_LIMIT_WINDOW)
+
+    otp_code = _generate_email_otp_code()
+    expires_at = timezone.now() + timedelta(seconds=settings.ACCOUNTS_OTP_EXPIRY_SECONDS)
+
+    otp_request = EmailOTPRequest.objects.create(
+        email=normalized_email,
+        otp_hash=make_password(otp_code),
+        purpose=purpose,
+        expires_at=expires_at,
+    )
+
+    send_email(
+        email=normalized_email,
+        subject="Your Floward Verification Code",
+        message=f"Your verification code is: {otp_code}. It is valid for 5 minutes.",
+    )
+    return otp_request
+
+
+def verify_email_otp(*, email: str, otp_code: str, purpose: str) -> EmailOTPRequest:
+    """Validate an email OTP and mark it as consumed on success."""
+    normalized_email = email.strip().lower()
+    otp_request = (
+        EmailOTPRequest.objects.filter(email=normalized_email, purpose=purpose)
+        .order_by("-created_at")
+        .first()
+    )
+    if otp_request is None:
+        raise OTPVerificationError("No active OTP found for this email and purpose.")
+
+    if otp_request.is_used:
+        raise OTPVerificationError("This OTP has already been used.")
+
+    if timezone.now() > otp_request.expires_at:
+        raise OTPVerificationError("This OTP has expired.")
+
+    max_attempts = settings.ACCOUNTS_OTP_MAX_ATTEMPTS
+    if otp_request.attempt_count >= max_attempts:
+        raise OTPVerificationError("Maximum verification attempts exceeded.")
+
+    if not check_password(otp_code, otp_request.otp_hash):
+        EmailOTPRequest.objects.filter(pk=otp_request.pk).update(
+            attempt_count=otp_request.attempt_count + 1,
+        )
+        otp_request.refresh_from_db()
+        if otp_request.attempt_count >= max_attempts:
+            raise OTPVerificationError("Maximum verification attempts exceeded.")
+        raise OTPVerificationError("The OTP code is incorrect.")
+
+    otp_request.is_used = True
+    otp_request.save(update_fields=["is_used", "updated_at"])
+    return otp_request
+
+
+@transaction.atomic
+def register_wholesaler(
+    *,
+    email: str,
+    name: str,
+    company_name: str,
+    phone_number: str,
+    place: str,
+    referrer_page: str,
+) -> Wholesaler:
+    """Atomically create a User and Wholesaler profile, and send a notification email."""
+    if UserModel.objects.filter(email=email).exists():
+        raise ValueError("Email is already registered.")
+
+    name_parts = name.strip().split(" ", 1)
+    first_name = name_parts[0]
+    last_name = name_parts[1] if len(name_parts) > 1 else ""
+
+    user = UserModel.objects.create_user(
+        username=email,
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+    )
+    user.set_unusable_password()
+    user.save()
+
+    wholesaler = Wholesaler.objects.create(
+        user=user,
+        company_name=company_name,
+        phone_number=phone_number,
+        place=place,
+        approval_status=CorporateApprovalStatus.PENDING,
+        referrer_page=referrer_page,
+    )
+
+    send_wholesaler_registration_admin_email(wholesaler)
+    return wholesaler
+
+
+def send_wholesaler_registration_admin_email(wholesaler: Wholesaler) -> None:
+    """Send a single-threaded SMTP email to the superusers/administrators."""
+    from django.core.mail import send_mail
+    from django.conf import settings
+    
+    recipient_list = list(
+        UserModel.objects.filter(is_superuser=True)
+        .exclude(email="")
+        .values_list("email", flat=True)
+    )
+    if not recipient_list:
+        recipient_list = [settings.DEFAULT_FROM_EMAIL]
+
+    subject = f"New Wholesaler Registered: {wholesaler.company_name}"
+    message = (
+        f"A new wholesaler has registered and verified their email address.\n\n"
+        f"Company Name: {wholesaler.company_name}\n"
+        f"Phone Number: {wholesaler.phone_number}\n"
+        f"Place: {wholesaler.place}\n"
+        f"Contact Email: {wholesaler.user.email}\n\n"
+        f"Please log in to admin dashboard to review and approve this account"
+    )
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=recipient_list,
+        fail_silently=True,
+    )
+
+
+@transaction.atomic
+def login_or_create_customer_by_email(*, email: str, name: str = "") -> CustomerProfile:
+    """Find or create a CustomerProfile after successful OTP email verification."""
+    normalized_email = email.strip().lower()
+    
+    #check if a profile exists
+    profile = CustomerProfile.objects.filter(user__email=normalized_email).select_related("user").first()
+    if profile is not None:
+        if name and not profile.user.first_name and not profile.user.last_name:
+            name_parts = name.strip().split(" ", 1)
+            profile.user.first_name = name_parts[0]
+            profile.user.last_name = name_parts[1] if len(name_parts) > 1 else ""
+            profile.user.save(update_fields=["first_name", "last_name"])
+        return profile
+
+    currency = get_default_currency()
+    if currency is None:
+        raise ValueError("No default currency configured.")
+
+    #get or create User
+    user = UserModel.objects.filter(email=normalized_email).first()
+    if user is None:
+        user = UserModel(username=normalized_email, email=normalized_email)
+        if name:
+            name_parts = name.strip().split(" ", 1)
+            user.first_name = name_parts[0]
+            user.last_name = name_parts[1] if len(name_parts) > 1 else ""
+        user.set_unusable_password()
+        user.save()
+    else:
+        if name and not user.first_name and not user.last_name:
+            name_parts = name.strip().split(" ", 1)
+            user.first_name = name_parts[0]
+            user.last_name = name_parts[1] if len(name_parts) > 1 else ""
+            user.save(update_fields=["first_name", "last_name"])
+
+    #create customerprofile
+    profile, created = CustomerProfile.objects.get_or_create(
+        user=user,
+        defaults={"preferred_currency": currency},
+    )
+    return profile
+
