@@ -133,6 +133,9 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
     if review_count:
         average_rating = sum(r.rating for r in reviews) / review_count
 
+    from core.services import get_site_settings
+    site_settings = get_site_settings()
+
     context = seo_context(
         request=request,
         obj=product,
@@ -145,6 +148,7 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
             "price_data": price_data,
             "delivery_estimate": delivery_estimate,
             "cities": get_active_cities(),
+            "whatsapp_number": site_settings.whatsapp_number,
             "product_json_ld": json.dumps(
                 build_product_json_ld(
                     product=product,
