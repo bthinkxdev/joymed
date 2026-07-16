@@ -636,7 +636,7 @@ def request_email_otp(*, email: str, purpose: str) -> EmailOTPRequest:
 
     send_email(
         email=normalized_email,
-        subject="Your Floward Verification Code",
+        subject="Your Joymed Verification Code",
         message=f"Your verification code is: {otp_code}. It is valid for 5 minutes.",
     )
     return otp_request
