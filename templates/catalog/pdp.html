@@ -53,11 +53,20 @@
       </div>
       {% endif %}
 
-      <div id="purchase-actions" class="d-flex gap-2 mb-3">
+      <div id="purchase-actions" class="d-flex gap-2 mb-3 align-items-center {% if is_in_cart %}d-none{% endif %}">
+        {% if product.is_in_stock %}
+        <div class="qty-stepper d-flex align-items-center border rounded-pill overflow-hidden" style="width: fit-content; height: 38px; background: #fff;">
+          <button class="qty-stepper__btn" type="button" onclick="let inp = document.getElementById('pdp-qty'); if(inp.value > 1) { inp.value = parseInt(inp.value) - 1; document.querySelectorAll('.pdp-qty-input').forEach(i => i.value = inp.value); }" style="padding: 2px 12px; font-size: 16px; border: none; background: transparent; height: 100%;">&minus;</button>
+          <input type="number" id="pdp-qty" class="qty-stepper__value border-0 text-center fw-semibold pdp-qty-input" style="width: 40px; outline: none; background: transparent; margin: 0; text-align: center; height: 100%;" value="1" min="1" readonly>
+          <button class="qty-stepper__btn" type="button" onclick="let inp = document.getElementById('pdp-qty'); inp.value = parseInt(inp.value) + 1; document.querySelectorAll('.pdp-qty-input').forEach(i => i.value = inp.value);" style="padding: 2px 12px; font-size: 16px; border: none; background: transparent; height: 100%;">&plus;</button>
+        </div>
+        {% endif %}
+
         <form id="buy-form" method="post" action="{% url 'cart:add' %}" class="flex-grow-1"
           hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
           {% csrf_token %}
           <input type="hidden" name="product_id" value="{{ product.pk }}">
+          <input type="hidden" name="quantity" class="pdp-qty-input" value="1">
           <button type="submit" class="btn btn-floward w-100 py-2">{% trans "Add to Cart" %}</button>
         </form>
 
@@ -78,10 +87,24 @@
           {% csrf_token %}
           <input type="hidden" name="product_id" value="{{ product.pk }}">
           <button type="submit" class="btn btn-outline-floward px-3" aria-label="{% trans 'Wishlist' %}">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="{% if is_in_wishlist %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           </button>
         </form>
       </div>
+
+      <div id="pdp-view-cart-wrap" class="mb-3 {% if not is_in_cart %}d-none{% endif %} d-flex gap-2 align-items-center">
+        <a href="{% url 'cart:page' %}" class="btn btn-outline-floward flex-grow-1 py-2">
+          {% trans "View Cart" %}
+        </a>
+        <form method="post" action="{% url 'cart:wishlist-toggle' %}">
+          {% csrf_token %}
+          <input type="hidden" name="product_id" value="{{ product.pk }}">
+          <button type="submit" class="btn btn-outline-floward px-3 py-2" aria-label="{% trans 'Wishlist' %}" style="height: 42px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="{% if is_in_wishlist %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </form>
+      </div>
+
       {% if product.supports_gift_customization %}
       <a href="{% url 'gifting:builder' slug=product.slug %}" class="btn btn-outline-floward w-100 mb-3 py-2">
         {% trans "Customize as Gift" %}
@@ -95,12 +118,16 @@
 
   <div class="pdp-sticky-bar">
     <div class="pdp-sticky-price" id="pdp-sticky-price">{% money_label price_data.price display_currency %}</div>
-    <form id="sticky-buy-form" method="post" action="{% url 'cart:add' %}" class="flex-grow-1"
+    <form id="sticky-buy-form" method="post" action="{% url 'cart:add' %}" class="flex-grow-1 {% if is_in_cart %}d-none{% endif %}"
       hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
       {% csrf_token %}
       <input type="hidden" name="product_id" value="{{ product.pk }}">
+      <input type="hidden" name="quantity" class="pdp-qty-input" value="1">
       <button type="submit" class="btn btn-floward w-100">{% trans "Add to Cart" %}</button>
     </form>
+    <div id="pdp-sticky-view-cart-btn" class="flex-grow-1 {% if not is_in_cart %}d-none{% endif %} ms-2">
+      <a href="{% url 'cart:page' %}" class="btn btn-outline-floward w-100">{% trans "View Cart" %}</a>
+    </div>
     {% if product.is_rental and product.show_rental_storefront %}
     <div id="sticky-rent-action" class="flex-grow-1 d-none">
       <a href="https://wa.me/{{ whatsapp_number|default:'+910000000000' }}?text=Hello%2C%20I%20am%20interested%20in%20renting%20the%20product%3A%20{{ product.name|urlencode }}%20(SKU%3A%20{{ product.sku|urlencode }})"
@@ -184,6 +211,24 @@
       buyBtn.addEventListener("change", refreshMode);
       rentBtn.addEventListener("change", refreshMode);
     }
+    document.body.addEventListener('cartItemAdded', function() {
+      const purchaseActions = document.getElementById('purchase-actions');
+      if (purchaseActions) {
+        purchaseActions.classList.add('d-none');
+      }
+      const wrap = document.getElementById('pdp-view-cart-wrap');
+      if (wrap) {
+        wrap.classList.remove('d-none');
+      }
+      const stickyBuyForm = document.getElementById('sticky-buy-form');
+      if (stickyBuyForm) {
+        stickyBuyForm.classList.add('d-none');
+      }
+      const stickyBtn = document.getElementById('pdp-sticky-view-cart-btn');
+      if (stickyBtn) {
+        stickyBtn.classList.remove('d-none');
+      }
+    });
   });
 </script>
 {% endblock %}

@@ -115,9 +115,9 @@
     body.dataset.drawerHydrated = 'true';
   }
 
-  document.body.addEventListener('cartItemAdded', function () {
-    openCartDrawer();
-  });
+  // document.body.addEventListener('cartItemAdded', function () {
+  //   openCartDrawer();
+  // });
 
   var cartOffcanvas = document.getElementById('cartOffcanvas');
   if (cartOffcanvas) {

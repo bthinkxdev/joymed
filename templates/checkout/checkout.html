@@ -14,14 +14,59 @@
 
         <div class="checkout-step">
           <h2>{% trans "Delivery Address" %}</h2>
-          {% for address in addresses %}
-          <div class="form-check mb-2">
-            <input class="form-check-input" type="radio" name="address_id" value="{{ address.pk }}" id="addr-{{ address.pk }}" {% if forloop.first %}checked{% endif %}>
-            <label class="form-check-label small" for="addr-{{ address.pk }}">{{ address.label }} — {{ address.line1 }}, {{ address.city.name }}</label>
+          
+          {% if addresses %}
+            <div class="mb-4">
+              <label class="form-label small fw-bold">{% trans "Choose a saved address:" %}</label>
+              {% for address in addresses %}
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="address_id" value="{{ address.pk }}" id="addr-{{ address.pk }}" {% if forloop.first %}checked{% endif %}>
+                <label class="form-check-label small" for="addr-{{ address.pk }}">{{ address.label }} — {{ address.line1 }}, {{ address.city.name }}</label>
+              </div>
+              {% endfor %}
+            </div>
+            
+            <div class="text-center my-3"><span class="bg-white px-2 small text-muted">{% trans "— OR —" %}</span></div>
+          {% endif %}
+
+          <div id="new-address-form-fields" class="mt-2">
+            <label class="form-label small fw-bold mb-3">{% trans "Enter Delivery Details:" %}</label>
+            
+            {% if not request.user.is_authenticated %}
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label small">{% trans "Full Name" %} <span class="text-danger">*</span></label>
+                <input type="text" name="guest_name" class="form-control form-control-sm">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">{% trans "Email Address" %} <span class="text-danger">*</span></label>
+                <input type="email" name="guest_email" class="form-control form-control-sm">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">{% trans "Phone Number" %} <span class="text-danger">*</span></label>
+              <input type="tel" name="guest_phone" class="form-control form-control-sm">
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label class="form-label small">{% trans "Address Line 1" %} <span class="text-danger">*</span></label>
+              <input type="text" name="guest_address_line1" class="form-control form-control-sm">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">{% trans "Address Line 2 (Optional)" %}</label>
+              <input type="text" name="guest_address_line2" class="form-control form-control-sm">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">{% trans "City" %} <span class="text-danger">*</span></label>
+              <select name="guest_city_id" class="form-select form-select-sm">
+                <option value="">{% trans "Select City" %}</option>
+                {% for city in active_cities %}
+                <option value="{{ city.pk }}">{{ city.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
           </div>
-          {% empty %}
-          <p class="text-muted small mb-0">{% trans "Add an address in your account." %}</p>
-          {% endfor %}
         </div>
 
         <div class="checkout-step">

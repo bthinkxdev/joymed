@@ -197,6 +197,7 @@ def get_wishlist(
     *,
     customer_profile: Optional[CustomerProfile] = None,
     share_token: Optional[str] = None,
+    session_key: Optional[str] = None,
 ) -> Optional[WishlistView]:
     from django.core import signing
 
@@ -229,14 +230,22 @@ def get_wishlist(
             return None
         return WishlistView(wishlist=wishlist, items=list(wishlist.items.all()), readonly=True)
 
-    if customer_profile is None:
+    if customer_profile is None and session_key is None:
         return None
 
-    wishlist = (
-        Wishlist.objects.filter(customer_profile=customer_profile)
-        .prefetch_related(items_prefetch)
-        .first()
-    )
+    if customer_profile:
+        wishlist = (
+            Wishlist.objects.filter(customer_profile=customer_profile)
+            .prefetch_related(items_prefetch)
+            .first()
+        )
+    else:
+        wishlist = (
+            Wishlist.objects.filter(session_key=session_key)
+            .prefetch_related(items_prefetch)
+            .first()
+        )
+
     if wishlist is None:
         return None
     return WishlistView(wishlist=wishlist, items=list(wishlist.items.all()), readonly=False)

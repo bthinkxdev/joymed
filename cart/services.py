@@ -41,6 +41,8 @@ def get_or_create_cart(*, request: HttpRequest) -> Cart:
 
     existing = get_cart_for_request(request=request)
     if existing:
+        if not request.user.is_authenticated:
+            request.session["guest_cart_id"] = existing.pk
         return existing
 
     currency = get_default_currency()
@@ -52,10 +54,12 @@ def get_or_create_cart(*, request: HttpRequest) -> Cart:
             customer_profile=request.user.customer_profile,
             currency=currency,
         )
-    return Cart.objects.create(
+    cart = Cart.objects.create(
         session_key=request.session.session_key,
         currency=currency,
     )
+    request.session["guest_cart_id"] = cart.pk
+    return cart
 
 
 @transaction.atomic
@@ -142,8 +146,7 @@ def adjust_cart_item_quantity(
 
     new_quantity = item.quantity + delta
     if new_quantity < 1:
-        item.delete()
-        return None
+        new_quantity = 1
 
     item.quantity = new_quantity
     item.save(update_fields=["quantity", "updated_at"])
@@ -207,9 +210,74 @@ def toggle_wishlist(*, request: HttpRequest, product_id: int) -> bool:
     from accounts.models import WishlistItem
 
     wishlist = get_or_create_wishlist(request=request)
+    if not request.user.is_authenticated:
+        request.session["guest_wishlist_id"] = wishlist.pk
     exists = WishlistItem.objects.filter(wishlist=wishlist, product_id=product_id).exists()
     if exists:
         remove_from_wishlist(wishlist=wishlist, product_id=product_id)
         return False
     add_to_wishlist(wishlist=wishlist, product_id=product_id)
     return True
+
+
+@transaction.atomic
+def merge_carts(*, guest_cart: Cart, user_profile) -> None:
+    """Merge the guest cart items into the user's profile cart."""
+    user_cart = Cart.objects.filter(customer_profile=user_profile).first()
+    if not user_cart:
+        #if user has no cart, re-assign the guest cart to user
+        guest_cart.customer_profile = user_profile
+        guest_cart.session_key = None
+        guest_cart.save(update_fields=["customer_profile", "session_key", "updated_at"])
+        return
+
+    if guest_cart.pk == user_cart.pk:
+        return
+
+    #user already has a cart, merge items from guest cart to user cart
+    for item in guest_cart.items.all():
+        if item.gift_customization_snapshot:
+            #reassign customized items
+            item.cart = user_cart
+            item.save(update_fields=["cart", "updated_at"])
+        else:
+            #merge plain items
+            user_item = user_cart.items.filter(
+                product=item.product,
+                variant=item.variant,
+                gift_customization_snapshot__isnull=True
+            ).first()
+            if user_item:
+                user_item.quantity += item.quantity
+                user_item.save(update_fields=["quantity", "updated_at"])
+                item.delete()
+            else:
+                item.cart = user_cart
+                item.save(update_fields=["cart", "updated_at"])
+
+    guest_cart.delete()
+
+
+@transaction.atomic
+def merge_wishlists(*, guest_wishlist, user_profile) -> None:
+    """Merge guest wishlist items into the user's profile wishlist."""
+    from accounts.models import Wishlist
+    user_wishlist = Wishlist.objects.filter(customer_profile=user_profile).first()
+    if not user_wishlist:
+        guest_wishlist.customer_profile = user_profile
+        guest_wishlist.session_key = None
+        guest_wishlist.save(update_fields=["customer_profile", "session_key", "updated_at"])
+        return
+
+    if guest_wishlist.pk == user_wishlist.pk:
+        return
+
+    for item in guest_wishlist.items.all():
+        exists = user_wishlist.items.filter(product=item.product).exists()
+        if exists:
+            item.delete()
+        else:
+            item.wishlist = user_wishlist
+            item.save(update_fields=["wishlist", "updated_at"])
+
+    guest_wishlist.delete()

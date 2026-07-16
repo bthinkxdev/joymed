@@ -193,7 +193,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LOGIN_URL = "/accounts/login/email/"
+LOGIN_URL = "/accounts/login/email-otp/"
 LOGIN_REDIRECT_URL = "/accounts/dashboard/"
 
 GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")

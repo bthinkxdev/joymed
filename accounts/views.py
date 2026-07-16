@@ -630,10 +630,9 @@ def wishlist_add_view(request: HttpRequest) -> HttpResponse:
     add_to_wishlist(wishlist=wishlist, product_id=product_id)
     return JsonResponse({"status": "added"})
 
-@login_required
 @require_POST
 def wishlist_remove_view(request: HttpRequest) -> HttpResponse:
-    """Remove a product from the authenticated customer's wishlist."""
+    """Remove a product from the customer's wishlist (guest or authenticated)."""
     from accounts.subscription_services import get_or_create_wishlist, remove_from_wishlist
 
     product_id = int(request.POST.get("product_id", 0))
@@ -649,12 +648,18 @@ def wishlist_shared_mutate_view(request: HttpRequest) -> HttpResponse:
         return JsonResponse({"error": "Shared wishlists are read-only."}, status=403)
     return JsonResponse({"error": "Authentication required."}, status=401)
 
-@login_required
 @require_GET
 def wishlist_view(request: HttpRequest) -> HttpResponse:
-    """Render the authenticated customer's wishlist page."""
-    profile = request.user.customer_profile
-    view = get_wishlist(customer_profile=profile)
+    """Render the customer's wishlist page (guest or authenticated)."""
+    if request.user.is_authenticated and hasattr(request.user, "customer_profile"):
+        profile = request.user.customer_profile
+        view = get_wishlist(customer_profile=profile)
+    else:
+        session_key = request.session.session_key
+        view = get_wishlist(session_key=session_key) if session_key else None
+        if view and view.wishlist:
+            request.session["guest_wishlist_id"] = view.wishlist.pk
+
     if view is None:
         return render(request, "accounts/wishlist.html", {"items": []})
     return render(request, "accounts/wishlist.html", {"wishlist": view.wishlist, "items": view.items})

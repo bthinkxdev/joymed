@@ -145,7 +145,11 @@ def cart_page_remove_view(request: HttpRequest) -> HttpResponse:
 def cart_quantity_view(request: HttpRequest) -> HttpResponse:
     """Increment/decrement a cart line's quantity (+1/-1); deletes at zero."""
     form = CartQuantityForm(request.POST)
+    is_drawer = request.headers.get("HX-Target") == "cart-drawer-body"
+
     if not form.is_valid():
+        if is_drawer:
+            return _cart_drawer_response(request, hx_triggers={"cartUpdated": None})
         return _cart_page_response(request, error=_("Could not update quantity."))
 
     cart = get_cart_for_request(request=request)
@@ -159,8 +163,12 @@ def cart_quantity_view(request: HttpRequest) -> HttpResponse:
             delta=form.cleaned_data["delta"],
         )
     except CartItemNotFoundError:
+        if is_drawer:
+            return _cart_drawer_response(request, hx_triggers={"cartUpdated": None})
         return _cart_page_response(request, error=_("That item is no longer in your cart."))
 
+    if is_drawer:
+        return _cart_drawer_response(request, hx_triggers={"cartUpdated": None})
     return _cart_page_response(request, hx_triggers={"cartUpdated": None})
 
 

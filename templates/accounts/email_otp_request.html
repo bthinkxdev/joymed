@@ -46,12 +46,20 @@
           </button>
         </form>
 
-        <p class="small text-muted mb-0 text-center">
-          {% trans "Are you a wholesaler?" %}
-          <a href="{% url 'accounts:wholesaler-register' %}" class="fw-semibold text-decoration-none text-floward">
-            {% trans "Register here" %}
-          </a>
-        </p>
+        <div class="text-center">
+          <p class="small text-muted mb-1">
+            {% trans "Are you a wholesaler?" %}
+            <a href="{% url 'accounts:wholesaler-register' %}" class="fw-semibold text-decoration-none text-floward">
+              {% trans "Register" %}
+            </a>
+          </p>
+          <p class="small text-muted mb-0">
+            {% trans "Already registered as a wholesaler?" %}
+            <a href="{% url 'accounts:login-email' %}" class="fw-semibold text-decoration-none text-floward">
+              {% trans "Login" %}
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   </div>

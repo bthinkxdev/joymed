@@ -139,6 +139,16 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
     from core.services import get_site_settings
     site_settings = get_site_settings()
 
+    from cart.selectors import get_cart_for_request
+    from cart.models import CartItem
+    cart = get_cart_for_request(request=request)
+    is_in_cart = CartItem.objects.filter(cart=cart, product=product).exists() if cart else False
+
+    from accounts.subscription_services import get_or_create_wishlist
+    from accounts.models import WishlistItem
+    wishlist = get_or_create_wishlist(request=request)
+    is_in_wishlist = WishlistItem.objects.filter(wishlist=wishlist, product_id=product.pk).exists()
+
     context = seo_context(
         request=request,
         obj=product,
@@ -152,6 +162,8 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
             "delivery_estimate": delivery_estimate,
             "cities": get_active_cities(),
             "whatsapp_number": site_settings.whatsapp_number,
+            "is_in_cart": is_in_cart,
+            "is_in_wishlist": is_in_wishlist,
             "product_json_ld": json.dumps(
                 build_product_json_ld(
                     product=product,

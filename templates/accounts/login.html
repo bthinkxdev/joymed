@@ -28,10 +28,16 @@
           </div>
           <button type="submit" class="btn btn-floward w-100 mb-3">{% trans "Sign in" %}</button>
         </form>
-        <p class="small text-muted mb-0 text-center">
-          {% trans "Don't have an account as a wholesaler?" %}
-          <a href="{% url 'accounts:wholesaler-register' %}" class="fw-semibold text-decoration-none text-floward">{% trans "Register" %}</a>
-        </p>
+        <div class="text-center">
+          <p class="small text-muted mb-1">
+            {% trans "Don't have an account as a wholesaler?" %}
+            <a href="{% url 'accounts:wholesaler-register' %}" class="fw-semibold text-decoration-none text-floward">{% trans "Register" %}</a>
+          </p>
+          <p class="small text-muted mb-0">
+            {% trans "Looking for retail customer login?" %}
+            <a href="{% url 'accounts:login-email-otp' %}" class="fw-semibold text-decoration-none text-floward">{% trans "Login" %}</a>
+          </p>
+        </div>
       </div>
     </div>
   </div>
