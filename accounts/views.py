@@ -31,6 +31,8 @@ from accounts.forms import (
     WholesalerRegistrationForm,
     EmailOTPRequestForm,
     EmailOTPVerifyForm,
+    ForgotPasswordEmailForm,
+    ResetPasswordEmailForm,
 )
 from accounts.models import CustomerProfile, OTPPurpose
 from accounts.selectors import (
@@ -289,39 +291,102 @@ def guest_checkout_view(request: HttpRequest) -> HttpResponse:
     return _success_response({"guest_token": token})
 
 
-@require_POST
+@require_http_methods(["GET", "POST"])
 def forgot_password_view(request: HttpRequest) -> HttpResponse:
-    """Send a password-reset OTP to the customer's phone."""
-    data = _json_body(request) or request.POST.dict()
-    form = ForgotPasswordForm(data)
-    if not form.is_valid():
-        return _error_response(str(form.errors), code="validation_error")
-    try:
-        request_otp(phone=form.cleaned_data["phone"], purpose=OTPPurpose.PASSWORD_RESET)
-    except OTPRateLimitError as exc:
-        return _error_response(str(exc), code="rate_limited", status=429)
-    return _success_response({"message": "OTP sent if the phone is registered."})
+    """Send a password-reset OTP to customer's phone (API) or handle single-page email flow (web)."""
+    if _wants_json(request):
+        if request.method != "POST":
+            return _error_response("Method not allowed", status=405)
+        data = _json_body(request) or request.POST.dict()
+        form = ForgotPasswordForm(data)
+        if not form.is_valid():
+            return _error_response(str(form.errors), code="validation_error")
+        try:
+            request_otp(phone=form.cleaned_data["phone"], purpose=OTPPurpose.PASSWORD_RESET)
+        except OTPRateLimitError as exc:
+            return _error_response(str(exc), code="rate_limited", status=429)
+        return _success_response({"message": "OTP sent if the phone is registered."})
+
+    #ui flow
+    if request.method == "GET":
+        return render(request, "accounts/forgot_password.html", {"form": ForgotPasswordEmailForm(), "step": 1})
+
+    #POST flow
+    step = request.POST.get("step")
+    if step == "1":
+        form = ForgotPasswordEmailForm(request.POST)
+        if not form.is_valid():
+            return render(request, "accounts/forgot_password.html", {"form": form, "step": 1}, status=400)
+        
+        email = form.cleaned_data["email"]
+        try:
+            request_email_otp(email=email, purpose=OTPPurpose.PASSWORD_RESET)
+        except Exception as exc:
+            form.add_error(None, f"Error generating OTP: {str(exc)}")
+            return render(request, "accounts/forgot_password.html", {"form": form, "step": 1}, status=400)
+        
+        #transition to Step 2
+        reset_form = ResetPasswordEmailForm(initial={"email": email})
+        return render(request, "accounts/forgot_password.html", {"form": reset_form, "step": 2, "email": email})
+
+    elif step == "2":
+        form = ResetPasswordEmailForm(request.POST)
+        email = request.POST.get("email", "")
+        if not form.is_valid():
+            return render(request, "accounts/forgot_password.html", {"form": form, "step": 2, "email": email}, status=400)
+        
+        otp_code = form.cleaned_data["otp_code"]
+        new_password = form.cleaned_data["new_password"]
+        
+        try:
+            verify_email_otp(email=email, otp_code=otp_code, purpose=OTPPurpose.PASSWORD_RESET)
+        except Exception as exc:
+            form.add_error("otp_code", str(exc))
+            return render(request, "accounts/forgot_password.html", {"form": form, "step": 2, "email": email}, status=400)
+        
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.filter(email=email).first()
+        if not user:
+            form.add_error(None, "User not found.")
+            return render(request, "accounts/forgot_password.html", {"form": form, "step": 2, "email": email}, status=400)
+        
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+        
+        #log the user in
+        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+        return redirect("accounts:dashboard")
+    
+    #fallback if step is missing or invalid
+    return redirect("accounts:forgot-password")
 
 
-@require_POST
+@require_http_methods(["GET", "POST"])
 def reset_password_view(request: HttpRequest) -> HttpResponse:
-    """Reset password after OTP verification."""
-    data = _json_body(request) or request.POST.dict()
-    form = ResetPasswordForm(data)
-    if not form.is_valid():
-        return _error_response(str(form.errors), code="validation_error")
-    try:
-        user = reset_password_with_otp(
-            phone=form.cleaned_data["phone"],
-            otp_code=form.cleaned_data["otp_code"],
-            new_password=form.cleaned_data["new_password"],
-        )
-    except OTPVerificationError as exc:
-        return _error_response(str(exc), code=exc.__class__.__name__, status=400)
-    except CustomerProfile.DoesNotExist:
-        return _error_response("Customer profile not found.", status=404)
-    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-    return _success_response({"user_id": user.pk})
+    """Redirect web users to single-page forgot_password_view, or support phone API."""
+    if _wants_json(request):
+        if request.method != "POST":
+            return _error_response("Method not allowed", status=405)
+        data = _json_body(request) or request.POST.dict()
+        form = ResetPasswordForm(data)
+        if not form.is_valid():
+            return _error_response(str(form.errors), code="validation_error")
+        try:
+            user = reset_password_with_otp(
+                phone=form.cleaned_data["phone"],
+                otp_code=form.cleaned_data["otp_code"],
+                new_password=form.cleaned_data["new_password"],
+            )
+        except OTPVerificationError as exc:
+            return _error_response(str(exc), code=exc.__class__.__name__, status=400)
+        except CustomerProfile.DoesNotExist:
+            return _error_response("Customer profile not found.", status=404)
+        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+        return _success_response({"user_id": user.pk})
+
+    return redirect("accounts:forgot-password")
+
 
 
 @login_required

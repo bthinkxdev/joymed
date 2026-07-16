@@ -93,6 +93,59 @@ class ResetPasswordForm(forms.Form):
     new_password = forms.CharField(widget=forms.PasswordInput, min_length=8, label="New password")
 
 
+class ForgotPasswordEmailForm(forms.Form):
+    """Form to initiate password reset via email OTP."""
+
+    email = forms.EmailField(
+        label="Email address",
+        widget=forms.EmailInput(attrs={"class": "form-control"}),
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        if not User.objects.filter(email=email).exists():
+            raise forms.ValidationError("No account is registered with this email address.")
+        return email
+
+
+class ResetPasswordEmailForm(forms.Form):
+    """Form to reset password after email OTP verification."""
+
+    email = forms.EmailField(widget=forms.HiddenInput())
+    otp_code = forms.CharField(
+        max_length=4,
+        min_length=4,
+        label="4-Digit OTP Code",
+        widget=forms.TextInput(attrs={
+            "class": "form-control text-center fs-2 letter-spacing-lg",
+            "placeholder": "• • • •",
+            "autocomplete": "one-time-code",
+            "maxlength": "4",
+        }),
+    )
+    new_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "New Password"}),
+        min_length=8,
+        label="New Password",
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Confirm Password"}),
+        min_length=8,
+        label="Confirm Password",
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get("new_password")
+        confirm_password = cleaned_data.get("confirm_password")
+        if new_password and confirm_password and new_password != confirm_password:
+            self.add_error("confirm_password", "Passwords do not match.")
+        return cleaned_data
+
+
+
 class AddressForm(forms.ModelForm):
     """Create or update a customer delivery address."""
 
@@ -207,4 +260,4 @@ class EmailOTPVerifyForm(forms.Form):
             "autocomplete": "one-time-code",
             "maxlength": "4",
         }),
-    )
+    )
