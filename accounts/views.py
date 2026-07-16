@@ -337,7 +337,8 @@ def dashboard_view(request: HttpRequest) -> HttpResponse:
             "is_wholesaler": True,
             "company_name": wholesaler.company_name,
             "phone_number": wholesaler.phone_number,
-            "place": wholesaler.place,
+            "gst": wholesaler.gst,
+            "address": wholesaler.address,
             "approval_status": wholesaler.approval_status,
             "approval_status_display": wholesaler.get_approval_status_display(),
         }
@@ -804,7 +805,8 @@ def email_otp_verify_view(request: HttpRequest) -> HttpResponse:
                 name=pending_data["name"],
                 company_name=pending_data["company_name"],
                 phone_number=pending_data["phone_number"],
-                place=pending_data["place"],
+                gst=pending_data["gst"],
+                address=pending_data["address"],
                 referrer_page=referrer,
             )
             login(request, wholesaler.user, backend="django.contrib.auth.backends.ModelBackend")

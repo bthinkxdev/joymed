@@ -159,10 +159,15 @@ class WholesalerRegistrationForm(forms.Form):
         label="Phone Number",
         widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "+1234567890"}),
     )
-    place = forms.CharField(
+    gst = forms.CharField(
+        max_length=50,
+        label="GST Number",
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "GST Number"}),
+    )
+    address = forms.CharField(
         max_length=255,
-        label="Place",
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "New York, USA"}),
+        label="Address",
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "123 Main St, City, Country"}),
     )
 
     def clean_email(self):

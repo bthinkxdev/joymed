@@ -170,9 +170,9 @@ class WholesalerForm(forms.ModelForm):
 
     class Meta:
         model = Wholesaler
-        fields = ["company_name", "phone_number", "place", "approval_status"]
+        fields = ["company_name", "phone_number", "gst", "address", "approval_status"]
 
-    field_order = ["name", "company_name", "email", "phone_number", "place", "approval_status"]
+    field_order = ["name", "company_name", "email", "phone_number", "gst", "address", "approval_status"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

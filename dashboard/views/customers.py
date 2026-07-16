@@ -134,7 +134,8 @@ class WholesalerListView(DashboardListView):
         {"label": "Company Name", "name": "company_name"},
         {"label": "Email", "name": "user.email"},
         {"label": "Phone", "name": "phone_number"},
-        {"label": "Place", "name": "place"},
+        {"label": "GST", "name": "gst"},
+        {"label": "Address", "name": "address"},
         {"label": "Status", "name": "get_approval_status_display", "type": "badge"},
     ]
 

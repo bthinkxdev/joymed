@@ -550,12 +550,19 @@ class Wholesaler(TimeStampedModel):
         verbose_name="Phone number",
         help_text="Contact phone number of the wholesaler.",
     )
-    place = models.CharField(
+    gst = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        verbose_name="GST",
+        help_text="GST number of the wholesaler.",
+    )
+    address = models.CharField(
         max_length=255,
         blank=True,
         default="",
-        verbose_name="Place",
-        help_text="Location or city of the wholesaler.",
+        verbose_name="Address",
+        help_text="Address of the wholesaler.",
     )
     approval_status = models.CharField(
         max_length=20,

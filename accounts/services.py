@@ -684,7 +684,8 @@ def register_wholesaler(
     name: str,
     company_name: str,
     phone_number: str,
-    place: str,
+    gst: str,
+    address: str,
     referrer_page: str,
 ) -> Wholesaler:
     """Atomically create a User and Wholesaler profile, and send a notification email."""
@@ -708,7 +709,8 @@ def register_wholesaler(
         user=user,
         company_name=company_name,
         phone_number=phone_number,
-        place=place,
+        gst=gst,
+        address=address,
         approval_status=CorporateApprovalStatus.PENDING,
         referrer_page=referrer_page,
     )
@@ -738,7 +740,8 @@ def send_wholesaler_registration_admin_email(wholesaler: Wholesaler) -> None:
         f"A new wholesaler has registered and verified their email address.\n\n"
         f"Company Name: {wholesaler.company_name}\n"
         f"Phone Number: {wholesaler.phone_number}\n"
-        f"Place: {wholesaler.place}\n"
+        f"GST Number: {wholesaler.gst}\n"
+        f"Address: {wholesaler.address}\n"
         f"Contact Email: {wholesaler.user.email}\n\n"
         f"Please log in to admin dashboard to review and approve this account"
     )

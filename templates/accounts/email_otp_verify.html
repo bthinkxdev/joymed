@@ -288,7 +288,8 @@
         var pendingName = "{{ request.session.pending_wholesaler_registration.name|escapejs }}";
         var pendingCompany = "{{ request.session.pending_wholesaler_registration.company_name|escapejs }}";
         var pendingPhone = "{{ request.session.pending_wholesaler_registration.phone_number|escapejs }}";
-        var pendingPlace = "{{ request.session.pending_wholesaler_registration.place|escapejs }}";
+        var pendingGst = "{{ request.session.pending_wholesaler_registration.gst|escapejs }}";
+        var pendingAddress = "{{ request.session.pending_wholesaler_registration.address|escapejs }}";
         
         var nameInput = document.createElement('input');
         nameInput.type = 'hidden';
@@ -308,11 +309,17 @@
         phoneInput.value = pendingPhone;
         form.appendChild(phoneInput);
 
-        var placeInput = document.createElement('input');
-        placeInput.type = 'hidden';
-        placeInput.name = 'place';
-        placeInput.value = pendingPlace;
-        form.appendChild(placeInput);
+        var gstInput = document.createElement('input');
+        gstInput.type = 'hidden';
+        gstInput.name = 'gst';
+        gstInput.value = pendingGst;
+        form.appendChild(gstInput);
+
+        var addressInput = document.createElement('input');
+        addressInput.type = 'hidden';
+        addressInput.name = 'address';
+        addressInput.value = pendingAddress;
+        form.appendChild(addressInput);
       } else {
         var pendingName = "{{ request.session.pending_customer_name|escapejs }}";
         var nameInput = document.createElement('input');

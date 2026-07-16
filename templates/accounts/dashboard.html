@@ -24,7 +24,8 @@
           <p class="small mb-1"><strong>{% trans "Company" %}:</strong> {{ wholesaler.company_name }}</p>
           <p class="small mb-1"><strong>{% trans "Email" %}:</strong> {{ request.user.email }}</p>
           <p class="small mb-1"><strong>{% trans "Phone" %}:</strong> {{ wholesaler.phone_number }}</p>
-          <p class="small mb-0"><strong>{% trans "Place" %}:</strong> {{ wholesaler.place }}</p>
+          <p class="small mb-1"><strong>{% trans "GST" %}:</strong> {{ wholesaler.gst }}</p>
+          <p class="small mb-0"><strong>{% trans "Address" %}:</strong> {{ wholesaler.address }}</p>
         {% else %}
           <h2 class="h6 mb-3">{% trans "Profile" %}</h2>
           <p class="small mb-1"><strong>{% trans "Name" %}:</strong> {{ request.user.get_full_name|default:"—" }}</p>
