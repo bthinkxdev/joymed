@@ -245,11 +245,19 @@ def ensure_customer_profile_for_user(*, user: User) -> CustomerProfile:
     """
     profile = getattr(user, "customer_profile", None)
     if profile is not None:
+        if not profile.phone and hasattr(user, "wholesaler_profile"):
+            profile.phone = user.wholesaler_profile.phone_number
+            profile.save(update_fields=["phone"])
         return profile
     currency = get_default_currency()
     if currency is None:
         raise ValueError("No default currency configured.")
-    return CustomerProfile.objects.create(user=user, preferred_currency=currency)
+    
+    phone = ""
+    if hasattr(user, "wholesaler_profile"):
+        phone = user.wholesaler_profile.phone_number
+        
+    return CustomerProfile.objects.create(user=user, preferred_currency=currency, phone=phone)
 
 
 def authenticate_email(*, email: str, password: str) -> Optional[User]:
@@ -704,6 +712,9 @@ def register_wholesaler(
         approval_status=CorporateApprovalStatus.PENDING,
         referrer_page=referrer_page,
     )
+
+    user.wholesaler_profile = wholesaler
+    ensure_customer_profile_for_user(user=user)
 
     send_wholesaler_registration_admin_email(wholesaler)
     return wholesaler

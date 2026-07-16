@@ -5,7 +5,7 @@ from __future__ import annotations
 from django import forms
 from django.utils.text import slugify
 
-from accounts.models import CorporateAccount, CustomerProfile
+from accounts.models import CorporateAccount, CustomerProfile, Wholesaler
 from catalog.models import (
     Brand,
     Category,
@@ -162,6 +162,47 @@ class CorporateAccountForm(forms.ModelForm):
     class Meta:
         model = CorporateAccount
         fields = ["company_name", "trade_license_number", "approval_status"]
+
+
+class WholesalerForm(forms.ModelForm):
+    name = forms.CharField(max_length=150, required=True, label="Contact Name")
+    email = forms.EmailField(required=True, label="Email Address")
+
+    class Meta:
+        model = Wholesaler
+        fields = ["company_name", "phone_number", "place", "approval_status"]
+
+    field_order = ["name", "company_name", "email", "phone_number", "place", "approval_status"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.user:
+            self.fields["name"].initial = self.instance.user.get_full_name() or self.instance.user.first_name
+            self.fields["email"].initial = self.instance.user.email
+
+    def save(self, commit=True):
+        wholesaler = super().save(commit=False)
+        name = self.cleaned_data.get("name", "").strip()
+        email = self.cleaned_data.get("email", "").strip().lower()
+        if wholesaler.user:
+            if name:
+                name_parts = name.split(" ", 1)
+                wholesaler.user.first_name = name_parts[0]
+                wholesaler.user.last_name = name_parts[1] if len(name_parts) > 1 else ""
+            if email:
+                wholesaler.user.email = email
+                wholesaler.user.username = email
+            wholesaler.user.save()
+
+            if hasattr(wholesaler.user, "customer_profile"):
+                profile = wholesaler.user.customer_profile
+                if profile.phone != wholesaler.phone_number:
+                    profile.phone = wholesaler.phone_number
+                    profile.save(update_fields=["phone"])
+        if commit:
+            wholesaler.save()
+        return wholesaler
+
 
 
 class CouponForm(forms.ModelForm):

@@ -45,7 +45,15 @@
                 {% if value %}<img src="{{ value.url }}" class="avatar avatar-md rounded" alt="" />
                 {% else %}<span class="avatar avatar-md avatar-secondary rounded d-inline-flex"><span class="avatar-initials rounded">–</span></span>{% endif %}
               {% elif col.type == "badge" %}
-                <span class="badge bg-primary-subtle text-primary">{{ value }}</span>
+                {% if value == "Approved" or value == "approved" or value == "Active" or value == "active" or value == "Paid" or value == "paid" or value == "Delivered" or value == "delivered" %}
+                  <span class="badge bg-success-subtle text-success">{{ value }}</span>
+                {% elif value == "Pending" or value == "pending" or value == "Processing" or value == "processing" %}
+                  <span class="badge bg-warning-subtle text-warning">{{ value }}</span>
+                {% elif value == "Rejected" or value == "rejected" or value == "Cancelled" or value == "cancelled" or value == "Failed" or value == "failed" %}
+                  <span class="badge bg-danger-subtle text-danger">{{ value }}</span>
+                {% else %}
+                  <span class="badge bg-primary-subtle text-primary">{{ value }}</span>
+                {% endif %}
               {% elif col.type == "datetime" %}
                 {{ value|date:"M d, Y H:i" }}
               {% else %}

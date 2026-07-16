@@ -54,6 +54,12 @@ urlpatterns = [
     path(
         "corporate/<int:pk>/edit/", customers.CorporateUpdateView.as_view(), name="corporate-update"
     ),
+    path("wholesaler/", customers.WholesalerListView.as_view(), name="wholesaler-list"),
+    path(
+        "wholesaler/<int:pk>/edit/",
+        customers.WholesalerUpdateView.as_view(),
+        name="wholesaler-update",
+    ),
     path("settings/", misc.settings_view, name="settings"),
     path("payment/", misc.payment_list, name="payment-list"),
 ]

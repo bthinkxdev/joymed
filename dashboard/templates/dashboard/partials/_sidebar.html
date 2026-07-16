@@ -67,6 +67,11 @@
         <i class="ti ti-building"></i><span class="nav-text">Corporate</span>
       </a>
     </li>
+    <li>
+      <a class="nav-link {% if nav_section == 'wholesalers' %}active{% endif %}" href="{% url 'dashboard:wholesaler-list' %}">
+        <i class="ti ti-building-store"></i><span class="nav-text">Wholesalers</span>
+      </a>
+    </li>
 
     <li class="px-4 pt-4 pb-2"><small class="nav-text text-secondary text-uppercase">Marketing</small></li>
     <li>

@@ -101,6 +101,27 @@ class CustomerProfile(TimeStampedModel):
     def __str__(self) -> str:
         return self.user.get_full_name() or self.user.email or str(self.pk)
 
+    @property
+    def get_customer_type_label(self) -> str:
+        if hasattr(self.user, "wholesaler_profile"):
+            status = self.user.wholesaler_profile.approval_status
+            company = self.user.wholesaler_profile.company_name
+            if status == "approved":
+                return f"Wholesale ({company})"
+            elif status == "pending":
+                return f"Wholesale ({company} - Pending)"
+            else:
+                return f"Wholesale ({company} - Rejected)"
+        return "Retail"
+
+    @property
+    def get_phone(self) -> str:
+        if self.phone:
+            return self.phone
+        if hasattr(self.user, "wholesaler_profile"):
+            return self.user.wholesaler_profile.phone_number
+        return ""
+
 
 class Address(TimeStampedModel):
     """Saved delivery address belonging to a customer profile."""
