@@ -293,7 +293,7 @@ def guest_checkout_view(request: HttpRequest) -> HttpResponse:
 
 @require_http_methods(["GET", "POST"])
 def forgot_password_view(request: HttpRequest) -> HttpResponse:
-    """Send a password-reset OTP to customer's phone (API) or handle single-page email flow (web)."""
+    """Send a password-reset OTP to customer's phone or handle single-page email flow."""
     if _wants_json(request):
         if request.method != "POST":
             return _error_response("Method not allowed", status=405)
@@ -364,7 +364,7 @@ def forgot_password_view(request: HttpRequest) -> HttpResponse:
 
 @require_http_methods(["GET", "POST"])
 def reset_password_view(request: HttpRequest) -> HttpResponse:
-    """Redirect web users to single-page forgot_password_view, or support phone API."""
+    """Redirect web users to single-page forgot_password_view."""
     if _wants_json(request):
         if request.method != "POST":
             return _error_response("Method not allowed", status=405)

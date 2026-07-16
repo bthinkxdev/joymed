@@ -145,7 +145,6 @@ class ResetPasswordEmailForm(forms.Form):
         return cleaned_data
 
 
-
 class AddressForm(forms.ModelForm):
     """Create or update a customer delivery address."""
 
