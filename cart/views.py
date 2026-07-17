@@ -95,7 +95,7 @@ def cart_count_view(request: HttpRequest) -> HttpResponse:
 
 @require_POST
 def cart_add_view(request: HttpRequest) -> HttpResponse:
-    """Add product to persistent cart and return drawer partial."""
+    """Add product to persistent cart and return drawer partial or redirect to checkout."""
     product_id = int(request.POST.get("product_id", 0))
     quantity = int(request.POST.get("quantity", 1))
     variant_id_raw = request.POST.get("variant_id")
@@ -106,12 +106,29 @@ def cart_add_view(request: HttpRequest) -> HttpResponse:
         raise Http404("Product not found.")
 
     cart = get_or_create_cart(request=request)
-    add_to_cart(
-        cart=cart,
-        product=product,
-        variant=variant,
-        quantity=quantity,
-    )
+
+    buy_now = request.POST.get("buy_now") == "true"
+    
+    #check if the product/variant is already in the cart to avoid incrementing quantity
+    from cart.models import CartItem
+    exists = CartItem.objects.filter(cart=cart, product=product, variant=variant).exists()
+    if not exists:
+        add_to_cart(
+            cart=cart,
+            product=product,
+            variant=variant,
+            quantity=quantity,
+        )
+
+    if buy_now:
+        from django.urls import reverse
+        checkout_url = reverse("checkout:checkout")
+        if request.headers.get("HX-Request"):
+            response = HttpResponse(status=204)
+            response["HX-Redirect"] = checkout_url
+            return response
+        return redirect("checkout:checkout")
+
     return _cart_drawer_response(
         request,
         hx_triggers={"cartItemAdded": None},
