@@ -97,7 +97,12 @@ def get_homepage_product_rails() -> dict[str, list[Product]]:
 def _apply_plp_filters(queryset: QuerySet[Product], filters: dict[str, Any]) -> QuerySet[Product]:
     """Apply PLP filter dict to a base queryset."""
     if category_id := filters.get("category_id"):
-        queryset = queryset.filter(category_id=category_id)
+        from catalog.models import Category
+        category_ids = [category_id]
+        category_ids.extend(
+            Category.objects.filter(parent_id=category_id, is_active=True).values_list("id", flat=True)
+        )
+        queryset = queryset.filter(category_id__in=category_ids)
     if brand_id := filters.get("brand_id"):
         queryset = queryset.filter(brand_id=brand_id)
     if color := filters.get("color"):

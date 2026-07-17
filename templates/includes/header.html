@@ -38,18 +38,30 @@
 
         <div class="collapse navbar-collapse" id="mainNav">
           <ul class="navbar-nav">
-            {% for cat in category_tree %}
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="{% url 'catalog:plp-category' category_slug=cat.slug %}" data-bs-toggle="dropdown">{{ cat.name }}</a>
-              {% if cat.children.all %}
-              <ul class="dropdown-menu">
-                {% for child in cat.children.all %}
-                <li><a class="dropdown-item" href="{% url 'catalog:plp-category' category_slug=child.slug %}">{{ child.name }}</a></li>
+              <a class="nav-link dropdown-toggle" href="#" id="navbarCategoriesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {% trans "Categories" %}
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarCategoriesDropdown">
+                {% for cat in category_tree %}
+                  <li>
+                    <a class="dropdown-item fw-bold text-dark py-2" href="{% url 'catalog:plp-category' category_slug=cat.slug %}">
+                      {{ cat.name }}
+                    </a>
+                  </li>
+                  {% for child in cat.children.all %}
+                    <li>
+                      <a class="dropdown-item ps-4 text-muted py-1" href="{% url 'catalog:plp-category' category_slug=child.slug %}">
+                        {{ child.name }}
+                      </a>
+                    </li>
+                  {% endfor %}
+                  {% if not forloop.last %}
+                    <li><hr class="dropdown-divider my-2"></li>
+                  {% endif %}
                 {% endfor %}
               </ul>
-              {% endif %}
             </li>
-            {% endfor %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'catalog:rental-list' %}">{% trans "Rentals" %}</a>
             </li>

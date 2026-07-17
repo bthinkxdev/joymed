@@ -30,8 +30,18 @@ from delivery.selectors import (
 def _parse_plp_filters(request: HttpRequest) -> dict:
     """Parse shareable PLP filter query params into a selector filter dict."""
     filters: dict = {}
-    if category_id := request.GET.get("category"):
+    
+    category_id = request.GET.get("category")
+    subcategory_id = request.GET.get("subcategory")
+    
+    if subcategory_id:
+        filters["category_id"] = int(subcategory_id)
+        filters["subcategory_id"] = int(subcategory_id)
+        if category_id:
+            filters["parent_category_id"] = int(category_id)
+    elif category_id:
         filters["category_id"] = int(category_id)
+
     if occasion_id := request.GET.get("occasion"):
         filters["occasion_id"] = int(occasion_id)
     if brand_id := request.GET.get("brand"):
@@ -64,26 +74,45 @@ def plp_view(request: HttpRequest, category_slug: str | None = None) -> HttpResp
         category = get_category_by_slug(slug=category_slug)
         if category is None:
             raise Http404("Category not found")
-        filters["category_id"] = category.pk
+        
+        if not filters.get("subcategory_id"):
+            filters["category_id"] = category.pk
+
+    resolved_cat = category
+    if not resolved_cat and (cat_id := filters.get("category_id")):
+        from catalog.models import Category
+        resolved_cat = Category.objects.filter(pk=cat_id, is_active=True).first()
+
+    subcategories = []
+    if resolved_cat:
+        if resolved_cat.parent_id:
+            subcategories = list(resolved_cat.parent.children.filter(is_active=True))
+            filters["subcategory_id"] = resolved_cat.pk
+            filters["parent_category_id"] = resolved_cat.parent_id
+        else:
+            subcategories = list(resolved_cat.children.filter(is_active=True))
+            filters["parent_category_id"] = resolved_cat.pk
 
     sort = request.GET.get("sort", "newest")
     page = int(request.GET.get("page", 1))
     plp_data = get_plp_products(filters=filters, sort=sort, page=page)
     filter_options = get_plp_filter_options()
+    
+    active_cat = resolved_cat if resolved_cat else None
     title = (
-        resolve_meta_title(obj=category, fallback="Shop All Flowers & Gifts")
-        if category
+        resolve_meta_title(obj=active_cat, fallback="Shop All Flowers & Gifts")
+        if active_cat
         else "Shop All Flowers & Gifts"
     )
     description = (
-        f"Browse {category.name} and delivery available in Kerala."
-        if category
+        f"Browse {active_cat.name} and delivery available in Kerala."
+        if active_cat
         else "Browse the medical equipments and delivery available across Kerala."
     )
 
     context = seo_context(
         request=request,
-        obj=category,
+        obj=active_cat,
         title=f"{title} | JOYMED HEALTHCARE",
         description=description,
         canonical_url=build_plp_canonical_url(request=request, category_slug=category_slug),
@@ -95,8 +124,9 @@ def plp_view(request: HttpRequest, category_slug: str | None = None) -> HttpResp
             "sort": sort,
             "categories": filter_options["categories"],
             "brands": filter_options["brands"],
+            "subcategories": subcategories,
             "view_mode": request.COOKIES.get("plp_view", "grid"),
-            "active_category": category,
+            "active_category": active_cat,
         }
     )
 
