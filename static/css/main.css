@@ -265,7 +265,7 @@ img { max-width: 100%; height: auto; display: block; }
   border: 1px solid var(--floward-border);
   border-radius: var(--floward-radius-lg);
   box-shadow: var(--floward-shadow-lg);
-  max-height: 320px;
+  max-height: 480px;
   overflow: auto;
   display: none;
 }
@@ -280,6 +280,55 @@ img { max-width: 100%; height: auto; display: block; }
 .search-suggestions-body:empty {
   display: none;
 }
+
+.search-suggestions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.25rem;
+}
+
+.search-suggestions-section {
+  padding-bottom: 0.25rem;
+}
+
+.search-suggestions-section + .search-suggestions-section {
+  border-top: 1px solid var(--floward-border-light);
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.search-suggestions-header {
+  font-family: var(--font-sans);
+  color: var(--floward-muted) !important;
+}
+
+.search-suggestion-link {
+  transition: background var(--floward-transition), color var(--floward-transition);
+}
+
+.search-suggestion-link:hover,
+.search-suggestion-link.is-active {
+  background: var(--floward-primary-light) !important;
+  color: var(--floward-primary) !important;
+}
+
+.search-suggestion-link:hover .text-dark,
+.search-suggestion-link.is-active .text-dark {
+  color: var(--floward-primary) !important;
+}
+
+.search-suggestion-link:hover .text-muted,
+.search-suggestion-link.is-active .text-muted {
+  color: var(--floward-primary-dark) !important;
+  opacity: 0.85;
+}
+
+.search-suggestion-link:hover svg,
+.search-suggestion-link.is-active svg {
+  color: var(--floward-primary) !important;
+}
+
 
 .search-suggestions-loading {
   display: none;

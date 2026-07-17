@@ -374,20 +374,48 @@ def invalidate_category_tree_cache() -> None:
     cache.delete(CATEGORY_TREE_CACHE_KEY)
 
 
-def get_search_suggestions(*, query: str, limit: int = 8) -> list[Product]:
+def get_search_suggestions(*, query: str, limit: int = 8) -> dict[str, list]:
     """
-    Return product name matches for HTMX live search.
-
-    Query guarantee: exactly 1 SELECT with primary-image prefetch.
+    Return product, brand, category, and equipment type matches for HTMX live search.
     """
     if not query or len(query.strip()) < 2:
-        return []
-    return list(
-        Product.objects.filter(is_active=True, name__icontains=query.strip())
+        return {
+            "products": [],
+            "brands": [],
+            "categories": [],
+            "equipment_types": [],
+        }
+
+    from catalog.models import Brand, Category
+
+    clean_query = query.strip()
+    
+    products = list(
+        Product.objects.filter(is_active=True, name__icontains=clean_query)
         .select_related("category")
         .prefetch_related(_primary_image_prefetch())
         .only(*PLP_CARD_FIELDS)[:limit]
     )
+
+    brands = list(
+        Brand.objects.filter(name__icontains=clean_query)[:5]
+    )
+
+    categories = list(
+        Category.objects.filter(is_active=True, parent__isnull=False, name__icontains=clean_query)[:5]
+    )
+
+    equipment_types = list(
+        Category.objects.filter(is_active=True, parent__isnull=True, name__icontains=clean_query)[:5]
+    )
+
+    return {
+        "products": products,
+        "brands": brands,
+        "categories": categories,
+        "equipment_types": equipment_types,
+    }
+
 
 
 

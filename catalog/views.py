@@ -211,17 +211,34 @@ def search_suggestions_view(request: HttpRequest) -> HttpResponse:
     """HTMX live search suggestions partial."""
     query = request.GET.get("q", "").strip()
     if len(query) < 2:
-        return render(
+        response = render(
             request,
             "catalog/partials/search_suggestions.html",
-            {"products": [], "query": ""},
+            {
+                "products": [],
+                "brands": [],
+                "categories": [],
+                "equipment_types": [],
+                "query": "",
+            },
         )
-    products = get_search_suggestions(query=query)
-    return render(
+        response.content = response.content.strip()
+        return response
+    suggestions = get_search_suggestions(query=query)
+    context = {
+        "products": suggestions.get("products", []),
+        "brands": suggestions.get("brands", []),
+        "categories": suggestions.get("categories", []),
+        "equipment_types": suggestions.get("equipment_types", []),
+        "query": query,
+    }
+    response = render(
         request,
         "catalog/partials/search_suggestions.html",
-        {"products": products, "query": query},
+        context,
     )
+    response.content = response.content.strip()
+    return response
 
 
 @require_GET
