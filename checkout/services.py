@@ -75,7 +75,7 @@ def place_order(
     *,
     checkout_session_id: int,
     idempotency_key: str,
-    customer_profile: CustomerProfile,
+    customer_profile: Optional[CustomerProfile] = None,
 ) -> Order:
     """
     Atomically place an order from a checkout session.
@@ -149,6 +149,7 @@ def place_order(
     if session.address_id:
         addr = session.address
         address_snapshot = {
+            "name": addr.customer_profile.user.get_full_name() if (addr.customer_profile and addr.customer_profile.user) else "",
             "label": addr.label,
             "line1": addr.line1,
             "line2": addr.line2,

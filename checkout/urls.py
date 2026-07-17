@@ -11,4 +11,5 @@ app_name = "checkout"
 urlpatterns = [
     path("", views.checkout_view, name="checkout"),
     path("place-order/", views.checkout_place_order_view, name="place-order"),
+    path("confirmation/<int:order_id>/", views.checkout_confirmation_view, name="confirmation"),
 ]

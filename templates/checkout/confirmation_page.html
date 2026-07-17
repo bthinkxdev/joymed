@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Order Confirmed" %} | JOYMED HEALTHCARE{% endblock %}
+
+{% block content %}
+<div class="container page-container checkout-page py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="checkout-step text-center py-5">
+        <div class="checkout-confirmation__icon mb-4">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--floward-primary)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
+        </div>
+        <h2 class="section-title mb-3">{% trans "Thank you!" %}</h2>
+        <p class="text-muted mb-4">
+          {% blocktrans with number=order.order_number %}Order <strong>{{ number }}</strong> has been confirmed.{% endblocktrans %}
+        </p>
+
+        {% if order.delivery_address_snapshot %}
+        <div class="card text-start shadow-sm border-0 my-4 p-4" style="background-color: #faf9f6; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05) !important;">
+          <div class="text-dark small" style="line-height: 1.6;">
+            {% if order.delivery_address_snapshot.name %}
+              <div class="fw-bold text-dark mb-2" style="font-size: 0.95rem;">{{ order.delivery_address_snapshot.name }}</div>
+            {% endif %}
+            {% if order.delivery_address_snapshot.label %}
+              <div class="fw-semibold mb-1" style="color: var(--floward-primary);">{{ order.delivery_address_snapshot.label }}</div>
+            {% endif %}
+            <div class="mb-1">{{ order.delivery_address_snapshot.line1 }}</div>
+            {% if order.delivery_address_snapshot.line2 %}
+              <div class="mb-1">{{ order.delivery_address_snapshot.line2 }}</div>
+            {% endif %}
+            <div>{{ order.delivery_address_snapshot.city }}</div>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+          <a href="{% url 'orders:tracking' order_id=order.pk %}" class="btn btn-floward">{% trans "Track Order" %}</a>
+          <a href="{% url 'catalog:plp' %}" class="btn btn-outline-floward">{% trans "Continue Shopping" %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

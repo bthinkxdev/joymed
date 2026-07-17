@@ -103,14 +103,12 @@
     </div>
 
     <div class="card mb-3">
-      <div class="card-header bg-transparent px-4 py-3"><h3 class="h5 mb-0">Customer</h3></div>
+      <div class="card-header bg-transparent px-4 py-3"><h3 class="h5 mb-0">Delivery address</h3></div>
       <div class="card-body p-4 small">
-        <p class="mb-1"><strong>{{ order.customer_profile|default:"Guest" }}</strong></p>
-        {% if order.customer_profile %}<p class="mb-1 text-muted">{{ order.customer_profile.user.email }}</p>{% endif %}
-        <hr>
-        <h4 class="h6">Delivery address</h4>
         {% for key, value in order.delivery_address_snapshot.items %}
-        <div><span class="text-secondary">{{ key }}:</span> {{ value }}</div>
+          {% if key != 'label' %}
+          <div><span class="text-secondary">{{ key }}:</span> {{ value }}</div>
+          {% endif %}
         {% empty %}<p class="text-secondary mb-0">No snapshot.</p>{% endfor %}
       </div>
     </div>

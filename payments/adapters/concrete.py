@@ -199,3 +199,40 @@ class GiftVoucherAdapter(PaymentGatewayAdapter):
 
     def refund(self, *, transaction_id: str, amount: Decimal) -> PaymentCaptureResult:
         return PaymentCaptureResult(success=True, transaction_id=f"voucher_refund_{transaction_id}")
+
+
+class CashOnDeliveryAdapter(PaymentGatewayAdapter):
+    """
+    Cash on Delivery (COD) payment adapter.
+    """
+
+    key = "cod"
+    display_name = "Cash on Delivery (COD)"
+    is_async = False
+
+    def create_payment_intent(
+        self,
+        *,
+        amount: Decimal,
+        currency: str,
+        metadata: dict[str, Any],
+    ) -> PaymentIntentResult:
+        intent_id = f"cod_pi_{uuid.uuid4().hex[:16]}"
+        return PaymentIntentResult(
+            intent_id=intent_id,
+            metadata={"amount": str(amount), "currency": currency, **metadata},
+        )
+
+    def verify_webhook(self, *, payload: bytes, signature: str) -> dict[str, Any]:
+        raise NotImplementedError("Cash on Delivery does not use webhooks.")
+
+    def capture(self, *, intent_id: str) -> PaymentCaptureResult:
+        return PaymentCaptureResult(
+            success=True,
+            transaction_id=f"cod_tx_{intent_id}",
+            metadata={"gateway": self.key},
+        )
+
+    def refund(self, *, transaction_id: str, amount: Decimal) -> PaymentCaptureResult:
+        return PaymentCaptureResult(success=True, transaction_id=f"cod_refund_{transaction_id}")
+

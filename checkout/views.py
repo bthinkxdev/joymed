@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods
 
 from accounts.selectors import get_address_by_id, get_saved_addresses
@@ -38,7 +39,18 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
     if city and delivery_date:
         delivery_slots = get_available_slots(city=city, delivery_date=delivery_date)
 
-    addresses = get_saved_addresses(customer_profile=profile, page=1)["results"] if profile else []
+    addresses_raw = get_saved_addresses(customer_profile=profile, page=1)["results"] if profile else []
+    addresses = []
+    seen = set()
+    for addr in addresses_raw:
+        key = (
+            addr.line1.strip().lower(),
+            addr.line2.strip().lower(),
+            addr.city_id,
+        )
+        if key not in seen:
+            seen.add(key)
+            addresses.append(addr)
     from delivery.models import City
     active_cities = City.objects.filter(is_active=True)
 
@@ -111,22 +123,18 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
 
             from accounts.services import login_or_create_customer_by_email
             from accounts.models import Address
-            from django.contrib.auth import login
 
             profile = login_or_create_customer_by_email(email=guest_email, name=guest_name)
             if guest_phone:
                 profile.phone = guest_phone
                 profile.save(update_fields=["phone", "updated_at"])
 
-            #log the guest in so their session matches
-            login(request, profile.user, backend="django.contrib.auth.backends.ModelBackend")
-
-            address = Address.objects.create(
+            address, _ = Address.objects.get_or_create(
                 customer_profile=profile,
-                label="Guest Address",
                 line1=guest_address_line1,
                 line2=guest_address_line2,
                 city_id=int(guest_city_id),
+                defaults={"label": "Delivery Address"}
             )
             update_checkout_session(checkout_session=session, address=address)
             
@@ -151,12 +159,12 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
                 )
 
             from accounts.models import Address
-            address = Address.objects.create(
+            address, _ = Address.objects.get_or_create(
                 customer_profile=profile,
-                label="Delivery Address",
                 line1=guest_address_line1,
                 line2=guest_address_line2,
                 city_id=int(guest_city_id),
+                defaults={"label": "Delivery Address"}
             )
             update_checkout_session(checkout_session=session, address=address)
 
@@ -171,7 +179,7 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
     order = place_order(
         checkout_session_id=session.pk,
         idempotency_key=form.cleaned_data["idempotency_key"],
-        customer_profile=profile,
+        customer_profile=profile if request.user.is_authenticated else None,
     )
 
     payment_data = {}
@@ -184,11 +192,27 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
         payment_data=payment_data,
     )
 
+
+
+    confirmation_url = reverse("checkout:confirmation", kwargs={"order_id": order.pk})
+    if request.headers.get("HX-Request"):
+        response = HttpResponse()
+        response["HX-Redirect"] = confirmation_url
+        return response
+    return redirect(confirmation_url)
+
+
+@require_GET
+def checkout_confirmation_view(request: HttpRequest, order_id: int) -> HttpResponse:
+    """Separate order confirmation / success page."""
+    from orders.models import Order
+    from django.shortcuts import get_object_or_404
+    order = get_object_or_404(Order, pk=order_id)
     return render(
         request,
-        "checkout/confirmation.html",
+        "checkout/confirmation_page.html",
         {
             "order": order,
-            "checkout_session": get_checkout_session_by_id(session_id=session.pk),
         },
     )
+

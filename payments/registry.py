@@ -9,16 +9,16 @@ from payments.adapters.concrete import (
     CardGatewayAdapter,
     GiftVoucherAdapter,
     GooglePayAdapter,
+    CashOnDeliveryAdapter,
 )
 
 if TYPE_CHECKING:
     from payments.adapters.base import PaymentGatewayAdapter
 
 PAYMENT_GATEWAYS: dict[str, PaymentGatewayAdapter] = {
-    CardGatewayAdapter.key: CardGatewayAdapter(),
-    ApplePayAdapter.key: ApplePayAdapter(),
-    GooglePayAdapter.key: GooglePayAdapter(),
-    GiftVoucherAdapter.key: GiftVoucherAdapter(),
+    # CardGatewayAdapter.key: CardGatewayAdapter(),
+    # GooglePayAdapter.key: GooglePayAdapter(),
+    CashOnDeliveryAdapter.key: CashOnDeliveryAdapter(),
 }
 
 

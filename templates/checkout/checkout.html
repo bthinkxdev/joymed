@@ -23,8 +23,7 @@
             <div class="form-check mb-2">
               <input class="form-check-input" type="radio" name="address_id" value="{{ address.pk }}"
                 id="addr-{{ address.pk }}" {% if forloop.first %}checked{% endif %}>
-              <label class="form-check-label small" for="addr-{{ address.pk }}">{{ address.label }} — {{ address.line1
-                }}, {{ address.city.name }}</label>
+              <label class="form-check-label small" for="addr-{{ address.pk }}">{{ address.label }} — {{ address.line1 }}, {{ address.city.name }}</label>
             </div>
             {% endfor %}
           </div>
