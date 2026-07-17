@@ -96,11 +96,8 @@ class EmptyConfigForm(BaseSectionConfigForm):
 SECTION_CONFIG_FORMS: dict[str, type[BaseSectionConfigForm]] = {
     HomepageSectionType.HERO_SLIDER: HeroSliderConfigForm,
     HomepageSectionType.SHOP_BY_CATEGORY: EmptyConfigForm,
-    HomepageSectionType.PREMIUM_COLLECTION: ProductCollectionConfigForm,
-    HomepageSectionType.SEASONAL_COLLECTION: ProductCollectionConfigForm,
-    HomepageSectionType.LUXURY_COLLECTION: ProductCollectionConfigForm,
     HomepageSectionType.FEATURED_PRODUCTS: EmptyConfigForm,
-    HomepageSectionType.TRENDING: EmptyConfigForm,
+    HomepageSectionType.NEW_ARRIVALS: EmptyConfigForm,
     HomepageSectionType.BEST_SELLERS: EmptyConfigForm,
     HomepageSectionType.FEATURED_BRANDS: EmptyConfigForm,
     HomepageSectionType.SUBSCRIPTION_BANNER: BannerConfigForm,
@@ -122,17 +119,6 @@ def get_section_config_form(
 
 def _flatten_config_for_form(*, section_type: str, config: dict) -> dict:
     """Map stored JSON config to form initial values."""
-    if section_type in {
-        HomepageSectionType.PREMIUM_COLLECTION,
-        HomepageSectionType.SEASONAL_COLLECTION,
-        HomepageSectionType.LUXURY_COLLECTION,
-    }:
-        ids = config.get("product_ids", [])
-        return {
-            "product_ids": ",".join(str(i) for i in ids),
-            "collection_key": config.get("collection_key", ""),
-            "brand_id": config.get("brand_id"),
-        }
     if section_type == HomepageSectionType.MARKETING_FEATURES:
         lines = [
             " | ".join(

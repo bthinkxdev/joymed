@@ -4,16 +4,18 @@
     <div class="product-card-img-wrap ratio ratio-1x1">
       {% with img=product.primary_images.0 %}
       {% if img and img.image %}
-      <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="object-fit-cover" width="400" height="400" loading="lazy"
-           onerror="this.onerror=null;this.src='{% static 'img/product-placeholder.svg' %}';this.classList.add('product-card-img--placeholder');">
+      <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="object-fit-cover" width="400"
+        height="400" loading="lazy"
+        onerror="this.onerror=null;this.src='{% static 'img/product-placeholder.svg' %}';this.classList.add('product-card-img--placeholder');">
       {% else %}
-      <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ product.name }}" class="object-fit-cover product-card-img--placeholder" width="400" height="400" loading="lazy">
+      <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ product.name }}"
+        class="object-fit-cover product-card-img--placeholder" width="400" height="400" loading="lazy">
       {% endif %}
       {% endwith %}
       {% if product.is_featured %}
       <span class="product-badge product-badge--same-day">{% trans "Featured" %}</span>
       {% elif product.is_bestseller %}
-      <span class="product-badge product-badge--express">{% trans "Express" %}</span>
+      <span class="product-badge product-badge--express">{% trans "Bestseller" %}</span>
       {% elif product.is_new_arrival %}
       <span class="product-badge product-badge--new">{% trans "New" %}</span>
       {% endif %}

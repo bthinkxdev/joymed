@@ -14,11 +14,8 @@ class HomepageSectionType(models.TextChoices):
 
     HERO_SLIDER = "hero_slider", "Hero Slider"
     SHOP_BY_CATEGORY = "shop_by_category", "Shop by Category"
-    PREMIUM_COLLECTION = "premium_collection", "Premium Collection"
-    SEASONAL_COLLECTION = "seasonal_collection", "Seasonal Collection"
-    LUXURY_COLLECTION = "luxury_collection", "Luxury Collection"
     FEATURED_PRODUCTS = "featured_products", "Featured Products"
-    TRENDING = "trending", "Trending"
+    NEW_ARRIVALS = "new_arrivals", "New Arrivals"
     BEST_SELLERS = "best_sellers", "Best Sellers"
     FEATURED_BRANDS = "featured_brands", "Featured Brands"
     SUBSCRIPTION_BANNER = "subscription_banner", "Subscription Banner"

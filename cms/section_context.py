@@ -37,11 +37,8 @@ def build_section_context(
         "shop_by_occasion": _empty,
         "shop_by_recipient": _empty,
         "shop_by_category": _shop_by_category,
-        "premium_collection": _product_collection,
-        "seasonal_collection": _product_collection,
-        "luxury_collection": _product_collection,
         "featured_products": _featured,
-        "trending": _trending,
+        "new_arrivals": _new_arrivals,
         "best_sellers": _best_sellers,
         "featured_brands": _featured_brands,
         "corporate_gifts_banner": _empty,
@@ -52,7 +49,7 @@ def build_section_context(
         "newsletter": _newsletter,
     }
     builder = builders.get(section_type, _empty)
-    if section_type in ("featured_products", "trending", "best_sellers"):
+    if section_type in ("featured_products", "best_sellers", "new_arrivals"):
         base.update(builder(config, product_rails=product_rails))
     else:
         base.update(builder(config))
@@ -95,20 +92,16 @@ def _shop_by_category(config: dict[str, Any]) -> dict[str, Any]:
     return {"categories": get_root_categories(category_ids=None)}
 
 
-def _product_collection(config: dict[str, Any]) -> dict[str, Any]:
-    return {"products": get_products_for_section_config(config=config)}
-
-
 def _featured(
     config: dict[str, Any], product_rails: dict[str, list] | None = None
 ) -> dict[str, Any]:
     return {"products": _rails(product_rails, "featured")}
 
 
-def _trending(
+def _new_arrivals(
     config: dict[str, Any], product_rails: dict[str, list] | None = None
 ) -> dict[str, Any]:
-    return {"products": _rails(product_rails, "trending")}
+    return {"products": _rails(product_rails, "new_arrivals")}
 
 
 def _best_sellers(

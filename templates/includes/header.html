@@ -4,15 +4,15 @@
     <div class="container trust-bar__inner">
       <span class="trust-bar__item">
         <svg class="trust-bar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        {% trans "Express Delivery" %}
+        {% trans "Fast & Secure Delivery" %}
       </span>
       <span class="trust-bar__item">
         <svg class="trust-bar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        {% trans "No Address Hassle" %}
+        {% trans "Quality Assured Products" %}
       </span>
       <span class="trust-bar__item">
         <svg class="trust-bar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-        {% trans "Premium Flowers & Gifts" %}
+        {% trans "Trusted Healthcare Solutions" %}
       </span>
     </div>
   </div>
@@ -38,6 +38,12 @@
 
         <div class="collapse navbar-collapse" id="mainNav">
           <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'cms:homepage' %}">{% trans "Home" %}</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'catalog:plp' %}">{% trans "Shop All" %}</a>
+            </li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="navbarCategoriesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 {% trans "Categories" %}
@@ -70,8 +76,8 @@
       </div>
 
       <a class="navbar-brand navbar-col navbar-col--brand d-flex align-items-center" href="{% url 'cms:homepage' %}">
-        <img src="{% static 'dashboard/images/logo.png' %}" alt="JOYMED HEALTHCARE" style="height: 48px; width: auto; object-fit: contain;">
-        JOYMED HEALTHCARE
+        <img src="{% static 'dashboard/images/logo.png' %}" alt="JOYMED HEALTHCARE" style="height: 40px; width: auto; object-fit: contain;" class="me-2">
+        <span>JOYMED<span class="d-none d-sm-inline"> HEALTHCARE</span></span>
       </a>
 
       <div class="navbar-col navbar-col--end">
