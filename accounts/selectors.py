@@ -11,10 +11,7 @@ from django.db.models import Prefetch
 
 from accounts.models import (
     Address,
-    CorporateAccount,
-    CorporateApprovalStatus,
     CustomerProfile,
-    GiftReminder,
     SavedPaymentMethod,
     Wishlist,
     Subscription
@@ -155,34 +152,6 @@ def get_saved_payment_methods(
     }
 
 
-def get_pending_corporate_approvals(*, page: int = 1, page_size: int = 20) -> dict[str, Any]:
-    """
-    Return a paginated page of corporate accounts awaiting admin approval.
-
-    Query guarantee: 2 queries — 1 COUNT + 1 SELECT page (Paginator pattern).
-    Params:
-        page: 1-based page number.
-        page_size: Number of records per page.
-    Returns:
-        Dict with keys: results, page, page_size, total_count, total_pages, has_next, has_previous.
-    """
-    queryset = (
-        CorporateAccount.objects.select_related("user")
-        .filter(approval_status=CorporateApprovalStatus.PENDING)
-        .order_by("created_at")
-    )
-    paginator = Paginator(queryset, page_size)
-    page_obj = paginator.get_page(page)
-    return {
-        "results": list(page_obj.object_list),
-        "page": page_obj.number,
-        "page_size": page_size,
-        "total_count": paginator.count,
-        "total_pages": paginator.num_pages,
-        "has_next": page_obj.has_next(),
-        "has_previous": page_obj.has_previous(),
-    }
-
 
 @dataclass(frozen=True)
 class WishlistView:
@@ -285,10 +254,4 @@ def get_customer_subscription_by_id(
         Subscription.objects.select_related("product", "recurring_schedule", "delivery_address")
         .filter(pk=subscription_id, customer_profile=customer_profile)
         .first()
-    )
-
-def get_upcoming_gift_reminders(*, customer_profile: CustomerProfile) -> list[GiftReminder]:
-    """Return gift reminders ordered by reminder_date. Query guarantee: 1 SELECT."""
-    return list(
-        GiftReminder.objects.filter(customer_profile=customer_profile).order_by("reminder_date")
     )

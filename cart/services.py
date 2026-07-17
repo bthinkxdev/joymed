@@ -16,7 +16,6 @@ from catalog.selectors import get_variant_price
 from core.selectors import get_default_currency
 from delivery.models import City
 from delivery.selectors import get_delivery_charge
-from gifting.services import build_gift_customization_snapshot
 from marketing.services import validate_coupon_for_cart
 
 
@@ -69,41 +68,16 @@ def add_to_cart(
     product: Product,
     variant: Optional[ProductVariant] = None,
     quantity: int = 1,
-    gift_selections: Optional[dict[str, Any]] = None,
 ) -> CartItem:
     """
-    Add or increment a cart line, optionally building a gift snapshot first.
-
-    Gift-customized adds ALWAYS create a brand-new line — two personalized
-    gifts for the same product/variant (different recipient, message, card,
-    etc.) must never collapse into one and silently overwrite each other.
-    Only plain (non-gift) adds of the same product/variant merge by quantity,
-    matching the conditional unique constraint on CartItem.
+    Add or increment a cart line.
     """
     unit_price = _resolve_unit_price(product=product, variant=variant)
-
-    if gift_selections:
-        item = CartItem.objects.create(
-            cart=cart,
-            product=product,
-            variant=variant,
-            quantity=quantity,
-            unit_price_at_add=unit_price,
-        )
-        snapshot = build_gift_customization_snapshot(
-            product_instance=product,
-            selections=gift_selections,
-            line_item_reference=item,
-        )
-        item.gift_customization_snapshot = snapshot
-        item.save(update_fields=["gift_customization_snapshot", "updated_at"])
-        return item
 
     item, created = CartItem.objects.get_or_create(
         cart=cart,
         product=product,
         variant=variant,
-        gift_customization_snapshot__isnull=True,
         defaults={
             "quantity": quantity,
             "unit_price_at_add": unit_price,
@@ -234,26 +208,19 @@ def merge_carts(*, guest_cart: Cart, user_profile) -> None:
     if guest_cart.pk == user_cart.pk:
         return
 
-    #user already has a cart, merge items from guest cart to user cart
     for item in guest_cart.items.all():
-        if item.gift_customization_snapshot:
-            #reassign customized items
+        #merge plain items
+        user_item = user_cart.items.filter(
+            product=item.product,
+            variant=item.variant,
+        ).first()
+        if user_item:
+            user_item.quantity += item.quantity
+            user_item.save(update_fields=["quantity", "updated_at"])
+            item.delete()
+        else:
             item.cart = user_cart
             item.save(update_fields=["cart", "updated_at"])
-        else:
-            #merge plain items
-            user_item = user_cart.items.filter(
-                product=item.product,
-                variant=item.variant,
-                gift_customization_snapshot__isnull=True
-            ).first()
-            if user_item:
-                user_item.quantity += item.quantity
-                user_item.save(update_fields=["quantity", "updated_at"])
-                item.delete()
-            else:
-                item.cart = user_cart
-                item.save(update_fields=["cart", "updated_at"])
 
     guest_cart.delete()
 

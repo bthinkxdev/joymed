@@ -5,7 +5,7 @@ from __future__ import annotations
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 
-from accounts.models import CorporateAccount, CorporateApprovalStatus, CustomerProfile, Wholesaler
+from accounts.models import CustomerProfile, Wholesaler
 from dashboard import forms
 from dashboard.access import dashboard_required
 from dashboard.views.base import DashboardListView, DashboardUpdateView
@@ -73,50 +73,6 @@ def customer_detail(request: HttpRequest, pk: int) -> HttpResponse:
     }
     return render(request, "dashboard/customers/detail.html", context)
 
-
-class CorporateListView(DashboardListView):
-    model = CorporateAccount
-    nav_section = "corporate"
-    url_basename = "corporate"
-    singular_name = "Corporate Account"
-    plural_name = "Corporate Accounts"
-    search_fields = ["company_name", "trade_license_number", "user__email"]
-    select_related = ["user"]
-    can_create = False
-    can_delete = False
-    columns = [
-        {"label": "Company", "name": "company_name"},
-        {"label": "License", "name": "trade_license_number"},
-        {"label": "Contact", "name": "user.email"},
-        {"label": "Status", "name": "get_approval_status_display", "type": "badge"},
-    ]
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        status = self.request.GET.get("status", "").strip()
-        if status:
-            qs = qs.filter(approval_status=status)
-        return qs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["extra_filters"] = CorporateApprovalStatus.choices
-        context["current_status"] = self.request.GET.get("status", "")
-        return context
-
-
-class CorporateUpdateView(DashboardUpdateView):
-    model = CorporateAccount
-    form_class = forms.CorporateAccountForm
-    nav_section = "corporate"
-    url_basename = "corporate"
-    singular_name = "Corporate Account"
-
-    def form_valid(self, form):
-        status = form.cleaned_data.get("approval_status")
-        if status in {CorporateApprovalStatus.APPROVED, CorporateApprovalStatus.REJECTED}:
-            form.instance.approved_by = self.request.user
-        return super().form_valid(form)
 
 
 class WholesalerListView(DashboardListView):

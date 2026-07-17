@@ -105,11 +105,7 @@
         </form>
       </div>
 
-      {% if product.supports_gift_customization %}
-      <a href="{% url 'gifting:builder' slug=product.slug %}" class="btn btn-outline-floward w-100 mb-3 py-2">
-        {% trans "Customize as Gift" %}
-      </a>
-      {% endif %}
+
       <p class="small {% if product.is_in_stock %}text-success{% else %}text-danger{% endif %} mb-0">
         {% if product.is_in_stock %}{% trans "In stock — order now" %}{% else %}{% trans "Out of stock" %}{% endif %}
       </p>

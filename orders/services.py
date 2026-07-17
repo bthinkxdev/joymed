@@ -36,6 +36,7 @@ def transition_order_status(
     new_status: str,
     actor: Optional[User] = None,
     note: str = "",
+    send_notifications: bool = True,
 ) -> Order:
     """
     Validate and apply an order status transition.
@@ -69,5 +70,6 @@ def transition_order_status(
         order=order,
         old_status=old_status,
         new_status=new_status,
+        send_notifications=send_notifications,
     )
     return order

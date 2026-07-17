@@ -19,17 +19,6 @@ class HeroSliderConfigForm(BaseSectionConfigForm):
     cta_text = forms.CharField(max_length=80, required=False)
 
 
-class ShopByOccasionConfigForm(BaseSectionConfigForm):
-    occasion_ids = forms.CharField(
-        help_text="Comma-separated occasion IDs",
-        required=False,
-    )
-
-    def to_config(self) -> dict:
-        raw = self.cleaned_data.get("occasion_ids", "")
-        ids = [int(x.strip()) for x in raw.split(",") if x.strip().isdigit()]
-        return {"occasion_ids": ids}
-
 
 class ProductCollectionConfigForm(BaseSectionConfigForm):
     product_ids = forms.CharField(
@@ -106,17 +95,14 @@ class EmptyConfigForm(BaseSectionConfigForm):
 
 SECTION_CONFIG_FORMS: dict[str, type[BaseSectionConfigForm]] = {
     HomepageSectionType.HERO_SLIDER: HeroSliderConfigForm,
-    HomepageSectionType.SHOP_BY_OCCASION: EmptyConfigForm,
-    HomepageSectionType.SHOP_BY_RECIPIENT: EmptyConfigForm,
-    HomepageSectionType.SHOP_BY_CATEGORY: ShopByOccasionConfigForm,
+    HomepageSectionType.SHOP_BY_CATEGORY: EmptyConfigForm,
     HomepageSectionType.PREMIUM_COLLECTION: ProductCollectionConfigForm,
     HomepageSectionType.SEASONAL_COLLECTION: ProductCollectionConfigForm,
     HomepageSectionType.LUXURY_COLLECTION: ProductCollectionConfigForm,
-    HomepageSectionType.SAME_DAY_DELIVERY: EmptyConfigForm,
+    HomepageSectionType.FEATURED_PRODUCTS: EmptyConfigForm,
     HomepageSectionType.TRENDING: EmptyConfigForm,
     HomepageSectionType.BEST_SELLERS: EmptyConfigForm,
     HomepageSectionType.FEATURED_BRANDS: EmptyConfigForm,
-    HomepageSectionType.CORPORATE_GIFTS_BANNER: BannerConfigForm,
     HomepageSectionType.SUBSCRIPTION_BANNER: BannerConfigForm,
     HomepageSectionType.MARKETING_FEATURES: MarketingFeaturesConfigForm,
     HomepageSectionType.REVIEWS: EmptyConfigForm,
@@ -136,9 +122,6 @@ def get_section_config_form(
 
 def _flatten_config_for_form(*, section_type: str, config: dict) -> dict:
     """Map stored JSON config to form initial values."""
-    if section_type == HomepageSectionType.SHOP_BY_CATEGORY:
-        ids = config.get("occasion_ids", [])
-        return {"occasion_ids": ",".join(str(i) for i in ids)}
     if section_type in {
         HomepageSectionType.PREMIUM_COLLECTION,
         HomepageSectionType.SEASONAL_COLLECTION,

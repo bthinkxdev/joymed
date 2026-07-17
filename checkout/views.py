@@ -32,9 +32,6 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
         customer_profile=profile,
         session_key=request.session.session_key or "",
     )
-    preview_lines = [
-        {"product": line.product, "snapshot": line.gift_snapshot} for line in summary.lines
-    ]
     city = session.address.city if session.address_id else None
     delivery_date = session.delivery_date.isoformat() if session.delivery_date else None
     delivery_slots = []
@@ -51,7 +48,6 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
         {
             "checkout_session": session,
             "summary": summary,
-            "preview_lines": preview_lines,
             "addresses": addresses,
             "active_cities": active_cities,
             "delivery_slots": delivery_slots,

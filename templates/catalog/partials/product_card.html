@@ -10,8 +10,8 @@
       <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ product.name }}" class="object-fit-cover product-card-img--placeholder" width="400" height="400" loading="lazy">
       {% endif %}
       {% endwith %}
-      {% if product.is_same_day_eligible %}
-      <span class="product-badge product-badge--same-day">{% trans "Same Day" %}</span>
+      {% if product.is_featured %}
+      <span class="product-badge product-badge--same-day">{% trans "Featured" %}</span>
       {% elif product.is_bestseller %}
       <span class="product-badge product-badge--express">{% trans "Express" %}</span>
       {% elif product.is_new_arrival %}

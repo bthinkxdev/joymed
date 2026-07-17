@@ -19,7 +19,6 @@
             <div class="col-md-6">{% include "dashboard/partials/_field.html" with field=form.sku %}</div>
             <div class="col-md-6">{% include "dashboard/partials/_field.html" with field=form.slug %}</div>
             <div class="col-md-6">{% include "dashboard/partials/_field.html" with field=form.category %}</div>
-            <div class="col-md-6">{% include "dashboard/partials/_field.html" with field=form.primary_occasion %}</div>
             <div class="col-md-6">{% include "dashboard/partials/_field.html" with field=form.brand %}</div>
             <div class="col-md-3">{% include "dashboard/partials/_field.html" with field=form.base_price %}</div>
             <div class="col-md-3">{% include "dashboard/partials/_field.html" with field=form.mrp %}</div>
@@ -152,8 +151,7 @@
             {% include "dashboard/partials/_field.html" with field=form.is_active %}
             {% include "dashboard/partials/_field.html" with field=form.is_bestseller %}
             {% include "dashboard/partials/_field.html" with field=form.is_new_arrival %}
-            {% include "dashboard/partials/_field.html" with field=form.is_same_day_eligible %}
-            {% include "dashboard/partials/_field.html" with field=form.supports_gift_customization %}
+            {% include "dashboard/partials/_field.html" with field=form.is_featured %}
           </div>
         </div>
 
@@ -191,12 +189,7 @@
           });
         </script>
 
-        <div class="card mb-3">
-          <div class="card-header panel-header"><h3 class="panel-title">Organization</h3></div>
-          <div class="card-body">
-            {% include "dashboard/partials/_field.html" with field=form.recipients %}
-          </div>
-        </div>
+
       </div>
     </div>
   </div>

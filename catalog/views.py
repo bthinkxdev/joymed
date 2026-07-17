@@ -40,8 +40,8 @@ def _parse_plp_filters(request: HttpRequest) -> dict:
         filters["recipient_id"] = int(recipient_id)
     if color := request.GET.get("color"):
         filters["color"] = color
-    if request.GET.get("same_day") == "1":
-        filters["same_day"] = True
+    if request.GET.get("featured") == "1":
+        filters["featured"] = True
     if request.GET.get("bestseller") == "1":
         filters["bestseller"] = True
     if request.GET.get("new_arrival") == "1":
@@ -94,9 +94,7 @@ def plp_view(request: HttpRequest, category_slug: str | None = None) -> HttpResp
             "filters": filters,
             "sort": sort,
             "categories": filter_options["categories"],
-            "occasions": filter_options["occasions"],
             "brands": filter_options["brands"],
-            "recipients": filter_options["recipients"],
             "view_mode": request.COOKIES.get("plp_view", "grid"),
             "active_category": category,
         }

@@ -28,13 +28,12 @@ PLP_CARD_FIELDS: tuple[str, ...] = (
     "sku",
     "base_price",
     "color",
-    "is_same_day_eligible",
+    "is_featured",
     "is_bestseller",
     "is_new_arrival",
     "stock_quantity",
     "category_id",
     "brand_id",
-    "primary_occasion_id",
 )
 
 HOMEPAGE_RAIL_LIMIT = 12
@@ -86,12 +85,12 @@ def get_homepage_product_rails() -> dict[str, list[Product]]:
     """
     bestseller_rail = list(_homepage_rail_queryset(filters=Q(is_bestseller=True)))
     new_arrivals = list(_homepage_rail_queryset(filters=Q(is_new_arrival=True)))
-    same_day = list(_homepage_rail_queryset(filters=Q(is_same_day_eligible=True)))
+    featured = list(_homepage_rail_queryset(filters=Q(is_featured=True)))
     return {
         "trending": bestseller_rail,
         "bestsellers": bestseller_rail,
         "new_arrivals": new_arrivals,
-        "same_day": same_day,
+        "featured": featured,
     }
 
 
@@ -99,16 +98,12 @@ def _apply_plp_filters(queryset: QuerySet[Product], filters: dict[str, Any]) -> 
     """Apply PLP filter dict to a base queryset."""
     if category_id := filters.get("category_id"):
         queryset = queryset.filter(category_id=category_id)
-    if occasion_id := filters.get("occasion_id"):
-        queryset = queryset.filter(primary_occasion_id=occasion_id)
     if brand_id := filters.get("brand_id"):
         queryset = queryset.filter(brand_id=brand_id)
-    if recipient_id := filters.get("recipient_id"):
-        queryset = queryset.filter(recipients__id=recipient_id)
     if color := filters.get("color"):
         queryset = queryset.filter(color__iexact=color)
-    if filters.get("same_day"):
-        queryset = queryset.filter(is_same_day_eligible=True)
+    if filters.get("featured"):
+        queryset = queryset.filter(is_featured=True)
     if filters.get("bestseller"):
         queryset = queryset.filter(is_bestseller=True)
     if filters.get("new_arrival"):
@@ -152,7 +147,7 @@ def get_plp_products(
     filters = filters or {}
     queryset = (
         Product.objects.filter(is_active=True)
-        .select_related("category", "brand", "primary_occasion")
+        .select_related("category", "brand")
         .prefetch_related(_primary_image_prefetch())
         .only(*PLP_CARD_FIELDS)
         .annotate(
@@ -200,20 +195,16 @@ def get_plp_products(
 
 def get_product_detail(*, slug: str) -> Optional[Product]:
     """
-    Return a fully hydrated product for the PDP in a bounded number of queries.
-
-    Query guarantee: exactly 10 DB queries (constant regardless of variant/image/
-    review/related counts) —
-      1) product + select_related(category, brand, primary_occasion)
-      2) variants prefetch
-      3) images prefetch (ordered)
-      4) videos prefetch
-      5) approved reviews prefetch
-      6) review photos prefetch (via nested Prefetch on reviews)
-      7) related products prefetch
-      8) related product primary images prefetch
-      9) FBT products prefetch
-      10) FBT product primary images prefetch
+    1) product + select_related(category, brand)
+    2) variants prefetch
+    3) images prefetch (ordered)
+    4) videos prefetch
+    5) approved reviews prefetch
+    6) review photos prefetch (via nested Prefetch on reviews)
+    7) related products prefetch
+    8) related product primary images prefetch
+    9) FBT products prefetch
+    10) FBT product primary images prefetch
     """
     approved_reviews_prefetch = Prefetch(
         "reviews",
@@ -268,7 +259,7 @@ def get_product_detail(*, slug: str) -> Optional[Product]:
 
     return (
         Product.objects.filter(is_active=True, slug=slug)
-        .select_related("category", "brand", "primary_occasion")
+        .select_related("category", "brand")
         .prefetch_related(
             Prefetch(
                 "variants",
@@ -394,19 +385,6 @@ def get_search_suggestions(*, query: str, limit: int = 8) -> list[Product]:
     )
 
 
-def get_occasions_for_display() -> list:
-    """Return all occasions for the homepage shop-by-occasion rail and PLP filters."""
-    from catalog.models import Occasion
-
-    return list(Occasion.objects.all().order_by("name"))
-
-
-def get_recipients_for_display() -> list:
-    """Return active recipients for the homepage shop-by-recipient rail and PLP filters."""
-    from catalog.models import Recipient
-
-    return list(Recipient.objects.filter(is_active=True).order_by("display_order", "name"))
-
 
 def get_root_categories(*, category_ids: list[int] | None = None) -> list:
     """Return root categories for homepage shop-by-category rail."""
@@ -445,8 +423,6 @@ def get_products_for_section_config(*, config: dict) -> list[Product]:
         qs = qs.filter(category_id=category_id)
     if brand_id := config.get("brand_id"):
         qs = qs.filter(brand_id=brand_id)
-    if recipient_id := config.get("recipient_id"):
-        qs = qs.filter(recipients__id=recipient_id)
     if min_price := config.get("min_price"):
         qs = qs.filter(base_price__gte=min_price)
     for flag in config.get("flags", []):
@@ -515,16 +491,10 @@ def get_category_by_slug(*, slug: str):
 
 
 def get_plp_filter_options() -> dict:
-    """
-    Return sidebar filter options for PLP.
-
-    Query guarantee: 4 queries (categories, occasions, brands, recipients).
-    """
+    """Return sidebar filter options for PLP."""
     return {
         "categories": get_root_categories(),
-        "occasions": get_occasions_for_display(),
         "brands": get_featured_brands(),
-        "recipients": get_recipients_for_display(),
     }
 
 

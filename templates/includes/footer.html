@@ -10,12 +10,10 @@
         <h6>{% trans "Shop" %}</h6>
         <a href="{% url 'catalog:plp' %}">{% trans "All Flowers" %}</a>
         <a href="{% url 'catalog:plp' %}?bestseller=1">{% trans "Best Sellers" %}</a>
-        <a href="{% url 'catalog:plp' %}?same_day=1">{% trans "Same Day" %}</a>
+        <a href="{% url 'catalog:plp' %}?featured=1">{% trans "Featured" %}</a>
       </div>
       <div class="col-6 col-md-2">
         <h6>{% trans "Company" %}</h6>
-        <a href="{% url 'accounts:corporate-register' %}">{% trans "Corporate Gifts" %}</a>
-        <a href="{% url 'corporate:dashboard' %}">{% trans "Corporate Portal" %}</a>
       </div>
       <div class="col-6 col-md-2">
         <h6>{% trans "Get to Know Us" %}</h6>

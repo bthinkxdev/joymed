@@ -146,14 +146,6 @@ class OrderItem(TimeStampedModel):
         decimal_places=2,
         verbose_name="Unit price",
     )
-    gift_customization_snapshot = models.ForeignKey(
-        "gifting.GiftCustomizationSnapshot",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="order_items",
-        verbose_name="Gift customization snapshot",
-    )
 
     class Meta:
         verbose_name = "Order item"

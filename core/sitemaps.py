@@ -5,7 +5,7 @@ from __future__ import annotations
 from django.contrib.sitemaps import Sitemap
 from django.utils import timezone
 
-from catalog.models import Category, Occasion, Product
+from catalog.models import Category, Product
 from cms.models import BlogPost, Page
 
 
@@ -38,21 +38,6 @@ class CategorySitemap(Sitemap):
 
         return reverse("catalog:plp-category", kwargs={"category_slug": obj.slug})
 
-
-class OccasionSitemap(Sitemap):
-    """Occasion landing pages (filtered PLP)."""
-
-    changefreq = "weekly"
-    priority = 0.6
-    i18n = True
-
-    def items(self):
-        return Occasion.objects.all().order_by("name")
-
-    def location(self, obj: Occasion):
-        from django.urls import reverse
-
-        return f"{reverse('catalog:plp')}?occasion={obj.pk}"
 
 
 class BlogPostSitemap(Sitemap):

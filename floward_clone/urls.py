@@ -9,7 +9,6 @@ from django.urls import include, path
 from core.sitemaps import (
     BlogPostSitemap,
     CategorySitemap,
-    OccasionSitemap,
     PageSitemap,
     ProductSitemap,
 )
@@ -17,7 +16,6 @@ from core.sitemaps import (
 sitemaps = {
     "products": ProductSitemap,
     "categories": CategorySitemap,
-    "occasions": OccasionSitemap,
     "blog": BlogPostSitemap,
     "pages": PageSitemap,
 }
@@ -36,11 +34,9 @@ urlpatterns = [
     path("marketing/", include("marketing.urls")),
     path("", include("cms.urls")),
     path("shop/", include("catalog.urls")),
-    path("gifting/", include("gifting.urls")),
     path("cart/", include("cart.urls")),
     path("checkout/", include("checkout.urls")),
     path("orders/", include("orders.urls")),
-    path("corporate/", include("corporate.urls")),
     path("payments/", include("payments.urls")),
     path("reports/", include("reports.urls")),
     path("dashboard/", include("dashboard.urls")),

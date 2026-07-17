@@ -93,7 +93,6 @@ def get_order_tracking_view(
             queryset=OrderItem.objects.select_related(
                 "product",
                 "variant",
-                "gift_customization_snapshot",
             ),
         ),
     )

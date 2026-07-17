@@ -51,7 +51,6 @@ def get_available_slots(
     *,
     city: City,
     delivery_date: Union[date, str],
-    allow_midnight: bool = False,
 ) -> list[DeliverySlot]:
     """
     Return active delivery slots with remaining capacity for a city and date.
@@ -70,8 +69,6 @@ def get_available_slots(
         return []
 
     qs = DeliverySlot.objects.filter(is_active=True)
-    if not allow_midnight:
-        qs = qs.exclude(slot_type=DeliverySlotType.MIDNIGHT)
 
     booking_count = DeliverySlotBooking.objects.filter(
         slot_id=OuterRef("pk"),
@@ -92,7 +89,6 @@ def get_available_delivery_slots(
     *,
     city_id: Optional[int] = None,
     delivery_date: Optional[str] = None,
-    allow_midnight: bool = False,
 ) -> list[DeliverySlot]:
     """
     Backward-compatible wrapper around ``get_available_slots``.
@@ -106,12 +102,9 @@ def get_available_delivery_slots(
         return get_available_slots(
             city=city,
             delivery_date=delivery_date,
-            allow_midnight=allow_midnight,
         )
 
     qs = DeliverySlot.objects.filter(is_active=True)
-    if not allow_midnight:
-        qs = qs.exclude(slot_type=DeliverySlotType.MIDNIGHT)
     return list(qs.order_by("start_time"))
 
 
@@ -123,10 +116,8 @@ def get_earliest_delivery_estimate(*, product: Product, destination_city: City) 
     capacity — replacing the Phase 4/5 today/tomorrow stub.
     """
     today = timezone.localdate()
-    allow_midnight = bool(getattr(product, "supports_gift_customization", False))
-
     candidate_dates: list[date] = []
-    if product.is_same_day_eligible and _same_day_allowed(
+    if _same_day_allowed(
         city=destination_city,
         delivery_date=today,
     ):
@@ -138,7 +129,6 @@ def get_earliest_delivery_estimate(*, product: Product, destination_city: City) 
         slots = get_available_slots(
             city=destination_city,
             delivery_date=candidate,
-            allow_midnight=allow_midnight,
         )
         if slots:
             is_same_day = candidate == today

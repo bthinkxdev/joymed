@@ -11,7 +11,6 @@ class Migration(migrations.Migration):
         ("cart", "0001_phase6_cart_checkout_payments"),
         ("catalog", "0001_phase3_product_catalog"),
         ("core", "0003_seed_default_currency"),
-        ("gifting", "0001_phase5_gift_customization"),
         ("orders", "0001_phase2_initial"),
     ]
 
@@ -140,18 +139,7 @@ class Migration(migrations.Migration):
             model_name="order",
             index=models.Index(fields=["idempotency_key"], name="orders_idempotency_key_idx"),
         ),
-        migrations.AddField(
-            model_name="orderlineitem",
-            name="gift_customization_snapshot",
-            field=models.ForeignKey(
-                blank=True,
-                null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
-                related_name="order_line_items",
-                to="gifting.giftcustomizationsnapshot",
-                verbose_name="Gift customization snapshot",
-            ),
-        ),
+
         migrations.AddField(
             model_name="orderlineitem",
             name="order",

@@ -7,13 +7,11 @@ from django.contrib import admin
 from catalog.models import (
     Brand,
     Category,
-    Occasion,
     Product,
     ProductImage,
     ProductRelation,
     ProductVariant,
     ProductVideo,
-    Recipient,
     Review,
     ReviewPhoto,
 )
@@ -30,27 +28,6 @@ class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
     ordering = ("display_order", "name")
 
-
-@admin.register(Occasion)
-class OccasionAdmin(admin.ModelAdmin):
-    """Admin for gift occasions."""
-
-    list_display = ("name", "slug", "is_seasonal", "active_from", "active_to", "updated_at")
-    list_filter = ("is_seasonal",)
-    search_fields = ("name", "slug")
-    prepopulated_fields = {"slug": ("name",)}
-
-
-@admin.register(Recipient)
-class RecipientAdmin(admin.ModelAdmin):
-    """Admin for shop-by-recipient personas."""
-
-    list_display = ("name", "slug", "display_order", "is_active", "updated_at")
-    list_filter = ("is_active",)
-    list_editable = ("display_order", "is_active")
-    search_fields = ("name", "slug")
-    prepopulated_fields = {"slug": ("name",)}
-    ordering = ("display_order", "name")
 
 
 @admin.register(Brand)
@@ -92,15 +69,13 @@ class ProductAdmin(admin.ModelAdmin):
         "is_active",
         "is_bestseller",
         "is_new_arrival",
-        "is_same_day_eligible",
-        "supports_gift_customization",
+        "is_featured",
         "category",
         "brand",
     )
     search_fields = ("name", "slug", "sku")
-    list_select_related = ("category", "brand", "primary_occasion")
+    list_select_related = ("category", "brand")
     prepopulated_fields = {"slug": ("name",)}
-    filter_horizontal = ("recipients",)
     inlines = [ProductVariantInline, ProductImageInline]
     ordering = ("name",)
 

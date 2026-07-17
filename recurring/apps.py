@@ -11,8 +11,6 @@ class RecurringConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "recurring"
     verbose_name = "Recurring"
-
     def ready(self) -> None:
         """Register recurrence handlers from domain apps."""
         import accounts.recurrence  # noqa: F401
-        import corporate.recurrence  # noqa: F401

@@ -50,10 +50,7 @@ urlpatterns = [
     path("customer/", customers.CustomerListView.as_view(), name="customer-list"),
     path("customer/<int:pk>/", customers.customer_detail, name="customer-detail"),
     path("customer/<int:pk>/edit/", customers.CustomerUpdateView.as_view(), name="customer-update"),
-    path("corporate/", customers.CorporateListView.as_view(), name="corporate-list"),
-    path(
-        "corporate/<int:pk>/edit/", customers.CorporateUpdateView.as_view(), name="corporate-update"
-    ),
+
     path("wholesaler/", customers.WholesalerListView.as_view(), name="wholesaler-list"),
     path(
         "wholesaler/<int:pk>/edit/",
@@ -71,13 +68,7 @@ urlpatterns += _crud(
     catalog.CategoryUpdateView,
     catalog.CategoryDeleteView,
 )
-urlpatterns += _crud(
-    "occasion",
-    catalog.OccasionListView,
-    catalog.OccasionCreateView,
-    catalog.OccasionUpdateView,
-    catalog.OccasionDeleteView,
-)
+
 urlpatterns += _crud(
     "brand",
     catalog.BrandListView,
@@ -85,13 +76,7 @@ urlpatterns += _crud(
     catalog.BrandUpdateView,
     catalog.BrandDeleteView,
 )
-urlpatterns += _crud(
-    "recipient",
-    catalog.RecipientListView,
-    catalog.RecipientCreateView,
-    catalog.RecipientUpdateView,
-    catalog.RecipientDeleteView,
-)
+
 urlpatterns += _crud(
     "coupon",
     marketing.CouponListView,

@@ -25,14 +25,12 @@ LOCAL_APPS = [
     "core",
     "accounts",
     "catalog",
-    "gifting",
     "cart",
     "checkout",
     "orders",
     "payments",
     "delivery",
     "recurring",
-    "corporate",
     "marketing",
     "cms",
     "notifications",
@@ -138,10 +136,6 @@ CELERY_BEAT_SCHEDULE = {
     },
     "process-due-recurring-schedules-daily": {
         "task": "recurring.tasks.process_due_schedules",
-        "schedule": 86400.0,
-    },
-    "send-due-gift-reminders-daily": {
-        "task": "accounts.tasks.send_due_gift_reminders",
         "schedule": 86400.0,
     },
     "aggregate-daily-reports-nightly": {

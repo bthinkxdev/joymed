@@ -14,13 +14,12 @@ from django.utils import timezone
 
 from accounts.models import (
     CustomerProfile,
-    GiftReminder,
     Subscription,
     SubscriptionStatus,
     Wishlist,
     WishlistItem,
 )
-from accounts.signals import gift_reminder_due
+
 from cart.models import Cart, CartItem
 from catalog.selectors import get_variant_price
 from checkout.services import create_checkout_session, place_order, update_checkout_session
@@ -162,48 +161,4 @@ def generate_wishlist_share_token(*, wishlist: Wishlist) -> str:
     return token
 
 
-@transaction.atomic
-def schedule_gift_reminder(
-    *,
-    customer_profile: CustomerProfile,
-    occasion_type: str,
-    reminder_date: date,
-    recipient_name: str,
-    notes: str = "",
-    notify_days_before: int = 7,
-) -> GiftReminder:
-    """Create a gift calendar reminder."""
-    return GiftReminder.objects.create(
-        customer_profile=customer_profile,
-        occasion_type=occasion_type,
-        reminder_date=reminder_date,
-        recipient_name=recipient_name,
-        notes=notes,
-        notify_days_before=notify_days_before,
-    )
 
-
-def send_due_gift_reminders() -> int:
-    """
-    Check reminders where reminder_date - notify_days_before == today.
-
-    Emits ``gift_reminder_due`` for the notifications app to dispatch.
-    """
-    today = timezone.localdate()
-    reminders = GiftReminder.objects.select_related("customer_profile", "customer_profile__user")
-    sent = 0
-    for reminder in reminders:
-        notify_on = reminder.reminder_date - timedelta(days=reminder.notify_days_before)
-        if notify_on > today:
-            continue
-        if reminder.last_notified_on == today:
-            continue
-        gift_reminder_due.send(
-            sender=GiftReminder,
-            reminder=reminder,
-            customer_profile=reminder.customer_profile,
-        )
-        reminder.last_notified_on = today
-        reminder.save(update_fields=["last_notified_on", "updated_at"])
-        sent += 1
-    return sent

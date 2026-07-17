@@ -13,7 +13,6 @@ class Migration(migrations.Migration):
         ("catalog", "0001_phase3_product_catalog"),
         ("core", "0003_seed_default_currency"),
         ("delivery", "0002_phase5_gift_customization"),
-        ("gifting", "0001_phase5_gift_customization"),
     ]
 
     operations = [
@@ -154,17 +153,7 @@ class Migration(migrations.Migration):
                         verbose_name="Cart",
                     ),
                 ),
-                (
-                    "gift_customization_snapshot",
-                    models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        related_name="cart_items",
-                        to="gifting.giftcustomizationsnapshot",
-                        verbose_name="Gift customization snapshot",
-                    ),
-                ),
+
                 (
                     "product",
                     models.ForeignKey(

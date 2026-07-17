@@ -6,9 +6,7 @@ from django.contrib import admin
 
 from accounts.models import (
     Address,
-    CorporateAccount,
     CustomerProfile,
-    GiftReminder,
     OTPRequest,
     SavedPaymentMethod,
     Subscription,
@@ -47,21 +45,6 @@ class SavedPaymentMethodAdmin(admin.ModelAdmin):
     raw_id_fields = ("customer_profile",)
 
 
-@admin.register(CorporateAccount)
-class CorporateAccountAdmin(admin.ModelAdmin):
-    """Admin interface for corporate accounts."""
-
-    list_display = (
-        "company_name",
-        "trade_license_number",
-        "approval_status",
-        "user",
-        "updated_at",
-    )
-    list_filter = ("approval_status",)
-    search_fields = ("company_name", "trade_license_number", "user__email")
-    raw_id_fields = ("user", "approved_by")
-
 
 @admin.register(OTPRequest)
 class OTPRequestAdmin(admin.ModelAdmin):
@@ -90,7 +73,3 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_filter = ("status",)
 
 
-@admin.register(GiftReminder)
-class GiftReminderAdmin(admin.ModelAdmin):
-    list_display = ("recipient_name", "occasion_type", "reminder_date", "customer_profile")
-    list_filter = ("occasion_type",)

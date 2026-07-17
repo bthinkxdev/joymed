@@ -159,15 +159,6 @@ class AddressForm(forms.ModelForm):
         self.fields["city"].queryset = City.objects.filter(is_active=True)
 
 
-class CorporateRegistrationForm(forms.Form):
-    """B2B corporate account registration form."""
-
-    email = forms.EmailField(label="Work email")
-    password = forms.CharField(widget=forms.PasswordInput, min_length=8, label="Password")
-    name = forms.CharField(max_length=150, label="Contact name")
-    company_name = forms.CharField(max_length=200, label="Company name")
-    trade_license_number = forms.CharField(max_length=100, label="Trade license number")
-
 class SubscriptionCreateForm(forms.Form):
     product_id = forms.IntegerField(widget=forms.HiddenInput)
     delivery_address_id = forms.ModelChoiceField(

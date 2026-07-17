@@ -7,10 +7,8 @@ from typing import Any
 from catalog.selectors import (
     get_featured_brands,
     get_homepage_product_rails,
-    get_occasions_for_display,
     get_products_for_section_config,
     get_recent_approved_reviews,
-    get_recipients_for_display,
     get_root_categories,
 )
 from cms.selectors import get_hero_slides
@@ -36,17 +34,17 @@ def build_section_context(
 
     builders = {
         "hero_slider": _hero_slider,
-        "shop_by_occasion": _shop_by_occasion,
-        "shop_by_recipient": _shop_by_recipient,
+        "shop_by_occasion": _empty,
+        "shop_by_recipient": _empty,
         "shop_by_category": _shop_by_category,
         "premium_collection": _product_collection,
         "seasonal_collection": _product_collection,
         "luxury_collection": _product_collection,
-        "same_day_delivery": _same_day,
+        "featured_products": _featured,
         "trending": _trending,
         "best_sellers": _best_sellers,
         "featured_brands": _featured_brands,
-        "corporate_gifts_banner": _banner,
+        "corporate_gifts_banner": _empty,
         "subscription_banner": _banner,
         "marketing_features": _marketing_features,
         "reviews": _reviews,
@@ -54,7 +52,7 @@ def build_section_context(
         "newsletter": _newsletter,
     }
     builder = builders.get(section_type, _empty)
-    if section_type in ("same_day_delivery", "trending", "best_sellers"):
+    if section_type in ("featured_products", "trending", "best_sellers"):
         base.update(builder(config, product_rails=product_rails))
     else:
         base.update(builder(config))
@@ -86,11 +84,11 @@ def _hero_slider(config: dict[str, Any]) -> dict[str, Any]:
 
 
 def _shop_by_occasion(config: dict[str, Any]) -> dict[str, Any]:
-    return {"occasions": get_occasions_for_display()}
+    return {}
 
 
 def _shop_by_recipient(config: dict[str, Any]) -> dict[str, Any]:
-    return {"recipients": get_recipients_for_display()}
+    return {}
 
 
 def _shop_by_category(config: dict[str, Any]) -> dict[str, Any]:
@@ -101,10 +99,10 @@ def _product_collection(config: dict[str, Any]) -> dict[str, Any]:
     return {"products": get_products_for_section_config(config=config)}
 
 
-def _same_day(
+def _featured(
     config: dict[str, Any], product_rails: dict[str, list] | None = None
 ) -> dict[str, Any]:
-    return {"products": _rails(product_rails, "same_day")}
+    return {"products": _rails(product_rails, "featured")}
 
 
 def _trending(

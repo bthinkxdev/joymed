@@ -16,7 +16,6 @@ from django.db import transaction
 from django.utils import timezone
 
 from accounts.exceptions import (
-    CorporateRegistrationError,
     GoogleAuthError,
     OTPAlreadyUsedError,
     OTPExpiredError,
@@ -27,8 +26,6 @@ from accounts.exceptions import (
 )
 from accounts.models import (
     Address,
-    CorporateAccount,
-    CorporateApprovalStatus,
     CustomerProfile,
     OTPPurpose,
     OTPRequest,
@@ -484,55 +481,6 @@ def delete_saved_payment_method(
 
 
 @transaction.atomic
-def register_corporate_account(
-    *,
-    email: str,
-    password: str,
-    name: str,
-    company_name: str,
-    trade_license_number: str,
-) -> CorporateAccount:
-    """
-    Register a corporate account in PENDING state and notify admins.
-
-    Params:
-        email: Manager login email.
-        password: Account password.
-        name: Manager full name.
-        company_name: Registered company name.
-        trade_license_number: Unique trade license identifier.
-    Returns:
-        Created CorporateAccount in PENDING status.
-    Raises:
-        CorporateRegistrationError: Duplicate license or email exists.
-    """
-    if CorporateAccount.objects.filter(trade_license_number=trade_license_number).exists():
-        raise CorporateRegistrationError("Trade license number is already registered.")
-    if UserModel.objects.filter(email=email).exists():
-        raise CorporateRegistrationError("Email is already registered.")
-
-    name_parts = name.strip().split(" ", 1)
-    user = UserModel.objects.create_user(
-        username=email,
-        email=email,
-        password=password,
-        first_name=name_parts[0],
-        last_name=name_parts[1] if len(name_parts) > 1 else "",
-    )
-    account = CorporateAccount.objects.create(
-        user=user,
-        company_name=company_name,
-        trade_license_number=trade_license_number,
-        approval_status=CorporateApprovalStatus.PENDING,
-    )
-
-    from accounts.tasks import notify_corporate_registration
-
-    notify_corporate_registration.delay(corporate_account_id=account.pk)
-    return account
-
-
-@transaction.atomic
 def login_or_create_customer_by_phone(*, phone: str) -> CustomerProfile:
     """
     Find or create a customer profile after successful OTP phone verification.
@@ -581,22 +529,6 @@ def reset_password_with_otp(*, phone: str, otp_code: str, new_password: str) -> 
     user.save(update_fields=["password"])
     return user
 
-
-def notify_admins_corporate_pending(*, corporate_account_id: int) -> None:
-    """
-    Create in-app notifications for SuperAdmin users about a pending corporate account.
-
-    Params:
-        corporate_account_id: Primary key of the CorporateAccount.
-    """
-    account = CorporateAccount.objects.select_related("user").get(pk=corporate_account_id)
-    admin_users = UserModel.objects.filter(groups__name="SuperAdmin").distinct()
-    for admin_user in admin_users:
-        create_notification(
-            user=admin_user,
-            title="New corporate account pending approval",
-            body=f"{account.company_name} ({account.trade_license_number}) awaits review.",
-        )
 
 
 #helper to generate a cryptographically secure 4-digit OTP code
@@ -711,7 +643,7 @@ def register_wholesaler(
         phone_number=phone_number,
         gst=gst,
         address=address,
-        approval_status=CorporateApprovalStatus.PENDING,
+        approval_status="pending",
         referrer_page=referrer_page,
     )
 

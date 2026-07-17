@@ -12,7 +12,7 @@ from django.http import HttpRequest
 from cart.models import Cart, CartItem
 from catalog.models import ProductImage
 from delivery.selectors import get_delivery_charge
-from gifting.selectors import get_gift_customization_snapshot
+
 
 _CART_CACHE_ATTR = "_floward_resolved_cart"
 
@@ -58,9 +58,7 @@ class CartSummaryLine:
     variant: Any
     quantity: int
     unit_price_at_add: Decimal
-    gift_snapshot: Any
     line_subtotal: Decimal
-    gift_customization_delta: Decimal
 
 
 @dataclass
@@ -159,14 +157,7 @@ def get_cart_summary(*, cart: Cart) -> CartSummary:
     item_count = 0
 
     for item in items:
-        gift_snapshot = get_gift_customization_snapshot(line_item_reference=item)
-        gift_delta = Decimal("0.00")
-        if gift_snapshot and gift_snapshot.snapshot_json:
-            gift_delta = Decimal(
-                gift_snapshot.snapshot_json.get("pricing", {}).get("total_delta", "0.00")
-            )
-        line_base = item.unit_price_at_add * item.quantity
-        line_subtotal = line_base + gift_delta * item.quantity
+        line_subtotal = item.unit_price_at_add * item.quantity
         subtotal += line_subtotal
         item_count += item.quantity
         lines.append(
@@ -176,9 +167,7 @@ def get_cart_summary(*, cart: Cart) -> CartSummary:
                 variant=item.variant,
                 quantity=item.quantity,
                 unit_price_at_add=item.unit_price_at_add,
-                gift_snapshot=gift_snapshot,
                 line_subtotal=line_subtotal,
-                gift_customization_delta=gift_delta,
             )
         )
 

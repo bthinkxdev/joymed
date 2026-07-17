@@ -30,12 +30,7 @@ urlpatterns = [
         views.payment_method_delete_view,
         name="payment-method-delete",
     ),
-    path("corporate/register/", views.corporate_register_view, name="corporate-register"),
-    path(
-        "corporate/pending/",
-        views.corporate_pending_approvals_view,
-        name="corporate-pending",
-    ),
+
     path("wishlist/shared/", views.wishlist_shared_view, name="wishlist-shared"),
     path("wishlist/add/", views.wishlist_add_view, name="wishlist-add"),
     path("wishlist/remove/", views.wishlist_remove_view, name="wishlist-remove"),

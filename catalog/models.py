@@ -65,50 +65,6 @@ class Category(TimeStampedModel):
         return self.name
 
 
-class Occasion(TimeStampedModel):
-    """Gift occasion used for merchandising and PLP filters."""
-
-    name = models.CharField(max_length=120, verbose_name="Name")
-    slug = models.SlugField(
-        max_length=120,
-        unique=True,
-        db_index=True,
-        verbose_name="Slug",
-    )
-    icon = models.ImageField(
-        upload_to="occasions/icons/",
-        blank=True,
-        verbose_name="Icon",
-        help_text="Small icon shown on occasion chips.",
-    )
-    is_seasonal = models.BooleanField(
-        default=False,
-        verbose_name="Is seasonal",
-        help_text="When True, occasion is only promoted within active date range.",
-    )
-    active_from = models.DateField(
-        null=True,
-        blank=True,
-        verbose_name="Active from",
-        help_text="First day this seasonal occasion is promoted.",
-    )
-    active_to = models.DateField(
-        null=True,
-        blank=True,
-        verbose_name="Active to",
-        help_text="Last day this seasonal occasion is promoted.",
-    )
-
-    class Meta:
-        verbose_name = "Occasion"
-        verbose_name_plural = "Occasions"
-        indexes = [
-            models.Index(fields=["slug"], name="cat_occasion_slug_idx"),
-        ]
-
-    def __str__(self) -> str:
-        return self.name
-
 
 class Brand(TimeStampedModel):
     """Product brand for filtering and brand pages."""
@@ -143,41 +99,6 @@ class Brand(TimeStampedModel):
         return self.name
 
 
-class Recipient(TimeStampedModel):
-    """Recipient persona for shop-by-recipient merchandising (e.g. Mother, Father)."""
-
-    name = models.CharField(max_length=120, verbose_name="Name")
-    slug = models.SlugField(
-        max_length=120,
-        unique=True,
-        db_index=True,
-        verbose_name="Slug",
-        help_text="URL-friendly recipient identifier.",
-    )
-    icon = models.ImageField(
-        upload_to="recipients/icons/",
-        blank=True,
-        verbose_name="Icon",
-        help_text="Small icon shown on recipient chips.",
-    )
-    display_order = models.PositiveIntegerField(
-        default=0,
-        verbose_name="Display order",
-        help_text="Lower values appear first.",
-    )
-    is_active = models.BooleanField(default=True, db_index=True, verbose_name="Is active")
-
-    class Meta:
-        verbose_name = "Recipient"
-        verbose_name_plural = "Recipients"
-        ordering = ["display_order", "name"]
-        indexes = [
-            models.Index(fields=["is_active"], name="cat_recipient_active_idx"),
-        ]
-
-    def __str__(self) -> str:
-        return self.name
-
 
 class Product(TimeStampedModel):
     """Core sellable product — highest read volume entity in the platform."""
@@ -202,12 +123,6 @@ class Product(TimeStampedModel):
         related_name="products",
         verbose_name="Category",
     )
-    primary_occasion = models.ForeignKey(
-        Occasion,
-        on_delete=models.PROTECT,
-        related_name="primary_products",
-        verbose_name="Primary occasion",
-    )
     brand = models.ForeignKey(
         Brand,
         on_delete=models.SET_NULL,
@@ -215,13 +130,6 @@ class Product(TimeStampedModel):
         blank=True,
         related_name="products",
         verbose_name="Brand",
-    )
-    recipients = models.ManyToManyField(
-        Recipient,
-        blank=True,
-        related_name="products",
-        verbose_name="Recipients",
-        help_text="Recipient personas this product is suitable for.",
     )
     base_price = models.DecimalField(
         max_digits=12,
@@ -247,10 +155,10 @@ class Product(TimeStampedModel):
         db_index=True,
         verbose_name="Is active",
     )
-    is_same_day_eligible = models.BooleanField(
+    is_featured = models.BooleanField(
         default=False,
         db_index=True,
-        verbose_name="Same-day eligible",
+        verbose_name="Is featured",
     )
     is_bestseller = models.BooleanField(
         default=False,
@@ -262,11 +170,7 @@ class Product(TimeStampedModel):
         db_index=True,
         verbose_name="Is new arrival",
     )
-    supports_gift_customization = models.BooleanField(
-        default=False,
-        verbose_name="Supports gift customization",
-        help_text="When True, gifting app attaches customization options via ContentType.",
-    )
+
     stock_quantity = models.PositiveIntegerField(
         default=0,
         verbose_name="Stock quantity",
@@ -299,7 +203,7 @@ class Product(TimeStampedModel):
             ),
             models.Index(fields=["is_active", "is_new_arrival"], name="cat_prod_active_new_idx"),
             models.Index(
-                fields=["is_active", "is_same_day_eligible"], name="cat_prod_same_day_idx"
+                fields=["is_active", "is_featured"], name="cat_prod_featured_idx"
             ),
         ]
 

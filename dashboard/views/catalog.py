@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from catalog.models import Brand, Category, Occasion, Product, Recipient, Review
+from catalog.models import Brand, Category, Product, Review
 from core.models import Currency
 from dashboard import forms
 from dashboard.access import dashboard_required
@@ -169,44 +169,6 @@ class CategoryDeleteView(DashboardDeleteView):
     singular_name = "Category"
 
 
-class OccasionListView(DashboardListView):
-    model = Occasion
-    nav_section = "occasions"
-    url_basename = "occasion"
-    singular_name = "Occasion"
-    plural_name = "Occasions"
-    search_fields = ["name", "slug"]
-    columns = [
-        {"label": "Name", "name": "name"},
-        {"label": "Slug", "name": "slug"},
-        {"label": "Seasonal", "name": "is_seasonal", "type": "bool"},
-        {"label": "Active from", "name": "active_from"},
-        {"label": "Active to", "name": "active_to"},
-    ]
-
-
-class OccasionCreateView(DashboardCreateView):
-    model = Occasion
-    form_class = forms.OccasionForm
-    nav_section = "occasions"
-    url_basename = "occasion"
-    singular_name = "Occasion"
-
-
-class OccasionUpdateView(DashboardUpdateView):
-    model = Occasion
-    form_class = forms.OccasionForm
-    nav_section = "occasions"
-    url_basename = "occasion"
-    singular_name = "Occasion"
-
-
-class OccasionDeleteView(DashboardDeleteView):
-    model = Occasion
-    nav_section = "occasions"
-    url_basename = "occasion"
-    singular_name = "Occasion"
-
 
 class BrandListView(DashboardListView):
     model = Brand
@@ -244,43 +206,6 @@ class BrandDeleteView(DashboardDeleteView):
     url_basename = "brand"
     singular_name = "Brand"
 
-
-class RecipientListView(DashboardListView):
-    model = Recipient
-    nav_section = "recipients"
-    url_basename = "recipient"
-    singular_name = "Recipient"
-    plural_name = "Recipients"
-    search_fields = ["name", "slug"]
-    columns = [
-        {"label": "Name", "name": "name"},
-        {"label": "Slug", "name": "slug"},
-        {"label": "Order", "name": "display_order"},
-        {"label": "Active", "name": "is_active", "type": "bool"},
-    ]
-
-
-class RecipientCreateView(DashboardCreateView):
-    model = Recipient
-    form_class = forms.RecipientForm
-    nav_section = "recipients"
-    url_basename = "recipient"
-    singular_name = "Recipient"
-
-
-class RecipientUpdateView(DashboardUpdateView):
-    model = Recipient
-    form_class = forms.RecipientForm
-    nav_section = "recipients"
-    url_basename = "recipient"
-    singular_name = "Recipient"
-
-
-class RecipientDeleteView(DashboardDeleteView):
-    model = Recipient
-    nav_section = "recipients"
-    url_basename = "recipient"
-    singular_name = "Recipient"
 
 
 class ReviewListView(DashboardListView):

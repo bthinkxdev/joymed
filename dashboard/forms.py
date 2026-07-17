@@ -5,15 +5,13 @@ from __future__ import annotations
 from django import forms
 from django.utils.text import slugify
 
-from accounts.models import CorporateAccount, CustomerProfile, Wholesaler
+from accounts.models import CustomerProfile, Wholesaler
 from catalog.models import (
     Brand,
     Category,
-    Occasion,
     Product,
     ProductImage,
     ProductVariant,
-    Recipient,
     Review,
 )
 from cms.models import BlogPost, FAQItem, HeroSlide, HomepageSection, Page, PolicyDocument
@@ -46,9 +44,7 @@ class ProductForm(SlugAutoMixin):
             "slug",
             "sku",
             "category",
-            "primary_occasion",
             "brand",
-            "recipients",
             "base_price",
             "mrp",
             "purchase_price",
@@ -60,10 +56,9 @@ class ProductForm(SlugAutoMixin):
             "stock_quantity",
             "low_stock_threshold",
             "is_active",
-            "is_same_day_eligible",
+            "is_featured",
             "is_bestseller",
             "is_new_arrival",
-            "supports_gift_customization",
             "meta_title",
             "meta_description",
             "og_image",
@@ -93,16 +88,6 @@ class CategoryForm(SlugAutoMixin):
         self.fields["slug"].required = False
 
 
-class OccasionForm(SlugAutoMixin):
-    class Meta:
-        model = Occasion
-        fields = ["name", "slug", "icon", "is_seasonal", "active_from", "active_to"]
-        widgets = {"active_from": _DATE, "active_to": _DATE}
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["slug"].required = False
-
 
 class BrandForm(SlugAutoMixin):
     class Meta:
@@ -113,15 +98,6 @@ class BrandForm(SlugAutoMixin):
         super().__init__(*args, **kwargs)
         self.fields["slug"].required = False
 
-
-class RecipientForm(SlugAutoMixin):
-    class Meta:
-        model = Recipient
-        fields = ["name", "slug", "icon", "display_order", "is_active"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["slug"].required = False
 
 
 class ReviewForm(forms.ModelForm):
@@ -157,11 +133,6 @@ class CustomerProfileForm(forms.ModelForm):
             "notify_via_whatsapp",
         ]
 
-
-class CorporateAccountForm(forms.ModelForm):
-    class Meta:
-        model = CorporateAccount
-        fields = ["company_name", "trade_license_number", "approval_status"]
 
 
 class WholesalerForm(forms.ModelForm):

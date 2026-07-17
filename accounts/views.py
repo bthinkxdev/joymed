@@ -12,14 +12,12 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from accounts.exceptions import (
-    CorporateRegistrationError,
     GoogleAuthError,
     OTPRateLimitError,
     OTPVerificationError,
 )
 from accounts.forms import (
     AddressForm,
-    CorporateRegistrationForm,
     EmailLoginForm,
     EmailRegistrationForm,
     ForgotPasswordForm,
@@ -38,7 +36,6 @@ from accounts.models import CustomerProfile, OTPPurpose
 from accounts.selectors import (
     get_address_by_id,
     get_customer_dashboard_context,
-    get_pending_corporate_approvals,
     get_saved_addresses,
     get_saved_payment_methods,
     get_wishlist,
@@ -52,7 +49,6 @@ from accounts.services import (
     delete_address,
     delete_saved_payment_method,
     login_or_create_customer_by_phone,
-    register_corporate_account,
     register_customer_email,
     request_otp,
     reset_password_with_otp,
@@ -535,71 +531,6 @@ def payment_method_delete_view(request: HttpRequest, payment_method_id: int) -> 
     )
     return _success_response()
 
-
-@require_http_methods(["GET", "POST"])
-def corporate_register_view(request: HttpRequest) -> HttpResponse:
-    """Register a corporate account (HTML form or JSON API)."""
-    if request.method == "GET":
-        return render(
-            request, "accounts/corporate_register.html", {"form": CorporateRegistrationForm()}
-        )
-
-    data = _json_body(request) or request.POST.dict()
-    form = CorporateRegistrationForm(data)
-    if not form.is_valid():
-        if request.content_type == "application/json":
-            return _error_response(str(form.errors), code="validation_error")
-        return render(
-            request,
-            "accounts/corporate_register.html",
-            {"form": form, "errors": form.errors},
-            status=400,
-        )
-    try:
-        account = register_corporate_account(
-            email=form.cleaned_data["email"],
-            password=form.cleaned_data["password"],
-            name=form.cleaned_data["name"],
-            company_name=form.cleaned_data["company_name"],
-            trade_license_number=form.cleaned_data["trade_license_number"],
-        )
-    except CorporateRegistrationError as exc:
-        return _error_response(str(exc), code="registration_failed")
-    return _success_response(
-        {"corporate_account_id": account.pk, "approval_status": account.approval_status},
-        status=201,
-    )
-
-
-@login_required
-@role_required("SuperAdmin", "StoreAdmin")
-@require_GET
-def corporate_pending_approvals_view(request: HttpRequest) -> HttpResponse:
-    """Admin view: paginated list of pending corporate approvals."""
-    page = int(request.GET.get("page", 1))
-    data = get_pending_corporate_approvals(page=page)
-    return _success_response(
-        {
-            "results": [
-                {
-                    "id": a.pk,
-                    "company_name": a.company_name,
-                    "trade_license_number": a.trade_license_number,
-                    "email": a.user.email,
-                    "created_at": a.created_at.isoformat(),
-                }
-                for a in data["results"]
-            ],
-            "pagination": {
-                "page": data["page"],
-                "page_size": data["page_size"],
-                "total_count": data["total_count"],
-                "total_pages": data["total_pages"],
-                "has_next": data["has_next"],
-                "has_previous": data["has_previous"],
-            },
-        }
-    )
 
 
 @require_GET

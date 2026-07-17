@@ -16,13 +16,6 @@ class OTPPurpose(models.TextChoices):
     PASSWORD_RESET = "password_reset", "Password Reset"
 
 
-class CorporateApprovalStatus(models.TextChoices):
-    """Approval workflow states for B2B corporate accounts."""
-
-    PENDING = "pending", "Pending"
-    APPROVED = "approved", "Approved"
-    REJECTED = "rejected", "Rejected"
-
 
 class CustomerProfile(TimeStampedModel):
     """Extended profile for a registered retail customer."""
@@ -239,59 +232,6 @@ class SavedPaymentMethod(TimeStampedModel):
         return f"{self.card_brand} •••• {self.last4}"
 
 
-class CorporateAccount(TimeStampedModel):
-    """B2B corporate account linked to a Django user."""
-
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="corporate_account",
-        verbose_name="User",
-        help_text="Corporate account manager login.",
-    )
-    company_name = models.CharField(
-        max_length=200,
-        verbose_name="Company name",
-        help_text="Registered legal or trading name.",
-    )
-    trade_license_number = models.CharField(
-        max_length=100,
-        unique=True,
-        db_index=True,
-        verbose_name="Trade license number",
-        help_text="Government-issued trade license identifier.",
-    )
-    approval_status = models.CharField(
-        max_length=20,
-        choices=CorporateApprovalStatus.choices,
-        default=CorporateApprovalStatus.PENDING,
-        db_index=True,
-        verbose_name="Approval status",
-        help_text="Current admin review state.",
-    )
-    approved_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="approved_corporate_accounts",
-        verbose_name="Approved by",
-        help_text="Admin user who approved or rejected this account.",
-    )
-
-    class Meta:
-        verbose_name = "Corporate account"
-        verbose_name_plural = "Corporate accounts"
-        indexes = [
-            models.Index(
-                fields=["approval_status"],
-                name="acct_corp_approval_idx",
-            ),
-        ]
-
-    def __str__(self) -> str:
-        return self.company_name
-
 
 class OTPRequest(TimeStampedModel):
     """Hashed one-time password issued for phone-based authentication."""
@@ -473,60 +413,6 @@ class WishlistItem(TimeStampedModel):
         return f"Wishlist item {self.product_id}"
 
 
-class GiftOccasionType(models.TextChoices):
-    """Occasion types for gift calendar reminders."""
-
-    BIRTHDAY = "birthday", "Birthday"
-    ANNIVERSARY = "anniversary", "Anniversary"
-    VALENTINE = "valentine", "Valentine's Day"
-    MOTHERS_DAY = "mothers_day", "Mother's Day"
-    FATHERS_DAY = "fathers_day", "Father's Day"
-    RAMADAN = "ramadan", "Ramadan"
-    EID = "eid", "Eid"
-    CUSTOM = "custom", "Custom"
-
-
-class GiftReminder(TimeStampedModel):
-    """Customer gift calendar reminder."""
-
-    customer_profile = models.ForeignKey(
-        CustomerProfile,
-        on_delete=models.CASCADE,
-        related_name="gift_reminders",
-        verbose_name="Customer profile",
-    )
-    occasion_type = models.CharField(
-        max_length=20,
-        choices=GiftOccasionType.choices,
-        verbose_name="Occasion type",
-    )
-    reminder_date = models.DateField(db_index=True, verbose_name="Reminder date")
-    recipient_name = models.CharField(max_length=120, verbose_name="Recipient name")
-    notes = models.TextField(blank=True, verbose_name="Notes")
-    notify_days_before = models.PositiveSmallIntegerField(
-        default=7,
-        verbose_name="Notify days before",
-    )
-    last_notified_on = models.DateField(
-        null=True,
-        blank=True,
-        verbose_name="Last notified on",
-    )
-
-    class Meta:
-        verbose_name = "Gift reminder"
-        verbose_name_plural = "Gift reminders"
-        ordering = ["reminder_date"]
-        indexes = [
-            models.Index(
-                fields=["customer_profile", "reminder_date"],
-                name="gift_rem_customer_idx",
-            ),
-        ]
-
-    def __str__(self) -> str:
-        return f"{self.occasion_type} for {self.recipient_name}"
-
 
 class Wholesaler(TimeStampedModel):
     """Wholesaler account profile linked to a Django User."""
@@ -566,8 +452,12 @@ class Wholesaler(TimeStampedModel):
     )
     approval_status = models.CharField(
         max_length=20,
-        choices=CorporateApprovalStatus.choices,
-        default=CorporateApprovalStatus.PENDING,
+        choices=[
+            ("pending", "Pending"),
+            ("approved", "Approved"),
+            ("rejected", "Rejected"),
+        ],
+        default="pending",
         db_index=True,
         verbose_name="Approval status",
     )

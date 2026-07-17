@@ -108,14 +108,6 @@ class CartItem(TimeStampedModel):
         verbose_name="Variant",
     )
     quantity = models.PositiveIntegerField(default=1, verbose_name="Quantity")
-    gift_customization_snapshot = models.ForeignKey(
-        "gifting.GiftCustomizationSnapshot",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="cart_items",
-        verbose_name="Gift customization snapshot",
-    )
     unit_price_at_add = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -129,8 +121,7 @@ class CartItem(TimeStampedModel):
         constraints = [
             models.UniqueConstraint(
                 fields=["cart", "product", "variant"],
-                condition=models.Q(gift_customization_snapshot__isnull=True),
-                name="cart_item_unique_product_variant_no_gift",
+                name="cart_item_unique_product_variant",
             ),
         ]
         indexes = [

@@ -11,7 +11,6 @@ class Migration(migrations.Migration):
         ("accounts", "0004_phase9_admin_cms_marketing_reports"),
         ("catalog", "0001_phase3_product_catalog"),
         ("delivery", "0004_phase9_admin_cms_marketing_reports"),
-        ("gifting", "0001_phase5_gift_customization"),
         ("orders", "0003_phase7_delivery_order_tracking"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
@@ -66,18 +65,7 @@ class Migration(migrations.Migration):
                 verbose_name="Order status",
             ),
         ),
-        migrations.AlterField(
-            model_name="orderitem",
-            name="gift_customization_snapshot",
-            field=models.ForeignKey(
-                blank=True,
-                null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
-                related_name="order_items",
-                to="gifting.giftcustomizationsnapshot",
-                verbose_name="Gift customization snapshot",
-            ),
-        ),
+
         migrations.AlterField(
             model_name="orderitem",
             name="order",

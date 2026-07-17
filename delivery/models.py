@@ -144,7 +144,6 @@ class DeliverySlotType(models.TextChoices):
     MORNING = "morning", "Morning"
     EVENING = "evening", "Evening"
     SPECIFIC = "specific", "Specific"
-    MIDNIGHT = "midnight", "Midnight"
 
 
 class DeliverySlot(TimeStampedModel):
@@ -169,12 +168,7 @@ class DeliverySlot(TimeStampedModel):
         verbose_name="Max capacity per day",
         help_text="Maximum bookings allowed for this slot on a single date.",
     )
-    is_midnight = models.BooleanField(
-        default=False,
-        db_index=True,
-        verbose_name="Is midnight slot",
-        help_text="Deprecated mirror of slot_type=midnight; kept for template stability.",
-    )
+
     is_active = models.BooleanField(
         default=True,
         db_index=True,
@@ -192,7 +186,6 @@ class DeliverySlot(TimeStampedModel):
         return self.name
 
     def save(self, *args, **kwargs) -> None:
-        self.is_midnight = self.slot_type == DeliverySlotType.MIDNIGHT
         super().save(*args, **kwargs)
 
 

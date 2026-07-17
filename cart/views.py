@@ -105,17 +105,12 @@ def cart_add_view(request: HttpRequest) -> HttpResponse:
     if product is None:
         raise Http404("Product not found.")
 
-    gift_selections = None
-    if raw := request.POST.get("gift_selections"):
-        gift_selections = json.loads(raw)
-
     cart = get_or_create_cart(request=request)
     add_to_cart(
         cart=cart,
         product=product,
         variant=variant,
         quantity=quantity,
-        gift_selections=gift_selections,
     )
     return _cart_drawer_response(
         request,
