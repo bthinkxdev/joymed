@@ -30,10 +30,8 @@ from delivery.selectors import (
 def _parse_plp_filters(request: HttpRequest) -> dict:
     """Parse shareable PLP filter query params into a selector filter dict."""
     filters: dict = {}
-    
     category_id = request.GET.get("category")
     subcategory_id = request.GET.get("subcategory")
-    
     if subcategory_id:
         filters["category_id"] = int(subcategory_id)
         filters["subcategory_id"] = int(subcategory_id)
@@ -74,13 +72,14 @@ def plp_view(request: HttpRequest, category_slug: str | None = None) -> HttpResp
         category = get_category_by_slug(slug=category_slug)
         if category is None:
             raise Http404("Category not found")
-        
+
         if not filters.get("subcategory_id"):
             filters["category_id"] = category.pk
 
     resolved_cat = category
     if not resolved_cat and (cat_id := filters.get("category_id")):
         from catalog.models import Category
+
         resolved_cat = Category.objects.filter(pk=cat_id, is_active=True).first()
 
     subcategories = []
@@ -95,9 +94,9 @@ def plp_view(request: HttpRequest, category_slug: str | None = None) -> HttpResp
 
     sort = request.GET.get("sort", "newest")
     page = int(request.GET.get("page", 1))
-    plp_data = get_plp_products(filters=filters, sort=sort, page=page)
+    plp_data = get_plp_products(filters=filters, sort=sort, page=page, user=request.user)
     filter_options = get_plp_filter_options()
-    
+
     active_cat = resolved_cat if resolved_cat else None
     title = (
         resolve_meta_title(obj=active_cat, fallback="Shop All Flowers & Gifts")
@@ -157,7 +156,7 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
             destination_city=destination_city,
         )
 
-    price_data = get_variant_price(product_id=product.pk)
+    price_data = get_variant_price(product_id=product.pk, user=request.user)
     reviews = getattr(product, "approved_reviews", [])
     review_count = len(reviews)
     average_rating = None
@@ -165,15 +164,18 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
         average_rating = sum(r.rating for r in reviews) / review_count
 
     from core.services import get_site_settings
+
     site_settings = get_site_settings()
 
-    from cart.selectors import get_cart_for_request
     from cart.models import CartItem
+    from cart.selectors import get_cart_for_request
+
     cart = get_cart_for_request(request=request)
     is_in_cart = CartItem.objects.filter(cart=cart, product=product).exists() if cart else False
 
-    from accounts.subscription_services import get_or_create_wishlist
     from accounts.models import WishlistItem
+    from accounts.subscription_services import get_or_create_wishlist
+
     wishlist = get_or_create_wishlist(request=request)
     is_in_wishlist = WishlistItem.objects.filter(wishlist=wishlist, product_id=product.pk).exists()
 
@@ -246,7 +248,7 @@ def variant_price_view(request: HttpRequest, product_id: int) -> JsonResponse:
     """JSON endpoint for variant price updates on PDP."""
     variant_id = request.GET.get("variant_id")
     parsed_variant = int(variant_id) if variant_id else None
-    data = get_variant_price(product_id=product_id, variant_id=parsed_variant)
+    data = get_variant_price(product_id=product_id, variant_id=parsed_variant, user=request.user)
     return JsonResponse(data)
 
 

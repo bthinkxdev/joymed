@@ -19,11 +19,13 @@ from delivery.selectors import get_delivery_charge
 from marketing.services import validate_coupon_for_cart
 
 
-def _resolve_unit_price(*, product: Product, variant: Optional[ProductVariant]) -> Decimal:
+def _resolve_unit_price(*, product: Product, variant: Optional[ProductVariant], user: Optional[Any] = None
+) -> Decimal:
     """Compute snapshotted unit price from catalog selector."""
     price_data = get_variant_price(
         product_id=product.pk,
         variant_id=variant.pk if variant else None,
+        user=user,
     )
     return Decimal(price_data["price"])
 
@@ -72,7 +74,12 @@ def add_to_cart(
     """
     Add or increment a cart line.
     """
-    unit_price = _resolve_unit_price(product=product, variant=variant)
+    user = (
+        cart.customer_profile.user
+        if (cart.customer_profile and cart.customer_profile.user_id)
+        else None
+    )
+    unit_price = _resolve_unit_price(product=product, variant=variant, user=user)
 
     item, created = CartItem.objects.get_or_create(
         cart=cart,
@@ -85,7 +92,11 @@ def add_to_cart(
     )
     if not created:
         item.quantity += quantity
-        item.save(update_fields=["quantity", "updated_at"])
+        if item.unit_price_at_add != unit_price:
+            item.unit_price_at_add = unit_price
+            item.save(update_fields=["quantity", "unit_price_at_add", "updated_at"])
+        else:
+            item.save(update_fields=["quantity", "updated_at"])
     return item
 
 
@@ -176,12 +187,12 @@ def toggle_wishlist(*, request: HttpRequest, product_id: int) -> bool:
     Returns:
         True if product is now in wishlist, False if removed.
     """
+    from accounts.models import WishlistItem
     from accounts.subscription_services import (
         add_to_wishlist,
         get_or_create_wishlist,
         remove_from_wishlist,
     )
-    from accounts.models import WishlistItem
 
     wishlist = get_or_create_wishlist(request=request)
     if not request.user.is_authenticated:
@@ -198,10 +209,24 @@ def toggle_wishlist(*, request: HttpRequest, product_id: int) -> bool:
 def merge_carts(*, guest_cart: Cart, user_profile) -> None:
     """Merge the guest cart items into the user's profile cart."""
     user_cart = Cart.objects.filter(customer_profile=user_profile).first()
+
+    is_wholesaler = False
+    if user_profile and user_profile.user:
+        u = user_profile.user
+        if hasattr(u, "wholesaler_profile") and u.wholesaler_profile.approval_status == "approved":
+            is_wholesaler = True
+
     if not user_cart:
         #if user has no cart, re-assign the guest cart to user
         guest_cart.customer_profile = user_profile
         guest_cart.session_key = None
+        if is_wholesaler:
+            for item in guest_cart.items.all():
+                price = item.product.wholesale_rate
+                if item.variant:
+                    price = price + item.variant.price_delta
+                item.unit_price_at_add = price
+                item.save(update_fields=["unit_price_at_add", "updated_at"])
         guest_cart.save(update_fields=["customer_profile", "session_key", "updated_at"])
         return
 
@@ -216,11 +241,25 @@ def merge_carts(*, guest_cart: Cart, user_profile) -> None:
         ).first()
         if user_item:
             user_item.quantity += item.quantity
-            user_item.save(update_fields=["quantity", "updated_at"])
+            if is_wholesaler:
+                price = item.product.wholesale_rate
+                if item.variant:
+                    price = price + item.variant.price_delta
+                user_item.unit_price_at_add = price
+                user_item.save(update_fields=["quantity", "unit_price_at_add", "updated_at"])
+            else:
+                user_item.save(update_fields=["quantity", "updated_at"])
             item.delete()
         else:
             item.cart = user_cart
-            item.save(update_fields=["cart", "updated_at"])
+            if is_wholesaler:
+                price = item.product.wholesale_rate
+                if item.variant:
+                    price = price + item.variant.price_delta
+                item.unit_price_at_add = price
+                item.save(update_fields=["cart", "unit_price_at_add", "updated_at"])
+            else:
+                item.save(update_fields=["cart", "updated_at"])
 
     guest_cart.delete()
 

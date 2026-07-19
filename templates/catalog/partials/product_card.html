@@ -22,9 +22,19 @@
     </div>
     <div class="card-body">
       <h3 class="card-title">{{ product.name }}</h3>
+      {% if user.is_authenticated and user.wholesaler_profile.approval_status == 'approved' %}
+      <p class="product-price text-success fw-semibold mb-1">
+        {% money_label product.wholesale_rate display_currency %}
+        <span class="badge bg-success ms-1" style="font-size: 0.6rem; font-weight: normal; vertical-align: middle;">{% trans "Wholesale" %}</span>
+      </p>
+      <p class="text-muted small mb-0" style="font-size: 0.75rem; margin-top: -4px;">
+        <span class="text-decoration-line-through">{% money_label product.base_price display_currency %}</span>
+      </p>
+      {% else %}
       <p class="product-price">
         {% money_label product.display_price|default:product.base_price display_currency %}
       </p>
+      {% endif %}
     </div>
   </a>
 </article>

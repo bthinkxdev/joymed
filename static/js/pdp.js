@@ -15,8 +15,18 @@
           var el = document.getElementById('pdp-price');
           var elSticky = document.getElementById('pdp-sticky-price');
           var symbol = variantSelect.getAttribute('data-currency-symbol') || '₹';
-          if (el) el.textContent = symbol + data.price;
+          if (el) {
+            if (data.is_wholesaler === 'true') {
+              el.innerHTML = '<span class="text-muted small fw-normal">Wholesale Price:</span> ' + symbol + data.price + ' <span class="badge bg-success ms-1 small align-middle" style="font-size: 0.75rem;">Wholesale</span>';
+            } else {
+              el.textContent = symbol + data.price;
+            }
+          }
           if (elSticky) elSticky.textContent = symbol + data.price;
+          var elRetail = document.getElementById('pdp-retail-price');
+          if (elRetail && data.retail_price) {
+            elRetail.textContent = symbol + data.retail_price;
+          }
         });
     });
   }

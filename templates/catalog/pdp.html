@@ -40,11 +40,23 @@
       <h1>{{ product.name }}</h1>
       <p class="pdp-meta">{{ product.category.name }}{% if product.brand %} · {{ product.brand.name }}{% endif %}</p>
       <p class="pdp-price" id="pdp-price">
-        {% if price_data.is_flash_sale == "true" %}
+        {% if price_data.is_wholesaler == "true" %}
+        <span class="text-muted small fw-normal">{% trans "Wholesale Price" %}:</span>
+        {% endif %}
+        {% if price_data.is_flash_sale == "true" and price_data.is_wholesaler != "true" %}
         <span class="was">{% money_label price_data.original_price display_currency %}</span>
         {% endif %}
         {% money_label price_data.price display_currency %}
+        {% if price_data.is_wholesaler == "true" %}
+        <span class="badge bg-success ms-1 small align-middle" style="font-size: 0.75rem;">{% trans "Wholesale" %}</span>
+        {% endif %}
       </p>
+      {% if price_data.is_wholesaler == "true" %}
+      <p class="text-muted small mb-3" id="pdp-retail-price-container">
+        <span>{% trans "Retail Price" %}:</span>
+        <span class="text-decoration-line-through" id="pdp-retail-price">{% money_label price_data.retail_price display_currency %}</span>
+      </p>
+      {% endif %}
       {% include "catalog/partials/pdp_delivery.html" %}
       {% if product.variant_list %}
       <div class="mb-3">

@@ -6,13 +6,12 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any, Optional
 
-from django.db.models import Sum,Prefetch
+from django.db.models import Prefetch, Sum
 from django.http import HttpRequest
 
 from cart.models import Cart, CartItem
 from catalog.models import ProductImage
 from delivery.selectors import get_delivery_charge
-
 
 _CART_CACHE_ATTR = "_floward_resolved_cart"
 
@@ -116,9 +115,7 @@ def get_wishlist_count(*, request: HttpRequest) -> int:
         ).count()
     if not request.session.session_key:
         return 0
-    return WishlistItem.objects.filter(
-        wishlist__session_key=request.session.session_key
-    ).count()
+    return WishlistItem.objects.filter(wishlist__session_key=request.session.session_key).count()
 
 
 def get_cart_summary(*, cart: Cart) -> CartSummary:
@@ -152,12 +149,30 @@ def get_cart_summary(*, cart: Cart) -> CartSummary:
         .order_by("id")
     )
 
+    is_wholesaler = False
+    if cart.customer_profile_id:
+        user = cart.customer_profile.user
+        if user and user.is_authenticated:
+            if (
+                hasattr(user, "wholesaler_profile")
+                and user.wholesaler_profile.approval_status == "approved"
+            ):
+                is_wholesaler = True
+
     lines: list[CartSummaryLine] = []
     subtotal = Decimal("0.00")
     item_count = 0
 
     for item in items:
-        line_subtotal = item.unit_price_at_add * item.quantity
+        if is_wholesaler:
+            price = item.product.wholesale_rate
+            if item.variant:
+                price = price + item.variant.price_delta
+            unit_price = price
+        else:
+            unit_price = item.unit_price_at_add
+
+        line_subtotal = unit_price * item.quantity
         subtotal += line_subtotal
         item_count += item.quantity
         lines.append(
@@ -166,7 +181,7 @@ def get_cart_summary(*, cart: Cart) -> CartSummary:
                 product=item.product,
                 variant=item.variant,
                 quantity=item.quantity,
-                unit_price_at_add=item.unit_price_at_add,
+                unit_price_at_add=unit_price,
                 line_subtotal=line_subtotal,
             )
         )

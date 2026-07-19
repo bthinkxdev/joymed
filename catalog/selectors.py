@@ -100,7 +100,9 @@ def _apply_plp_filters(queryset: QuerySet[Product], filters: dict[str, Any]) -> 
         from catalog.models import Category
         category_ids = [category_id]
         category_ids.extend(
-            Category.objects.filter(parent_id=category_id, is_active=True).values_list("id", flat=True)
+            Category.objects.filter(parent_id=category_id, is_active=True).values_list(
+                "id", flat=True
+            )
         )
         queryset = queryset.filter(category_id__in=category_ids)
     if brand_id := filters.get("brand_id"):
@@ -140,6 +142,7 @@ def get_plp_products(
     sort: str = "newest",
     page: int = 1,
     page_size: int = 24,
+    user: Optional[Any] = None,
 ) -> dict[str, Any]:
     """
     Return a paginated PLP page with advanced filters and average rating annotation.
@@ -169,22 +172,37 @@ def get_plp_products(
     page_obj = paginator.get_page(page)
     results = list(page_obj.object_list)
 
-    from marketing.selectors import get_flash_sale_discounts_for_products
+    is_wholesaler = False
+    if user and user.is_authenticated:
+        if (
+            hasattr(user, "wholesaler_profile")
+            and user.wholesaler_profile.approval_status == "approved"
+        ):
+            is_wholesaler = True
 
-    flash_discounts = get_flash_sale_discounts_for_products(
-        product_prices={product.pk: product.base_price for product in results},
-    )
     display_prices: dict[int, Decimal] = {}
-    for product in results:
-        discount_pct = flash_discounts.get(product.pk)
-        if discount_pct is None:
-            display_prices[product.pk] = product.base_price
-        else:
-            discount = (product.base_price * discount_pct / Decimal("100")).quantize(
-                Decimal("0.01")
-            )
-            display_prices[product.pk] = product.base_price - discount
-        product.display_price = display_prices[product.pk]
+    if is_wholesaler:
+        for product in results:
+            display_prices[product.pk] = product.wholesale_rate
+            product.display_price = product.wholesale_rate
+            product.is_wholesale_price = True
+    else:
+        from marketing.selectors import get_flash_sale_discounts_for_products
+
+        flash_discounts = get_flash_sale_discounts_for_products(
+            product_prices={product.pk: product.base_price for product in results},
+        )
+        for product in results:
+            discount_pct = flash_discounts.get(product.pk)
+            if discount_pct is None:
+                display_prices[product.pk] = product.base_price
+            else:
+                discount = (product.base_price * discount_pct / Decimal("100")).quantize(
+                    Decimal("0.01")
+                )
+                display_prices[product.pk] = product.base_price - discount
+            product.display_price = display_prices[product.pk]
+            product.is_wholesale_price = False
 
     return {
         "results": results,
@@ -389,7 +407,6 @@ def get_search_suggestions(*, query: str, limit: int = 8) -> dict[str, list]:
     from catalog.models import Brand, Category
 
     clean_query = query.strip()
-    
     products = list(
         Product.objects.filter(is_active=True, name__icontains=clean_query)
         .select_related("category")
@@ -397,16 +414,18 @@ def get_search_suggestions(*, query: str, limit: int = 8) -> dict[str, list]:
         .only(*PLP_CARD_FIELDS)[:limit]
     )
 
-    brands = list(
-        Brand.objects.filter(name__icontains=clean_query)[:5]
-    )
+    brands = list(Brand.objects.filter(name__icontains=clean_query)[:5])
 
     categories = list(
-        Category.objects.filter(is_active=True, parent__isnull=False, name__icontains=clean_query)[:5]
+        Category.objects.filter(is_active=True, parent__isnull=False, name__icontains=clean_query)[
+            :5
+        ]
     )
 
     equipment_types = list(
-        Category.objects.filter(is_active=True, parent__isnull=True, name__icontains=clean_query)[:5]
+        Category.objects.filter(is_active=True, parent__isnull=True, name__icontains=clean_query)[
+            :5
+        ]
     )
 
     return {
@@ -415,8 +434,6 @@ def get_search_suggestions(*, query: str, limit: int = 8) -> dict[str, list]:
         "categories": categories,
         "equipment_types": equipment_types,
     }
-
-
 
 
 def get_root_categories(*, category_ids: list[int] | None = None) -> list:
@@ -483,7 +500,9 @@ def get_recent_approved_reviews(*, limit: int = 6) -> list[Review]:
     )
 
 
-def get_variant_price(*, product_id: int, variant_id: int | None = None) -> dict[str, str]:
+def get_variant_price(
+    *, product_id: int, variant_id: int | None = None, user: Optional[Any] = None
+) -> dict[str, str]:
     """
     Return computed price for a product/variant combination.
 
@@ -491,27 +510,50 @@ def get_variant_price(*, product_id: int, variant_id: int | None = None) -> dict
     Query guarantee: 1–2 SELECTs on product/variant + 0–1 on flash sale.
     """
 
-    from marketing.selectors import get_active_flash_sale_price
-
     product = Product.objects.get(pk=product_id, is_active=True)
-    price = product.base_price
+
+    #calculate retail price first
+    retail_price = product.base_price
     resolved_variant_id = None
     if variant_id:
         variant = ProductVariant.objects.filter(pk=variant_id, product=product).first()
         if variant:
-            price = product.base_price + variant.price_delta
+            retail_price = product.base_price + variant.price_delta
             resolved_variant_id = variant.pk
 
-    sale = get_active_flash_sale_price(product_id=product.pk, base_price=price)
-    display_price = sale["price"]
+    from marketing.selectors import get_active_flash_sale_price
+
+    sale = get_active_flash_sale_price(product_id=product.pk, base_price=retail_price)
+    retail_display_price = sale["price"]
+
+    #check if wholesaler
+    is_wholesaler = False
+    if user and user.is_authenticated:
+        if (
+            hasattr(user, "wholesaler_profile")
+            and user.wholesaler_profile.approval_status == "approved"
+        ):
+            is_wholesaler = True
+
+    if is_wholesaler:
+        price = product.wholesale_rate
+        if variant_id:
+            variant = ProductVariant.objects.filter(pk=variant_id, product=product).first()
+            if variant:
+                price = price + variant.price_delta
+        display_price = price
+    else:
+        display_price = retail_display_price
 
     result = {
-        "base_price": str(product.base_price),
+        "base_price": str(product.wholesale_rate if is_wholesaler else product.base_price),
         "price": str(display_price),
+        "retail_price": str(retail_display_price),
         "variant_id": str(resolved_variant_id) if resolved_variant_id else "",
-        "is_flash_sale": str(sale["is_flash_sale"]).lower(),
+        "is_flash_sale": str(sale["is_flash_sale"] if not is_wholesaler else False).lower(),
+        "is_wholesaler": str(is_wholesaler).lower(),
     }
-    if sale["is_flash_sale"]:
+    if not is_wholesaler and sale["is_flash_sale"]:
         result["original_price"] = str(sale["original_price"])
     return result
 
