@@ -189,7 +189,7 @@ def place_order(
             code__iexact=session.cart.coupon_code.strip(),
             is_active=True,
         ).first()
-        if coupon is not None:
+        if coupon is not None and customer_profile is not None:
             record_coupon_redemption(
                 coupon_id=coupon.pk,
                 customer_profile_id=customer_profile.pk,

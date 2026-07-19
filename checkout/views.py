@@ -27,7 +27,12 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
     if not summary.lines:
         return redirect("catalog:plp")
 
-    profile = request.user.customer_profile if request.user.is_authenticated and hasattr(request.user, "customer_profile") else None
+    if request.user.is_authenticated:
+        from accounts.services import ensure_customer_profile_for_user
+        profile = ensure_customer_profile_for_user(user=request.user)
+    else:
+        profile = None
+
     session = create_checkout_session(
         cart=cart,
         customer_profile=profile,
@@ -84,7 +89,12 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
     if cart is None:
         raise Http404("Cart not found.")
 
-    profile = request.user.customer_profile if request.user.is_authenticated and hasattr(request.user, "customer_profile") else None
+    if request.user.is_authenticated:
+        from accounts.services import ensure_customer_profile_for_user
+        profile = ensure_customer_profile_for_user(user=request.user)
+    else:
+        profile = None
+
     session = create_checkout_session(cart=cart, customer_profile=profile, session_key=request.session.session_key or "")
     
     address = None
@@ -129,13 +139,20 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
                 profile.phone = guest_phone
                 profile.save(update_fields=["phone", "updated_at"])
 
-            address, _ = Address.objects.get_or_create(
+            address = Address.objects.filter(
                 customer_profile=profile,
                 line1=guest_address_line1,
                 line2=guest_address_line2,
                 city_id=int(guest_city_id),
-                defaults={"label": "Delivery Address"}
-            )
+            ).first()
+            if not address:
+                address = Address.objects.create(
+                    customer_profile=profile,
+                    line1=guest_address_line1,
+                    line2=guest_address_line2,
+                    city_id=int(guest_city_id),
+                    label="Delivery Address"
+                )
             update_checkout_session(checkout_session=session, address=address)
             
             #update session customer profile
@@ -159,13 +176,20 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
                 )
 
             from accounts.models import Address
-            address, _ = Address.objects.get_or_create(
+            address = Address.objects.filter(
                 customer_profile=profile,
                 line1=guest_address_line1,
                 line2=guest_address_line2,
                 city_id=int(guest_city_id),
-                defaults={"label": "Delivery Address"}
-            )
+            ).first()
+            if not address:
+                address = Address.objects.create(
+                    customer_profile=profile,
+                    line1=guest_address_line1,
+                    line2=guest_address_line2,
+                    city_id=int(guest_city_id),
+                    label="Delivery Address"
+                )
             update_checkout_session(checkout_session=session, address=address)
 
     delivery_form = CheckoutDeliveryForm(request.POST)
