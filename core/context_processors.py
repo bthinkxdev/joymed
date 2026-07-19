@@ -14,6 +14,31 @@ from delivery.selectors import get_active_countries
 
 def storefront(request: HttpRequest) -> dict[str, Any]:
     """Inject navigation, cart, and locale data into every template."""
+    if request.method == "GET":
+        path = request.path_info
+        is_checkout_or_payment = (
+            path.startswith("/checkout/")
+            or path.startswith("/payments/")
+            or path.startswith("/admin/")
+            or path.startswith("/static/")
+            or path.startswith("/media/")
+            or path.startswith("/__debug__/")
+            or path == "/favicon.ico"
+            or path.startswith("/cart/count/")
+            or path.startswith("/cart/drawer/")
+        )
+        if not is_checkout_or_payment:
+            buy_now_item_id = request.session.get("buy_now_item_id")
+            if buy_now_item_id:
+                try:
+                    from cart.models import CartItem
+                    CartItem.objects.filter(id=buy_now_item_id).delete()
+                except Exception:
+                    pass
+                finally:
+                    if "buy_now_item_id" in request.session:
+                        del request.session["buy_now_item_id"]
+
     default_currency = get_default_currency()
     session_currency = request.session.get("storefront_currency", "")
     display_currency = (

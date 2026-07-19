@@ -112,8 +112,9 @@ def cart_add_view(request: HttpRequest) -> HttpResponse:
     #check if the product/variant is already in the cart to avoid incrementing quantity
     from cart.models import CartItem
     exists = CartItem.objects.filter(cart=cart, product=product, variant=variant).exists()
+    new_item = None
     if not exists:
-        add_to_cart(
+        new_item = add_to_cart(
             cart=cart,
             product=product,
             variant=variant,
@@ -121,6 +122,8 @@ def cart_add_view(request: HttpRequest) -> HttpResponse:
         )
 
     if buy_now:
+        if new_item:
+            request.session["buy_now_item_id"] = new_item.id
         from django.urls import reverse
         checkout_url = reverse("checkout:checkout")
         if request.headers.get("HX-Request"):
