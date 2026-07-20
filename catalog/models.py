@@ -139,7 +139,7 @@ class Product(TimeStampedModel):
     )
     mrp = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="MRP")
     purchase_price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Purchase Price")
-    wholesale_rate = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Wholesale Rate")
+    wholesale_rate = models.DecimalField(max_digits=12, decimal_places=2, default=0, blank=True, verbose_name="Wholesale Rate")
     is_rental = models.BooleanField(default=False, db_index=True, verbose_name="Is Rental Eligible")
     rental_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name="Rental Price")
     show_rental_storefront = models.BooleanField(default=True, db_index=True, verbose_name="Show Rental in Storefront")

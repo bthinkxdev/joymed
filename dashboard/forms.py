@@ -70,6 +70,13 @@ class ProductForm(SlugAutoMixin):
         super().__init__(*args, **kwargs)
         self.fields["slug"].required = False
 
+    def clean_wholesale_rate(self):
+        rate = self.cleaned_data.get("wholesale_rate")
+        if rate is None:
+            return 0
+        return rate
+
+
 
 class CategoryForm(SlugAutoMixin):
     class Meta:
