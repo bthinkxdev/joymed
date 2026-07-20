@@ -460,3 +460,77 @@ class ReviewPhoto(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"Photo for review {self.review_id}"
+
+
+class ProductSpecification(TimeStampedModel):
+    """Specification key-value pair for a product."""
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="specifications",
+        verbose_name="Product",
+    )
+    name = models.CharField(
+        max_length=120,
+        verbose_name="Specification Name",
+        help_text="e.g., Weight, Dimensions, Battery Life, Voltage",
+    )
+    value = models.CharField(
+        max_length=255,
+        verbose_name="Specification Value",
+        help_text="e.g., 2.5 kg, 12V, Lithium-Ion",
+    )
+    display_order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Display order",
+        help_text="Lower values appear first.",
+    )
+
+    class Meta:
+        verbose_name = "Product Specification"
+        verbose_name_plural = "Product Specifications"
+        ordering = ["display_order", "name"]
+        unique_together = [("product", "name")]
+
+    def __str__(self) -> str:
+        return f"{self.product.name} - {self.name}: {self.value}"
+
+
+class ProductDocument(TimeStampedModel):
+    """Downloadable document/manual for a product."""
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="documents",
+        verbose_name="Product",
+    )
+    title = models.CharField(
+        max_length=150,
+        verbose_name="Document Title",
+        help_text="e.g., User Manual, Installation Guide, Warranty Details",
+    )
+    document_file = models.FileField(
+        upload_to="products/documents/",
+        verbose_name="Document File",
+        help_text="PDF format manuals or brochures.",
+    )
+    display_order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Display order",
+        help_text="Lower values appear first.",
+    )
+
+    class Meta:
+        verbose_name = "Product Document"
+        verbose_name_plural = "Product Documents"
+        ordering = ["display_order", "title"]
+
+    @property
+    def filename(self) -> str:
+        import os
+        return os.path.basename(self.document_file.name) if self.document_file else ""
+
+    def __str__(self) -> str:
+        return f"{self.product.name} - {self.title}"

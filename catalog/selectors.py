@@ -12,8 +12,10 @@ from django.db.models import Avg, Prefetch, Q, QuerySet
 from catalog.models import (
     ModerationStatus,
     Product,
+    ProductDocument,
     ProductImage,
     ProductRelation,
+    ProductSpecification,
     ProductVariant,
     ProductVideo,
     RelationType,
@@ -296,6 +298,14 @@ def get_product_detail(*, slug: str) -> Optional[Product]:
             Prefetch(
                 "videos",
                 queryset=ProductVideo.objects.order_by("id"),
+            ),
+            Prefetch(
+                "specifications",
+                queryset=ProductSpecification.objects.order_by("display_order", "name"),
+            ),
+            Prefetch(
+                "documents",
+                queryset=ProductDocument.objects.order_by("display_order", "title"),
             ),
             approved_reviews_prefetch,
             related_prefetch,

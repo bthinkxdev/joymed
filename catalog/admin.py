@@ -14,6 +14,8 @@ from catalog.models import (
     ProductVideo,
     Review,
     ReviewPhoto,
+    ProductSpecification,
+    ProductDocument,
 )
 
 
@@ -50,6 +52,16 @@ class ProductVariantInline(admin.TabularInline):
     extra = 0
 
 
+class ProductSpecificationInline(admin.TabularInline):
+    model = ProductSpecification
+    extra = 1
+
+
+class ProductDocumentInline(admin.TabularInline):
+    model = ProductDocument
+    extra = 1
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     """Admin for products — list_select_related prevents N+1 on list view."""
@@ -76,7 +88,12 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ("name", "slug", "sku")
     list_select_related = ("category", "brand")
     prepopulated_fields = {"slug": ("name",)}
-    inlines = [ProductVariantInline, ProductImageInline]
+    inlines = [
+        ProductVariantInline,
+        ProductImageInline,
+        ProductSpecificationInline,
+        ProductDocumentInline,
+    ]
     ordering = ("name",)
 
 

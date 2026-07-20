@@ -10,7 +10,9 @@ from catalog.models import (
     Brand,
     Category,
     Product,
+    ProductDocument,
     ProductImage,
+    ProductSpecification,
     ProductVariant,
     Review,
 )
@@ -120,6 +122,69 @@ ProductImageFormSet = forms.inlineformset_factory(
     extra=1,
     can_delete=True,
 )
+class ProductSpecificationForm(forms.ModelForm):
+    class Meta:
+        model = ProductSpecification
+        fields = ["name", "value", "display_order"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["display_order"].required = False
+        if not self.instance.pk:
+            self.initial["display_order"] = None
+
+    def clean_display_order(self):
+        val = self.cleaned_data.get("display_order")
+        return val if val is not None else 0
+
+
+class ProductDocumentForm(forms.ModelForm):
+    class Meta:
+        model = ProductDocument
+        fields = ["title", "document_file", "display_order"]
+        widgets = {
+            "document_file": forms.FileInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["display_order"].required = False
+        if not self.instance.pk:
+            self.initial["display_order"] = None
+
+    def clean_display_order(self):
+        val = self.cleaned_data.get("display_order")
+        return val if val is not None else 0
+
+
+ProductVariantFormSet = forms.inlineformset_factory(
+    Product,
+    ProductVariant,
+    fields=["variant_type", "name", "price_delta", "sku_suffix", "stock_quantity"],
+    extra=1,
+    can_delete=True,
+)
+ProductImageFormSet = forms.inlineformset_factory(
+    Product,
+    ProductImage,
+    fields=["image", "alt_text", "display_order", "is_primary"],
+    extra=1,
+    can_delete=True,
+)
+ProductSpecificationFormSet = forms.inlineformset_factory(
+    Product,
+    ProductSpecification,
+    form=ProductSpecificationForm,
+    extra=1,
+    can_delete=True,
+)
+ProductDocumentFormSet = forms.inlineformset_factory(
+    Product,
+    ProductDocument,
+    form=ProductDocumentForm,
+    extra=1,
+    can_delete=True,
+)
 
 
 class CustomerProfileForm(forms.ModelForm):
@@ -143,12 +208,22 @@ class WholesalerForm(forms.ModelForm):
         model = Wholesaler
         fields = ["company_name", "phone_number", "gst", "address", "approval_status"]
 
-    field_order = ["name", "company_name", "email", "phone_number", "gst", "address", "approval_status"]
+    field_order = [
+        "name",
+        "company_name",
+        "email",
+        "phone_number",
+        "gst",
+        "address",
+        "approval_status",
+    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.user:
-            self.fields["name"].initial = self.instance.user.get_full_name() or self.instance.user.first_name
+            self.fields["name"].initial = (
+                self.instance.user.get_full_name() or self.instance.user.first_name
+            )
             self.fields["email"].initial = self.instance.user.email
 
     def save(self, commit=True):

@@ -176,26 +176,94 @@
         });
       }
 
+      //hide any rows that are already marked for deletion on load (e.g. on validation re-render)
+      var deleteCheckboxes = wrap.querySelectorAll("input[name$='-DELETE']");
+      Array.prototype.forEach.call(deleteCheckboxes, function (cb) {
+        if (cb.checked) {
+          var row = cb.closest("tr");
+          if (row) {
+            row.style.display = "none";
+          }
+        }
+      });
+
       wrap.addEventListener("click", function (e) {
-        var btn = e.target.closest ? e.target.closest("[data-row-remove]") : null;
-        if (!btn) return;
-        var row = btn.closest("tr");
-        if (!row) return;
-        Array.prototype.forEach.call(row.querySelectorAll("input, select, textarea"), function (inp) {
-          if (inp.type === "checkbox" || inp.type === "radio") inp.checked = false;
-          else if (inp.type !== "hidden") inp.value = "";
-        });
-        row.style.display = "none";
+        //handle row delete/remove
+        var btnRemove = e.target.closest ? e.target.closest("[data-row-remove]") : null;
+        if (btnRemove) {
+          var row = btnRemove.closest("tr");
+          if (row) {
+            var idInput = row.querySelector("input[name$='-id']");
+            var isExisting = idInput && idInput.value;
+
+            if (isExisting) {
+              var deleteCheckbox = row.querySelector("input[name$='-DELETE']");
+              if (deleteCheckbox) {
+                deleteCheckbox.checked = true;
+              }
+            } else {
+              Array.prototype.forEach.call(row.querySelectorAll("input, select, textarea"), function (inp) {
+                if (inp.type === "checkbox" || inp.type === "radio") inp.checked = false;
+                else if (inp.type !== "hidden") inp.value = "";
+              });
+            }
+            row.style.display = "none";
+          }
+          return;
+        }
+
+        //handle custom replace file button click
+        var btnReplace = e.target.closest ? e.target.closest("[data-replace-file-btn]") : null;
+        if (btnReplace) {
+          var container = btnReplace.closest("[data-existing-file-container]");
+          var fileInput = container ? container.querySelector("input[type='file']") : null;
+          if (fileInput) {
+            fileInput.click();
+          }
+        }
       });
 
       wrap.addEventListener("change", function (e) {
         var inp = e.target;
         if (inp.type === "file" && inp.files && inp.files[0]) {
+          var fileUrl = URL.createObjectURL(inp.files[0]);
+
+          //update custom label if inside an existing file container
+          var container = inp.closest("[data-existing-file-container]");
+          if (container) {
+            var label = container.querySelector("[data-file-label]");
+            if (label) {
+              label.innerHTML = '<i class="ti ti-file-text me-1 text-success"></i>' + inp.files[0].name;
+            }
+          }
+
+          //image preview logic
           var row = inp.closest("tr");
           var prev = row ? row.querySelector("[data-img-preview]") : null;
           if (prev) {
-            prev.src = URL.createObjectURL(inp.files[0]);
+            if (prev.src && prev.src.startsWith("blob:")) {
+              URL.revokeObjectURL(prev.src);
+            }
+            prev.src = fileUrl;
             prev.classList.remove("d-none");
+          }
+
+          //document view button update logic
+          var viewContainer = row ? row.querySelector("[data-view-container]") : null;
+          if (viewContainer) {
+            var viewBtn = viewContainer.querySelector("[data-view-btn]");
+            if (viewBtn) {
+              if (viewBtn.href && viewBtn.href.startsWith("blob:")) {
+                URL.revokeObjectURL(viewBtn.href);
+              }
+              viewBtn.href = fileUrl;
+            } else {
+              var placeholder = viewContainer.querySelector("[data-view-placeholder]");
+              if (placeholder) {
+                placeholder.remove();
+              }
+              viewContainer.innerHTML = '<a href="' + fileUrl + '" target="_blank" class="btn btn-icon btn-sm btn-light text-info" data-view-btn title="View Document"><i class="ti ti-eye"></i></a>';
+            }
           }
         }
       });

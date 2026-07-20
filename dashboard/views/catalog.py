@@ -72,20 +72,50 @@ def _render_product_form(request, product, mode):
         images = forms.ProductImageFormSet(
             request.POST, request.FILES, instance=product, prefix="images"
         )
-        if form.is_valid() and variants.is_valid() and images.is_valid():
+        specifications = forms.ProductSpecificationFormSet(
+            request.POST, instance=product, prefix="specifications"
+        )
+        documents = forms.ProductDocumentFormSet(
+            request.POST, request.FILES, instance=product, prefix="documents"
+        )
+        if (
+            form.is_valid()
+            and variants.is_valid()
+            and images.is_valid()
+            and specifications.is_valid()
+            and documents.is_valid()
+        ):
             product = form.save()
             variants.instance = product
             variants.save()
             images.instance = product
             images.save()
+            specifications.instance = product
+            specifications.save()
+            documents.instance = product
+            documents.save()
             messages.success(request, f"Product {'created' if mode == 'create' else 'updated'}.")
             return redirect("dashboard:product-list")
     else:
         form = forms.ProductForm(instance=product)
         variants = forms.ProductVariantFormSet(instance=product, prefix="variants")
         images = forms.ProductImageFormSet(instance=product, prefix="images")
+        specifications = forms.ProductSpecificationFormSet(
+            instance=product, prefix="specifications"
+        )
+        documents = forms.ProductDocumentFormSet(instance=product, prefix="documents")
 
-    for f in [form, *variants.forms, variants.empty_form, *images.forms, images.empty_form]:
+    for f in [
+        form,
+        *variants.forms,
+        variants.empty_form,
+        *images.forms,
+        images.empty_form,
+        *specifications.forms,
+        specifications.empty_form,
+        *documents.forms,
+        documents.empty_form,
+    ]:
         _style(f)
 
     context = {
@@ -94,6 +124,8 @@ def _render_product_form(request, product, mode):
         "form": form,
         "variants": variants,
         "images": images,
+        "specifications": specifications,
+        "documents": documents,
         "form_mode": mode,
         "product": product,
         "cancel_url": reverse("dashboard:product-list"),
