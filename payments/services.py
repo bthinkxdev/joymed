@@ -65,6 +65,12 @@ def process_payment(
     adapter = get_payment_adapter(gateway_key=gateway_key)
     metadata = {"order_id": order.pk, "order_number": order.order_number, **payment_data}
 
+    #clean up: mark any previous abandoned payment attempts as failed
+    PaymentTransaction.objects.filter(
+        order=order,
+        status=PaymentStatus.PENDING
+    ).update(status=PaymentStatus.FAILED)
+
     payment_tx = PaymentTransaction.objects.create(
         order=order,
         gateway_key=gateway_key,
@@ -100,6 +106,10 @@ def process_payment(
 
     if capture.success:
         confirm_payment_success(payment_transaction=payment_tx)
+        #COD checkouts are successful, but the payment itself should remain Pending until the admin manually collects the cash and marks it as Success.
+        if gateway_key == "cod":
+            payment_tx.status = PaymentStatus.PENDING
+            payment_tx.save(update_fields=["status", "updated_at"])
     else:
         confirm_payment_failed(payment_transaction=payment_tx)
 

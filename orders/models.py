@@ -11,7 +11,7 @@ from core.models import TimeStampedModel
 class OrderStatus(models.TextChoices):
     """Lifecycle states for a customer order."""
 
-    RECEIVED = "received", "Received"
+    RECEIVED = "received", "Placed"
     PREPARING = "preparing", "Preparing"
     PACKAGING = "packaging", "Packaging"
     READY = "ready", "Ready"
@@ -115,6 +115,32 @@ class Order(TimeStampedModel):
 
     def __str__(self) -> str:
         return self.order_number
+
+    @property
+    def payment_method_display(self) -> str:
+        """Get the human-readable payment method name from the latest transaction."""
+        tx = self.payment_transactions.filter(status="success").last()
+        if not tx:
+            tx = self.payment_transactions.last()
+        if not tx:
+            return "Unknown"
+        
+        try:
+            from payments.registry import get_payment_adapter
+            adapter = get_payment_adapter(gateway_key=tx.gateway_key)
+            return adapter.display_name
+        except KeyError:
+            return tx.gateway_key.replace("_", " ").title()
+
+    @property
+    def payment_status_display(self) -> str:
+        """Get the human-readable payment status from the latest transaction."""
+        tx = self.payment_transactions.filter(status="success").last()
+        if not tx:
+            tx = self.payment_transactions.last()
+        if not tx:
+            return "Unknown"
+        return tx.get_status_display()
 
 
 class OrderItem(TimeStampedModel):

@@ -205,13 +205,14 @@ def verify_otp(*, phone: str, otp_code: str, purpose: str) -> OTPRequest:
 def register_customer_email(*, email: str, password: str, name: str) -> CustomerProfile:
     """
     Register a new customer with email and password credentials.
+    Upgrades a shadow account (from guest checkout) if it exists.
 
     Params:
         email: Unique email address.
         password: Raw password (hashed by Django).
         name: Full name split into first/last.
     Returns:
-        Created CustomerProfile with linked User.
+        CustomerProfile with linked User.
     """
     currency = get_default_currency()
     if currency is None:
@@ -220,18 +221,31 @@ def register_customer_email(*, email: str, password: str, name: str) -> Customer
     name_parts = name.strip().split(" ", 1)
     first_name = name_parts[0]
     last_name = name_parts[1] if len(name_parts) > 1 else ""
+    normalized_email = email.strip().lower()
 
-    user = UserModel.objects.create_user(
-        username=email,
-        email=email,
-        password=password,
-        first_name=first_name,
-        last_name=last_name,
-    )
-    return CustomerProfile.objects.create(
+    user = UserModel.objects.filter(email=normalized_email).first()
+    if user:
+        if user.has_usable_password():
+            raise ValueError("Email is already registered.")
+        user.set_password(password)
+        if not user.first_name and not user.last_name:
+            user.first_name = first_name
+            user.last_name = last_name
+        user.save()
+    else:
+        user = UserModel.objects.create_user(
+            username=normalized_email,
+            email=normalized_email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+        )
+
+    profile, created = CustomerProfile.objects.get_or_create(
         user=user,
-        preferred_currency=currency,
+        defaults={"preferred_currency": currency},
     )
+    return profile
 
 
 def ensure_customer_profile_for_user(*, user: User) -> CustomerProfile:

@@ -37,6 +37,7 @@ def transition_order_status(
     actor: Optional[User] = None,
     note: str = "",
     send_notifications: bool = True,
+    force: bool = False,
 ) -> Order:
     """
     Validate and apply an order status transition.
@@ -48,11 +49,12 @@ def transition_order_status(
     if new_status == old_status:
         return order
 
-    allowed = ALLOWED_STATUS_TRANSITIONS.get(old_status, set())
-    if new_status not in allowed:
-        raise InvalidOrderStatusTransitionError(
-            f"Cannot transition order from {old_status} to {new_status}."
-        )
+    if not force:
+        allowed = ALLOWED_STATUS_TRANSITIONS.get(old_status, set())
+        if new_status not in allowed:
+            raise InvalidOrderStatusTransitionError(
+                f"Cannot transition order from {old_status} to {new_status}."
+            )
 
     order.order_status = new_status
     order.save(update_fields=["order_status", "updated_at"])

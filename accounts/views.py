@@ -154,11 +154,23 @@ def email_register_view(request: HttpRequest) -> HttpResponse:
             {"form": form, "errors": form.errors},
             status=400,
         )
-    profile = register_customer_email(
-        email=form.cleaned_data["email"],
-        password=form.cleaned_data["password"],
-        name=form.cleaned_data["name"],
-    )
+    try:
+        profile = register_customer_email(
+            email=form.cleaned_data["email"],
+            password=form.cleaned_data["password"],
+            name=form.cleaned_data["name"],
+        )
+    except ValueError as exc:
+        if _wants_json(request):
+            return _error_response(str(exc), code="registration_failed")
+        form.add_error("email", str(exc))
+        return render(
+            request,
+            "accounts/register.html",
+            {"form": form, "errors": form.errors},
+            status=400,
+        )
+
     login(request, profile.user, backend="django.contrib.auth.backends.ModelBackend")
     if _wants_json(request):
         return _success_response({"user_id": profile.user_id})

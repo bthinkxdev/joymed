@@ -58,9 +58,7 @@ def order_detail(request: HttpRequest, pk: int) -> HttpResponse:
     payments = order.payment_transactions.select_related("currency").all()
     pod = getattr(order, "proof_of_delivery", None)
 
-    allowed = sorted(ALLOWED_STATUS_TRANSITIONS.get(order.order_status, set()))
-    status_labels = dict(OrderStatus.choices)
-    allowed_choices = [(s, status_labels.get(s, s)) for s in allowed]
+    allowed_choices = OrderStatus.choices
 
     context = {
         "nav_section": "orders",
@@ -83,10 +81,45 @@ def order_transition(request: HttpRequest, pk: int) -> HttpResponse:
     new_status = request.POST.get("new_status", "")
     note = request.POST.get("note", "")
     try:
-        transition_order_status(order=order, new_status=new_status, actor=request.user, note=note)
+        transition_order_status(
+            order=order, new_status=new_status, actor=request.user, note=note, force=True
+        )
         messages.success(
             request, f"Order moved to {dict(OrderStatus.choices).get(new_status, new_status)}."
         )
     except InvalidOrderStatusTransitionError as exc:
         messages.error(request, str(exc))
+    return redirect("dashboard:order-detail", pk=pk)
+
+
+@dashboard_required
+@require_POST
+def order_payment_transition(request: HttpRequest, pk: int) -> HttpResponse:
+    """Manually update the payment status of the latest payment transaction."""
+    from payments.models import PaymentStatus
+    
+    order = get_object_or_404(Order, pk=pk)
+    new_status = request.POST.get("new_status", "")
+    
+    # get the latest payment transaction to update
+    tx = order.payment_transactions.last()
+    
+    if tx and new_status in dict(PaymentStatus.choices):
+        if new_status == PaymentStatus.SUCCESS:
+            from payments.services import confirm_payment_success
+            confirm_payment_success(payment_transaction=tx)
+            messages.success(request, f"Payment marked as {dict(PaymentStatus.choices).get(new_status)}.")
+        elif new_status == PaymentStatus.FAILED:
+            from payments.services import confirm_payment_failed
+            confirm_payment_failed(payment_transaction=tx)
+            messages.success(request, f"Payment marked as {dict(PaymentStatus.choices).get(new_status)}.")
+        else:
+            tx.status = new_status
+            tx.save(update_fields=["status", "updated_at"])
+            messages.success(request, f"Payment marked as {dict(PaymentStatus.choices).get(new_status)}.")
+    elif not tx:
+        messages.error(request, "Could not update payment status: No payment records found.")
+    else:
+        messages.error(request, "Invalid payment status selected.")
+        
     return redirect("dashboard:order-detail", pk=pk)

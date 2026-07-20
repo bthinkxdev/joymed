@@ -87,7 +87,9 @@
           <div class="mb-3">
             <label class="form-label">New status</label>
             <select name="new_status" class="form-select" required>
-              {% for value, label in allowed_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+              {% for value, label in allowed_choices %}
+                <option value="{{ value }}" {% if value == order.order_status %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="mb-3">
@@ -101,6 +103,26 @@
         {% endif %}
       </div>
     </div>
+
+    {% if payments %}
+    <div class="card mb-3">
+      <div class="card-header bg-transparent px-4 py-3"><h3 class="h5 mb-0">Update Payment</h3></div>
+      <div class="card-body p-4">
+        <form method="post" action="{% url 'dashboard:order-payment-transition' order.pk %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Payment status</label>
+            <select name="new_status" class="form-select" required>
+              <option value="pending" {% if payments.last.status == 'pending' %}selected{% endif %}>Pending</option>
+              <option value="success" {% if payments.last.status == 'success' %}selected{% endif %}>Success / Paid</option>
+              <option value="failed" {% if payments.last.status == 'failed' %}selected{% endif %}>Failed / Cancelled</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Update Payment</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
 
     <div class="card mb-3">
       <div class="card-header bg-transparent px-4 py-3"><h3 class="h5 mb-0">Delivery address</h3></div>
