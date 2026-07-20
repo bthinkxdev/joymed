@@ -286,15 +286,15 @@
     {% endfor %}
   </section>
 
-  {% if product.related_relations %}
-  <section class="mt-4">
+  {% if related_products %}
+  <section class="mt-5 pt-4 border-top">
     <div class="section-header">
-      <h2 class="section-title">{% trans "Related Products" %}</h2>
+      <h2 class="section-title h5 mb-3">{% trans "Related Products" %}</h2>
     </div>
-    <div class="product-rail-scroll">
-      {% for rel in product.related_relations %}
-      <div class="product-rail-item">
-        {% include "catalog/partials/product_card.html" with product=rel.related_product %}
+    <div class="product-rail-scroll" role="list">
+      {% for related_product in related_products %}
+      <div class="product-rail-item" role="listitem">
+        {% include "catalog/partials/product_card.html" with product=related_product %}
       </div>
       {% endfor %}
     </div>

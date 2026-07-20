@@ -615,3 +615,86 @@ def get_products_by_ids(*, product_ids: list[int]) -> list[Product]:
             "id", "name", "slug", "base_price"
         )
     )
+
+
+def get_related_products(*, product: Product, user: Optional[Any] = None, limit: int = 4) -> list[Product]:
+    """
+    Return related products for a product.
+    1) Query explicit RELATED relationships.
+    2) Fallback to active products in the same category.
+    3) Fallback to active products in general.
+    Optimized with select_related for category and brand, and prefetches primary images.
+    """
+    #explicit related products
+    explicit_ids = list(
+        ProductRelation.objects.filter(
+            product=product,
+            relation_type=RelationType.RELATED
+        ).values_list("related_product_id", flat=True)
+    )
+    
+    products = list(
+        Product.objects.filter(pk__in=explicit_ids, is_active=True)
+        .select_related("category", "brand")
+        .prefetch_related(_primary_image_prefetch())
+        .only(*PLP_CARD_FIELDS)
+    )
+    
+    #fallback to same category
+    if len(products) < limit:
+        needed = limit - len(products)
+        exclude_ids = [product.pk] + [p.pk for p in products]
+        cat_products = (
+            Product.objects.filter(category=product.category, is_active=True)
+            .exclude(pk__in=exclude_ids)
+            .select_related("category", "brand")
+            .prefetch_related(_primary_image_prefetch())
+            .only(*PLP_CARD_FIELDS)[:needed]
+        )
+        products.extend(list(cat_products))
+        
+    #general active products fallback if still not enough
+    if len(products) < limit:
+        needed = limit - len(products)
+        exclude_ids = [product.pk] + [p.pk for p in products]
+        fallback_products = (
+            Product.objects.filter(is_active=True)
+            .exclude(pk__in=exclude_ids)
+            .select_related("category", "brand")
+            .prefetch_related(_primary_image_prefetch())
+            .only(*PLP_CARD_FIELDS)[:needed]
+        )
+        products.extend(list(fallback_products))
+
+    #decorate with display_price
+    is_wholesaler = False
+    if user and user.is_authenticated:
+        if (
+            hasattr(user, "wholesaler_profile")
+            and user.wholesaler_profile.approval_status == "approved"
+        ):
+            is_wholesaler = True
+
+    if is_wholesaler:
+        for p in products:
+            p.display_price = p.wholesale_rate
+            p.is_wholesale_price = True
+    else:
+        from marketing.selectors import get_flash_sale_discounts_for_products
+
+        flash_discounts = get_flash_sale_discounts_for_products(
+            product_prices={p.pk: p.base_price for p in products},
+        )
+        for p in products:
+            discount_pct = flash_discounts.get(p.pk)
+            if discount_pct is None:
+                p.display_price = p.base_price
+            else:
+                discount = (p.base_price * discount_pct / Decimal("100")).quantize(
+                    Decimal("0.01")
+                )
+                p.display_price = p.base_price - discount
+            p.is_wholesale_price = False
+
+    return products
+

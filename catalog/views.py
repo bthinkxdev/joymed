@@ -15,6 +15,7 @@ from catalog.selectors import (
     get_plp_filter_options,
     get_plp_products,
     get_product_detail,
+    get_related_products,
     get_search_suggestions,
     get_variant_price,
     record_product_view,
@@ -194,6 +195,7 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
             "whatsapp_number": site_settings.whatsapp_number,
             "is_in_cart": is_in_cart,
             "is_in_wishlist": is_in_wishlist,
+            "related_products": get_related_products(product=product, user=request.user),
             "product_json_ld": json.dumps(
                 build_product_json_ld(
                     product=product,
