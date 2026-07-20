@@ -10,6 +10,7 @@ from accounts.models import (
     OTPRequest,
     SavedPaymentMethod,
     Subscription,
+    Wholesaler,
     Wishlist,
     WishlistItem,
 )
@@ -71,5 +72,15 @@ class WishlistAdmin(admin.ModelAdmin):
 class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ("customer_profile", "product", "status", "quantity", "updated_at")
     list_filter = ("status",)
+
+
+@admin.register(Wholesaler)
+class WholesalerAdmin(admin.ModelAdmin):
+    """Admin interface for wholesaler profiles."""
+
+    list_display = ("company_name", "user", "phone_number", "gst", "approval_status", "approved_by", "updated_at")
+    list_filter = ("approval_status",)
+    search_fields = ("company_name", "user__email", "phone_number", "gst")
+    raw_id_fields = ("user", "approved_by")
 
 
