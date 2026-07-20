@@ -196,20 +196,16 @@ def place_order(
                 order_id=order.pk,
             )
 
-    session.status = CheckoutSessionStatus.COMPLETED
     session.order = order
     session.idempotency_key = idempotency_key
     session.customer_profile = customer_profile
     session.save(
         update_fields=[
-            "status",
             "order",
             "idempotency_key",
             "customer_profile",
             "updated_at",
         ]
     )
-
-    CartItem.objects.filter(cart=session.cart).delete()
 
     return order

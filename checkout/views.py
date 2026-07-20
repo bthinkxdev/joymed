@@ -59,6 +59,21 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
     from delivery.models import City
     active_cities = City.objects.filter(is_active=True)
 
+    selected_gateway_key = None
+    if session.order:
+        last_tx = session.order.payment_transactions.last()
+        if last_tx:
+            selected_gateway_key = last_tx.gateway_key
+
+    from payments.adapters.concrete import _get_razorpay_credentials
+    razorpay_key, razorpay_secret = _get_razorpay_credentials()
+    
+    available_gateways = {}
+    for key, adapter in PAYMENT_GATEWAYS.items():
+        if key.startswith("razorpay") and (not razorpay_key or not razorpay_secret):
+            continue
+        available_gateways[key] = adapter
+
     return render(
         request,
         "checkout/checkout.html",
@@ -68,7 +83,8 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
             "addresses": addresses,
             "active_cities": active_cities,
             "delivery_slots": delivery_slots,
-            "payment_gateways": PAYMENT_GATEWAYS,
+            "payment_gateways": available_gateways,
+            "selected_gateway_key": selected_gateway_key,
         },
     )
 
@@ -203,7 +219,7 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
     order = place_order(
         checkout_session_id=session.pk,
         idempotency_key=form.cleaned_data["idempotency_key"],
-        customer_profile=profile if request.user.is_authenticated else None,
+        customer_profile=profile,
     )
 
     if "buy_now_item_id" in request.session:
@@ -213,13 +229,20 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
     if form.cleaned_data.get("voucher_code"):
         payment_data["voucher_code"] = form.cleaned_data["voucher_code"]
 
+    gateway_key = form.cleaned_data["gateway_key"]
     process_payment(
         order=order,
-        gateway_key=form.cleaned_data["gateway_key"],
+        gateway_key=gateway_key,
         payment_data=payment_data,
     )
 
-
+    if gateway_key.startswith("razorpay"):
+        pay_url = reverse("checkout:razorpay-pay", kwargs={"order_id": order.pk})
+        if request.headers.get("HX-Request"):
+            response = HttpResponse()
+            response["HX-Redirect"] = pay_url
+            return response
+        return redirect(pay_url)
 
     confirmation_url = reverse("checkout:confirmation", kwargs={"order_id": order.pk})
     if request.headers.get("HX-Request"):
@@ -242,4 +265,143 @@ def checkout_confirmation_view(request: HttpRequest, order_id: int) -> HttpRespo
             "order": order,
         },
     )
+
+
+@require_GET
+def razorpay_pay_view(request: HttpRequest, order_id: int) -> HttpResponse:
+    """Render Razorpay checkout payment page."""
+    from orders.models import Order
+    from payments.models import PaymentTransaction
+    from payments.adapters.concrete import _get_razorpay_credentials
+    from django.shortcuts import get_object_or_404
+
+    order = get_object_or_404(Order, pk=order_id)
+    payment_tx = PaymentTransaction.objects.filter(order=order, gateway_key__startswith="razorpay").last()
+    key_id, _ = _get_razorpay_credentials()
+
+    customer_name = ""
+    customer_email = ""
+    customer_phone = ""
+    if order.customer_profile:
+        customer_name = f"{order.customer_profile.user.first_name} {order.customer_profile.user.last_name}".strip() or order.customer_profile.user.username
+        customer_email = order.customer_profile.user.email
+        customer_phone = order.customer_profile.phone
+    elif order.delivery_address_snapshot:
+        customer_name = order.delivery_address_snapshot.get("recipient_name", "")
+        customer_email = order.delivery_address_snapshot.get("email", "")
+        customer_phone = order.delivery_address_snapshot.get("phone", "")
+
+    amount_in_paise = int(order.total_amount * 100)
+    currency_code = order.currency.code if order.currency else "INR"
+    razorpay_order_id = payment_tx.external_intent_id if payment_tx else f"rzp_order_{order.pk}"
+
+    #determine prefill method based on gateway key
+    prefill_method = ""
+    payment_method_name = "Razorpay"
+    if payment_tx and payment_tx.gateway_key:
+        if payment_tx.gateway_key == "razorpay_upi":
+            prefill_method = "upi"
+            payment_method_name = "UPI"
+        elif payment_tx.gateway_key == "razorpay_card":
+            prefill_method = "card"
+            payment_method_name = "Credit/Debit Card"
+        elif payment_tx.gateway_key == "razorpay_netbanking":
+            prefill_method = "netbanking"
+            payment_method_name = "Net Banking"
+        elif payment_tx.gateway_key == "razorpay_wallet":
+            prefill_method = "wallet"
+            payment_method_name = "Wallet"
+
+    #store order_id in session so the callback can retrieve it
+    request.session["razorpay_order_pk"] = order.pk
+
+    #build absolute callback URL for Razorpay redirect
+    callback_url = request.build_absolute_uri(reverse("checkout:razorpay-callback"))
+    cancel_url = request.build_absolute_uri(reverse("checkout:checkout"))
+
+    return render(
+        request,
+        "checkout/razorpay_pay.html",
+        {
+            "order": order,
+            "razorpay_key_id": key_id or "rzp_test_mock",
+            "razorpay_order_id": razorpay_order_id,
+            "amount_in_paise": amount_in_paise,
+            "currency_code": currency_code,
+            "customer_name": customer_name,
+            "customer_email": customer_email,
+            "customer_phone": customer_phone,
+            "callback_url": callback_url,
+            "cancel_url": cancel_url,
+            "prefill_method": prefill_method,
+            "payment_method_name": payment_method_name,
+        },
+    )
+
+
+from django.views.decorators.csrf import csrf_exempt
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def razorpay_callback_view(request: HttpRequest) -> HttpResponse:
+    """
+    Handle POST callback from Razorpay after payment.
+
+    Razorpay redirects the full browser here with razorpay_payment_id,
+    razorpay_order_id, and razorpay_signature as POST parameters.
+    """
+    from payments.models import PaymentTransaction
+    from payments.adapters.concrete import RazorpayAdapter
+    from payments.services import confirm_payment_success, confirm_payment_failed
+    from django.shortcuts import get_object_or_404
+    from orders.models import Order
+
+    razorpay_payment_id = request.POST.get("razorpay_payment_id", "")
+    razorpay_order_id = request.POST.get("razorpay_order_id", "")
+    razorpay_signature = request.POST.get("razorpay_signature", "")
+
+    #try order_id from POST (JS form submit) or session (Razorpay redirect)
+    order_id = request.POST.get("order_id") or request.session.get("razorpay_order_pk")
+
+    if not order_id:
+        #fallback: look up order via Razorpay order ID stored in PaymentTransaction
+        payment_tx = PaymentTransaction.objects.filter(
+            external_intent_id=razorpay_order_id,
+            gateway_key__startswith="razorpay",
+        ).last()
+        if payment_tx:
+            order_id = payment_tx.order_id
+        else:
+            return redirect("checkout:checkout")
+
+    order = get_object_or_404(Order, pk=order_id)
+    payment_tx = PaymentTransaction.objects.filter(order=order, gateway_key__startswith="razorpay").last()
+
+    #clean up session
+    request.session.pop("razorpay_order_pk", None)
+
+    adapter = RazorpayAdapter()
+    is_valid = adapter.verify_payment_signature(
+        razorpay_order_id=razorpay_order_id,
+        razorpay_payment_id=razorpay_payment_id,
+        razorpay_signature=razorpay_signature,
+    )
+
+    if is_valid and payment_tx:
+        adapter.capture_payment(
+            razorpay_payment_id=razorpay_payment_id,
+            amount=payment_tx.amount,
+            currency=payment_tx.currency.code if payment_tx.currency else "INR",
+        )
+        payment_tx.external_transaction_id = razorpay_payment_id
+        payment_tx.save(update_fields=["external_transaction_id", "updated_at"])
+        confirm_payment_success(payment_transaction=payment_tx)
+        return redirect("checkout:confirmation", order_id=order.pk)
+    else:
+        if payment_tx:
+            confirm_payment_failed(payment_transaction=payment_tx)
+        return redirect("checkout:checkout")
+
+
 

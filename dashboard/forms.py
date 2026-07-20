@@ -422,6 +422,8 @@ class SiteSettingsForm(forms.ModelForm):
             "whatsapp_number",
             "tax_rate_percent",
             "default_shipping_charge",
+            "razorpay_key_id",
+            "razorpay_key_secret",
         ]
 
 

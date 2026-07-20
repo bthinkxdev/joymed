@@ -23,6 +23,21 @@ def confirm_payment_success(*, payment_transaction: PaymentTransaction) -> Payme
     """
     payment_transaction.status = PaymentStatus.SUCCESS
     payment_transaction.save(update_fields=["status", "updated_at"])
+
+    #empty and deactivate the cart now that payment is confirmed
+    order = payment_transaction.order
+    if order:
+        from checkout.models import CheckoutSession, CheckoutSessionStatus
+        session = CheckoutSession.objects.filter(order=order).first()
+        if session:
+            session.status = CheckoutSessionStatus.COMPLETED
+            session.save(update_fields=["status", "updated_at"])
+
+        if order.cart:
+            cart = order.cart
+            from cart.models import CartItem
+            CartItem.objects.filter(cart=cart).delete()
+
     return payment_transaction
 
 

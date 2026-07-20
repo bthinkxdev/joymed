@@ -245,3 +245,4 @@ EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="no-reply@joymed.com")
 
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"

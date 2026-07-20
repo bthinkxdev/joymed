@@ -226,6 +226,18 @@ class SiteSettings(TimeStampedModel):
     )
     order_email_template_slug = models.CharField(max_length=80, default="order-status")
     whatsapp_template_slug = models.CharField(max_length=80, default="order-whatsapp")
+    razorpay_key_id = models.CharField(
+        max_length=120,
+        blank=True,
+        verbose_name="Razorpay Key ID",
+        help_text="Razorpay Key ID / Test Key ID for payment processing.",
+    )
+    razorpay_key_secret = models.CharField(
+        max_length=120,
+        blank=True,
+        verbose_name="Razorpay Key Secret",
+        help_text="Razorpay Key Secret / Test Key Secret for payment signature verification.",
+    )
 
     class Meta:
         verbose_name = "Site settings"

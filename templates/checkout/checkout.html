@@ -11,7 +11,7 @@
       <form id="checkout-form" method="post" action="{% url 'checkout:place-order' %}"
         hx-post="{% url 'checkout:place-order' %}" hx-target="#checkout-result" hx-swap="innerHTML">
         {% csrf_token %}
-        <input type="hidden" name="idempotency_key" value="{{ checkout_session.pk }}-{{ request.user.pk }}">
+        <input type="hidden" name="idempotency_key" value="{{ checkout_session.pk }}-{{ summary.grand_total }}-{{ summary.lines|length }}-{{ request.user.pk|default:'guest' }}">
 
         <div class="checkout-step">
           <h2>{% trans "Delivery Address" %}</h2>
@@ -38,33 +38,33 @@
             <div class="row g-2 mb-3">
               <div class="col-md-6">
                 <label class="form-label small">{% trans "Full Name" %} <span class="text-danger">*</span></label>
-                <input type="text" name="guest_name" class="form-control form-control-sm">
+                <input type="text" name="guest_name" class="form-control form-control-sm" value="{{ checkout_session.customer_profile.user.first_name|default:'' }}">
               </div>
               <div class="col-md-6">
                 <label class="form-label small">{% trans "Email Address" %} <span class="text-danger">*</span></label>
-                <input type="email" name="guest_email" class="form-control form-control-sm">
+                <input type="email" name="guest_email" class="form-control form-control-sm" value="{{ checkout_session.customer_profile.user.email|default:'' }}">
               </div>
             </div>
             <div class="mb-3">
               <label class="form-label small">{% trans "Phone Number" %} <span class="text-danger">*</span></label>
-              <input type="tel" name="guest_phone" class="form-control form-control-sm">
+              <input type="tel" name="guest_phone" class="form-control form-control-sm" value="{{ checkout_session.customer_profile.phone|default:'' }}">
             </div>
             {% endif %}
 
             <div class="mb-3">
               <label class="form-label small">{% trans "Address Line 1" %} <span class="text-danger">*</span></label>
-              <input type="text" name="guest_address_line1" class="form-control form-control-sm">
+              <input type="text" name="guest_address_line1" class="form-control form-control-sm" value="{{ checkout_session.address.line1|default:'' }}">
             </div>
             <div class="mb-3">
               <label class="form-label small">{% trans "Address Line 2 (Optional)" %}</label>
-              <input type="text" name="guest_address_line2" class="form-control form-control-sm">
+              <input type="text" name="guest_address_line2" class="form-control form-control-sm" value="{{ checkout_session.address.line2|default:'' }}">
             </div>
             <div class="mb-3">
               <label class="form-label small">{% trans "City" %} <span class="text-danger">*</span></label>
               <select name="guest_city_id" class="form-select form-select-sm">
                 <option value="">{% trans "Select City" %}</option>
                 {% for city in active_cities %}
-                <option value="{{ city.pk }}">{{ city.name }}</option>
+                <option value="{{ city.pk }}" {% if checkout_session.address.city_id == city.pk %}selected{% endif %}>{{ city.name }}</option>
                 {% endfor %}
               </select>
             </div>
@@ -76,14 +76,14 @@
           <div class="row g-2">
             <div class="col-md-6">
               <label class="form-label small">{% trans "Date" %}</label>
-              <input type="date" name="delivery_date" class="form-control">
+              <input type="date" name="delivery_date" class="form-control" value="{{ checkout_session.delivery_date|date:'Y-m-d'|default:'' }}">
             </div>
             <div class="col-md-6">
               <label class="form-label small">{% trans "Time slot" %}</label>
               <select name="delivery_slot_id" class="form-select">
                 <option value="">{% trans "Select slot" %}</option>
                 {% for slot in delivery_slots %}
-                <option value="{{ slot.pk }}">{{ slot.name }}</option>
+                <option value="{{ slot.pk }}" {% if checkout_session.delivery_slot_id == slot.pk %}selected{% endif %}>{{ slot.name }}</option>
                 {% endfor %}
               </select>
             </div>
@@ -94,7 +94,8 @@
           <h2>{% trans "Payment Method" %}</h2>
           {% for key, adapter in payment_gateways.items %}
           <div class="form-check mb-2">
-            <input class="form-check-input" type="radio" name="gateway_key" value="{{ key }}" id="gw-{{ key }}" {% if forloop.first %}checked{% endif %}>
+            <input class="form-check-input" type="radio" name="gateway_key" value="{{ key }}" id="gw-{{ key }}" 
+              {% if selected_gateway_key == key %}checked{% elif not selected_gateway_key and forloop.first %}checked{% endif %}>
             <label class="form-check-label small" for="gw-{{ key }}">{{ adapter.display_name }}</label>
           </div>
           {% endfor %}
