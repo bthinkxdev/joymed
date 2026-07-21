@@ -458,7 +458,7 @@ class SiteSettingsForm(forms.ModelForm):
         model = SiteSettings
         fields = [
             "site_name",
-            "logo_url",
+            "logo",
             "primary_color",
             "secondary_color",
             "font_family",

@@ -196,7 +196,7 @@ class SiteSettings(TimeStampedModel):
     """
 
     site_name = models.CharField(max_length=120, default="JOYMED HEALTHCARE")
-    logo_url = models.URLField(blank=True, verbose_name="Logo URL")
+    logo = models.ImageField(upload_to="site/", blank=True, null=True, verbose_name="Logo")
     primary_color = models.CharField(max_length=7, default="#1B4332")
     secondary_color = models.CharField(max_length=7, default="#D4A574")
     font_family = models.CharField(max_length=120, default="Inter, sans-serif")

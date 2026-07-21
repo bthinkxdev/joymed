@@ -21,7 +21,7 @@ def settings_view(request: HttpRequest) -> HttpResponse:
     """Edit the SiteSettings singleton (pk forced to 1 on save)."""
     instance = SiteSettings.objects.first()
     if request.method == "POST":
-        form = forms.SiteSettingsForm(request.POST, instance=instance)
+        form = forms.SiteSettingsForm(request.POST, request.FILES, instance=instance)
         if form.is_valid():
             form.save()
             messages.success(request, "Settings saved.")
