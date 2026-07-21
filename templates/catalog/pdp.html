@@ -73,7 +73,7 @@
           data-currency-symbol="{{ display_currency.symbol }}">
           <option value="">{% trans "Standard" %}</option>
           {% for v in product.variant_list %}
-          <option value="{{ v.pk }}">{{ v.name }} (+{{ v.price_delta }})</option>
+          <option value="{{ v.pk }}">{{ v.name }}{% if v.price_delta %} (+{% money_label v.price_delta display_currency %}){% endif %}</option>
           {% endfor %}
         </select>
       </div>

@@ -30,6 +30,13 @@
         if (overlay) overlay.classList.remove("show");
       });
     }
+
+    if (sidebar) {
+      var activeLink = sidebar.querySelector(".nav-link.active");
+      if (activeLink) {
+        activeLink.scrollIntoView({ block: "center" });
+      }
+    }
   }
 
 

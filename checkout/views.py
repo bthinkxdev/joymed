@@ -98,7 +98,7 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
             request,
             "checkout/partials/errors.html",
             {"errors": form.errors},
-            status=400,
+            status=200,
         )
 
     cart = get_cart_for_request(request=request)
@@ -144,7 +144,7 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
                     request,
                     "checkout/partials/errors.html",
                     {"errors": errors},
-                    status=400,
+                    status=200,
                 )
 
             from accounts.services import login_or_create_customer_by_email
@@ -188,7 +188,7 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
                     request,
                     "checkout/partials/errors.html",
                     {"errors": errors},
-                    status=400,
+                    status=200,
                 )
 
             from accounts.models import Address

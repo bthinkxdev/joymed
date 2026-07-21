@@ -65,6 +65,15 @@ class ProductForm(SlugAutoMixin):
             "meta_description",
             "og_image",
         ]
+        error_messages = {
+            "name": {"required": "Product name is required."},
+            "sku": {"required": "SKU is required."},
+            "category": {"required": "Category is required."},
+            "base_price": {"required": "Base price is required."},
+            "mrp": {"required": "MRP is required."},
+            "purchase_price": {"required": "Purchase price is required."},
+            "stock_quantity": {"required": "Stock quantity is required."},
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -115,17 +124,40 @@ class ReviewForm(forms.ModelForm):
         fields = ["moderation_status"]
 
 
+class ProductVariantForm(forms.ModelForm):
+    class Meta:
+        model = ProductVariant
+        fields = ["variant_type", "name", "price_delta", "sku_suffix", "stock_quantity"]
+        error_messages = {
+            "variant_type": {"required": "Variant type is required."},
+            "name": {"required": "Name is required."},
+            "price_delta": {"required": "Price delta is required."},
+            "sku_suffix": {"required": "SKU suffix is required."},
+            "stock_quantity": {"required": "Stock quantity is required."},
+        }
+
 ProductVariantFormSet = forms.inlineformset_factory(
     Product,
     ProductVariant,
-    fields=["variant_type", "name", "price_delta", "sku_suffix", "stock_quantity"],
+    form=ProductVariantForm,
     extra=1,
     can_delete=True,
 )
+
+class ProductImageForm(forms.ModelForm):
+    class Meta:
+        model = ProductImage
+        fields = ["image", "alt_text", "display_order", "is_primary"]
+        error_messages = {
+            "image": {"required": "Image file is required."},
+            "alt_text": {"required": "Alt text is required."},
+            "display_order": {"required": "Display order is required."},
+        }
+
 ProductImageFormSet = forms.inlineformset_factory(
     Product,
     ProductImage,
-    fields=["image", "alt_text", "display_order", "is_primary"],
+    form=ProductImageForm,
     extra=1,
     can_delete=True,
 )
@@ -133,6 +165,10 @@ class ProductSpecificationForm(forms.ModelForm):
     class Meta:
         model = ProductSpecification
         fields = ["name", "value", "display_order"]
+        error_messages = {
+            "name": {"required": "Specification name is required."},
+            "value": {"required": "Value is required."},
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -152,6 +188,10 @@ class ProductDocumentForm(forms.ModelForm):
         widgets = {
             "document_file": forms.FileInput(),
         }
+        error_messages = {
+            "title": {"required": "Document title is required."},
+            "document_file": {"required": "Document file is required."},
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -164,20 +204,7 @@ class ProductDocumentForm(forms.ModelForm):
         return val if val is not None else 0
 
 
-ProductVariantFormSet = forms.inlineformset_factory(
-    Product,
-    ProductVariant,
-    fields=["variant_type", "name", "price_delta", "sku_suffix", "stock_quantity"],
-    extra=1,
-    can_delete=True,
-)
-ProductImageFormSet = forms.inlineformset_factory(
-    Product,
-    ProductImage,
-    fields=["image", "alt_text", "display_order", "is_primary"],
-    extra=1,
-    can_delete=True,
-)
+
 ProductSpecificationFormSet = forms.inlineformset_factory(
     Product,
     ProductSpecification,

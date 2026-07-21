@@ -98,7 +98,12 @@ a {
   padding-top: 60px;
   z-index: 1030;
   overflow-y: auto;
+  /* scrollbar-width: none;
+  -ms-overflow-style: none; */
 }
+/* .sidebar::-webkit-scrollbar {
+  display: none;
+} */
 .sidebar .nav-link {
   color: #262626;
   padding: 8px 10px;
