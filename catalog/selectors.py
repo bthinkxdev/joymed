@@ -18,6 +18,7 @@ from catalog.models import (
     ProductSpecification,
     ProductVariant,
     ProductVideo,
+    ProductWholesaleTier,
     RelationType,
     Review,
     ReviewPhoto,
@@ -185,9 +186,14 @@ def get_plp_products(
     display_prices: dict[int, Decimal] = {}
     if is_wholesaler:
         for product in results:
-            display_prices[product.pk] = product.wholesale_rate
-            product.display_price = product.wholesale_rate
-            product.is_wholesale_price = True
+            if product.wholesale_rate:
+                display_prices[product.pk] = product.wholesale_rate
+                product.display_price = product.wholesale_rate
+                product.is_wholesale_price = True
+            else:
+                display_prices[product.pk] = product.base_price
+                product.display_price = product.base_price
+                product.is_wholesale_price = False
     else:
         from marketing.selectors import get_flash_sale_discounts_for_products
 
@@ -290,6 +296,10 @@ def get_product_detail(*, slug: str) -> Optional[Product]:
                 "variants",
                 queryset=ProductVariant.objects.order_by("variant_type", "name"),
                 to_attr="variant_list",
+            ),
+            Prefetch(
+                "wholesale_tiers",
+                queryset=ProductWholesaleTier.objects.order_by("min_quantity"),
             ),
             Prefetch(
                 "images",
@@ -511,7 +521,7 @@ def get_recent_approved_reviews(*, limit: int = 6) -> list[Review]:
 
 
 def get_variant_price(
-    *, product_id: int, variant_id: int | None = None, user: Optional[Any] = None
+    *, product_id: int, variant_id: int | None = None, user: Optional[Any] = None, quantity: int = 1
 ) -> dict[str, str]:
     """
     Return computed price for a product/variant combination.
@@ -546,24 +556,36 @@ def get_variant_price(
             is_wholesaler = True
 
     if is_wholesaler:
-        price = product.wholesale_rate
-        if variant_id:
-            variant = ProductVariant.objects.filter(pk=variant_id, product=product).first()
-            if variant:
-                price = price + variant.price_delta
-        display_price = price
+        tier = ProductWholesaleTier.objects.filter(
+            product=product,
+            min_quantity__lte=quantity,
+            max_quantity__gte=quantity
+        ).first()
+        if tier:
+            price = tier.price
+            if variant_id:
+                variant = ProductVariant.objects.filter(pk=variant_id, product=product).first()
+                if variant:
+                    price = price + variant.price_delta
+            display_price = price
+            is_tier_active = True
+        else:
+            display_price = retail_display_price
+            is_tier_active = False
     else:
         display_price = retail_display_price
+        is_tier_active = False
 
     result = {
-        "base_price": str(product.wholesale_rate if is_wholesaler else product.base_price),
+        "base_price": str(product.base_price),
         "price": str(display_price),
         "retail_price": str(retail_display_price),
         "variant_id": str(resolved_variant_id) if resolved_variant_id else "",
-        "is_flash_sale": str(sale["is_flash_sale"] if not is_wholesaler else False).lower(),
+        "is_flash_sale": str(sale["is_flash_sale"] if not is_tier_active else False).lower(),
         "is_wholesaler": str(is_wholesaler).lower(),
+        "is_tier_active": str(is_tier_active).lower() if is_wholesaler else "false",
     }
-    if not is_wholesaler and sale["is_flash_sale"]:
+    if not is_tier_active and sale["is_flash_sale"]:
         result["original_price"] = str(sale["original_price"])
     return result
 
@@ -677,8 +699,12 @@ def get_related_products(*, product: Product, user: Optional[Any] = None, limit:
 
     if is_wholesaler:
         for p in products:
-            p.display_price = p.wholesale_rate
-            p.is_wholesale_price = True
+            if p.wholesale_rate:
+                p.display_price = p.wholesale_rate
+                p.is_wholesale_price = True
+            else:
+                p.display_price = p.base_price
+                p.is_wholesale_price = False
     else:
         from marketing.selectors import get_flash_sale_discounts_for_products
 

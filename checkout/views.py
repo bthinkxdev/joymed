@@ -222,9 +222,6 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
         customer_profile=profile,
     )
 
-    if "buy_now_item_id" in request.session:
-        del request.session["buy_now_item_id"]
-
     payment_data = {}
     if form.cleaned_data.get("voucher_code"):
         payment_data["voucher_code"] = form.cleaned_data["voucher_code"]

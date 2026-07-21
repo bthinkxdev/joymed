@@ -272,6 +272,33 @@ class ProductVariant(TimeStampedModel):
         return f"{self.product.sku}-{self.sku_suffix}"
 
 
+class ProductWholesaleTier(TimeStampedModel):
+    """Quantity-based volume pricing tiers for wholesalers."""
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="wholesale_tiers",
+        verbose_name="Product",
+    )
+    min_quantity = models.PositiveIntegerField(verbose_name="Min Quantity")
+    max_quantity = models.PositiveIntegerField(verbose_name="Max Quantity")
+    price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name="Wholesale Price (Per Unit)",
+    )
+
+    class Meta:
+        verbose_name = "Wholesale Tier"
+        verbose_name_plural = "Wholesale Tiers"
+        ordering = ["min_quantity"]
+        unique_together = [("product", "min_quantity", "max_quantity")]
+
+    def __str__(self) -> str:
+        return f"{self.product.sku} ({self.min_quantity}-{self.max_quantity}) @ {self.price}"
+
+
 class ProductImage(TimeStampedModel):
     """Gallery image for a product."""
 

@@ -25,6 +25,56 @@
     box-shadow: var(--floward-shadow) !important;
     transform: translateY(-2px);
   }
+
+  /* volume slider */
+  input[type=range].volume-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 5px;
+    outline: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  input[type=range].volume-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 8px;
+    cursor: pointer;
+    background: transparent;
+    border-radius: 5px;
+  }
+
+  input[type=range].volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--floward-primary, #0d6efd);
+    cursor: pointer;
+    margin-top: -4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: background .15s ease-in-out;
+  }
+
+  input[type=range].volume-slider::-moz-range-track {
+    width: 100%;
+    height: 8px;
+    cursor: pointer;
+    background: transparent;
+    border-radius: 5px;
+  }
+
+  input[type=range].volume-slider::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--floward-primary, #0d6efd);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
 </style>
 {% endblock %}
 
@@ -47,22 +97,24 @@
       <h1>{{ product.name }}</h1>
       <p class="pdp-meta">{{ product.category.name }}{% if product.brand %} · {{ product.brand.name }}{% endif %}</p>
       <p class="pdp-price" id="pdp-price">
-        {% if price_data.is_wholesaler == "true" %}
-        <span class="text-muted small fw-normal">{% trans "Wholesale Price" %}:</span>
+        <span id="pdp-price-wholesale-label"
+          class="text-muted small fw-normal {% if price_data.is_tier_active != 'true' %}d-none{% endif %}"
+          style="transition: opacity 0.2s;">{% trans "Wholesale Price" %}:</span>
+        {% if price_data.is_flash_sale == "true" %}
+        <span class="was" id="pdp-price-original">{% money_label price_data.original_price display_currency %}</span>
         {% endif %}
-        {% if price_data.is_flash_sale == "true" and price_data.is_wholesaler != "true" %}
-        <span class="was">{% money_label price_data.original_price display_currency %}</span>
-        {% endif %}
-        {% money_label price_data.price display_currency %}
-        {% if price_data.is_wholesaler == "true" %}
-        <span class="badge bg-success ms-1 small align-middle" style="font-size: 0.75rem;">{% trans "Wholesale" %}</span>
-        {% endif %}
+        <span id="pdp-price-value" style="transition: color 0.2s;">{% money_label price_data.price display_currency %}</span>
+        <span id="pdp-price-wholesale-badge"
+          class="badge bg-success ms-1 small align-middle {% if price_data.is_tier_active != 'true' %}d-none{% endif %}"
+          style="font-size: 0.75rem; transition: opacity 0.2s;">{% trans "Wholesale" %}</span>
       </p>
       {% if price_data.is_wholesaler == "true" %}
-      <p class="text-muted small mb-3" id="pdp-retail-price-container">
+      <p class="text-muted small mb-3 {% if price_data.is_tier_active != 'true' %}d-none{% endif %}"
+        id="pdp-retail-price-container">
         <span>{% trans "Retail Price" %}:</span>
         <span class="text-decoration-line-through" id="pdp-retail-price">{% money_label price_data.retail_price display_currency %}</span>
       </p>
+      <input type="hidden" id="pdp-retail-price-val" value="{{ price_data.retail_price }}">
       {% endif %}
       {% include "catalog/partials/pdp_delivery.html" %}
       {% if product.variant_list %}
@@ -73,7 +125,8 @@
           data-currency-symbol="{{ display_currency.symbol }}">
           <option value="">{% trans "Standard" %}</option>
           {% for v in product.variant_list %}
-          <option value="{{ v.pk }}">{{ v.name }}{% if v.price_delta %} (+{% money_label v.price_delta display_currency %}){% endif %}</option>
+          <option value="{{ v.pk }}" data-price-delta="{{ v.price_delta|default:0 }}">{{ v.name }}{% if v.price_delta %}
+            (+{% money_label v.price_delta display_currency %}){% endif %}</option>
           {% endfor %}
         </select>
       </div>
@@ -89,32 +142,61 @@
       </div>
       {% endif %}
 
-      <div id="purchase-actions" class="d-flex flex-column gap-2 mb-3">
+      <div id="purchase-actions" class="d-flex flex-column gap-2 mb-3" hx-get="{{ request.path }}"
+        hx-select="#purchase-actions" hx-swap="outerHTML"
+        hx-trigger="pageshow from:window, cartItemAdded from:body, cartUpdated from:body">
         <!-- Add to Cart -->
         <div id="pdp-add-to-cart-group"
-          class="d-flex gap-2 align-items-center w-100 {% if is_in_cart %}d-none{% endif %}">
+          class="d-flex gap-2 align-items-center w-100 {% if is_in_cart and price_data.is_wholesaler != 'true' %}d-none{% endif %}">
           {% if product.is_in_stock %}
-          <div class="qty-stepper d-flex align-items-center border rounded-pill overflow-hidden"
+          {% if price_data.is_wholesaler == "true" %}
+          <div class="wholesale-slider-container flex-grow-1 me-2 mb-2">
+            <label for="pdp-qty-slider" class="form-label small fw-medium mb-1 d-flex justify-content-between">
+              <span>{% trans "Quantity" %}: <span id="pdp-qty-display" class="fw-bold">{{ cart_item.quantity|default:1
+                  }}</span></span>
+            </label>
+            {% with tiers=product.wholesale_tiers.all %}
+            {% if tiers %}
+            <div class="d-flex align-items-center">
+              <input type="range" class="form-range volume-slider flex-grow-1" id="pdp-qty-slider" min="1"
+                max="{{ tiers.last.max_quantity }}" value="{{ cart_item.quantity|default:1 }}"
+                oninput="updateWholesaleQuantity(this.value)">
+            </div>
+            {% else %}
+            <div class="d-flex align-items-center">
+              <input type="range" class="form-range volume-slider flex-grow-1" id="pdp-qty-slider" min="1"
+                max="{{ product.stock_quantity|default:100 }}" value="{{ cart_item.quantity|default:1 }}"
+                oninput="updateWholesaleQuantity(this.value)">
+            </div>
+            {% endif %}
+            {% endwith %}
+            <input type="hidden" id="pdp-qty" class="pdp-qty-input" value="{{ cart_item.quantity|default:1 }}">
+          </div>
+          {% else %}
+          <div class="qty-stepper d-flex align-items-center border rounded-pill overflow-hidden flex-shrink-0"
             style="width: fit-content; height: 38px; background: #fff;">
             <button class="qty-stepper__btn" type="button"
               onclick="let inp = document.getElementById('pdp-qty'); if(inp.value > 1) { inp.value = parseInt(inp.value) - 1; document.querySelectorAll('.pdp-qty-input').forEach(i => i.value = inp.value); }"
               style="padding: 2px 12px; font-size: 16px; border: none; background: transparent; height: 100%;">&minus;</button>
             <input type="number" id="pdp-qty" class="qty-stepper__value border-0 text-center fw-semibold pdp-qty-input"
               style="width: 40px; outline: none; background: transparent; margin: 0; text-align: center; height: 100%;"
-              value="1" min="1" readonly>
+              value="{{ cart_item.quantity|default:1 }}" min="1" readonly>
             <button class="qty-stepper__btn" type="button"
               onclick="let inp = document.getElementById('pdp-qty'); inp.value = parseInt(inp.value) + 1; document.querySelectorAll('.pdp-qty-input').forEach(i => i.value = inp.value);"
               style="padding: 2px 12px; font-size: 16px; border: none; background: transparent; height: 100%;">&plus;</button>
           </div>
+          {% endif %}
           {% endif %}
 
           <form id="buy-form" method="post" action="{% url 'cart:add' %}" class="flex-grow-1"
             hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
             {% csrf_token %}
             <input type="hidden" name="product_id" value="{{ product.pk }}">
-            <input type="hidden" name="quantity" class="pdp-qty-input" value="1">
+            <input type="hidden" name="quantity" class="pdp-qty-input" value="{{ cart_item.quantity|default:1 }}">
             <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="">
-            <button type="submit" class="btn btn-floward w-100 py-2">{% trans "Add to Cart" %}</button>
+            <button type="submit" class="btn btn-floward w-100 py-2">
+              {% if is_in_cart %}{% trans "Update Cart" %}{% else %}{% trans "Add to Cart" %}{% endif %}
+            </button>
           </form>
 
           {% if product.is_rental and product.show_rental_storefront %}
@@ -147,7 +229,7 @@
 
         <!-- View Cart -->
         <div id="pdp-view-cart-group"
-          class="d-flex gap-2 align-items-center w-100 {% if not is_in_cart %}d-none{% endif %}">
+          class="d-flex gap-2 align-items-center w-100 {% if not is_in_cart or price_data.is_wholesaler == 'true' %}d-none{% endif %}">
           <a href="{% url 'cart:page' %}" class="btn btn-outline-floward flex-grow-1 py-2">
             {% trans "View Cart" %}
           </a>
@@ -168,21 +250,24 @@
 
         <!-- Buy Now & Quote -->
         <div class="d-flex gap-2 w-100">
-          <form id="buy-now-form" method="post" action="{% url 'cart:add' %}" style="flex: 1 1 0;" hx-post="{% url 'cart:add' %}"
-            hx-target="#cart-drawer-body" hx-swap="innerHTML">
+          <form id="buy-now-form" method="post" action="{% url 'cart:add' %}" style="flex: 1 1 0;"
+            hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
             {% csrf_token %}
             <input type="hidden" name="product_id" value="{{ product.pk }}">
-            <input type="hidden" name="quantity" class="pdp-qty-input" value="1">
+            <input type="hidden" name="quantity" class="pdp-qty-input" value="{{ cart_item.quantity|default:1 }}">
             <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="">
             <button type="submit" name="buy_now" value="true" class="btn btn-floward w-100 py-2">{% trans "Buy Now" %}</button>
           </form>
 
           {% if price_data.is_wholesaler == "true" %}
           <!-- request a quote -->
-          <a href="{% url 'core:contact-us' %}?product={{ product.pk }}" class="btn btn-floward py-2 d-flex align-items-center justify-content-center text-center" style="flex: 1 1 0; padding-left: 0; padding-right: 0;">{% trans "Request a Quote" %}</a>
+          <a href="{% url 'core:contact-us' %}?product={{ product.pk }}"
+            class="btn btn-floward py-2 d-flex align-items-center justify-content-center text-center"
+            style="flex: 1 1 0; padding-left: 0; padding-right: 0;">{% trans "Request a Quote" %}</a>
           {% endif %}
         </div>
       </div>
+
 
 
       <p class="small {% if product.is_in_stock %}text-success{% else %}text-danger{% endif %} mb-0">
@@ -200,9 +285,10 @@
         hx-swap="innerHTML">
         {% csrf_token %}
         <input type="hidden" name="product_id" value="{{ product.pk }}">
-        <input type="hidden" name="quantity" class="pdp-qty-input" value="1">
+        <input type="hidden" name="quantity" class="pdp-qty-input" value="{{ cart_item.quantity|default:1 }}">
         <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="">
-        <button type="submit" class="btn btn-floward w-100 py-1" style="font-size: 0.85rem;">{% trans "Add to Cart" %}</button>
+        <button type="submit" class="btn btn-floward w-100 py-1" style="font-size: 0.85rem;">{% trans "Add to Cart"
+          %}</button>
       </form>
 
       <!-- View Cart -->
@@ -212,13 +298,15 @@
       </div>
 
       <!-- Buy Now -->
-      <form id="sticky-buy-now-form" method="post" action="{% url 'cart:add' %}" class="w-100"
-        hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
+      <form id="sticky-buy-now-form" method="post" action="{% url 'cart:add' %}"
+        class="w-100 {% if is_in_cart %}d-none{% endif %}" hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body"
+        hx-swap="innerHTML">
         {% csrf_token %}
         <input type="hidden" name="product_id" value="{{ product.pk }}">
-        <input type="hidden" name="quantity" class="pdp-qty-input" value="1">
+        <input type="hidden" name="quantity" class="pdp-qty-input" value="{{ cart_item.quantity|default:1 }}">
         <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="">
-        <button type="submit" name="buy_now" value="true" class="btn btn-floward w-100 py-1" style="font-size: 0.85rem;">{% trans "Buy Now" %}</button>
+        <button type="submit" name="buy_now" value="true" class="btn btn-floward w-100 py-1"
+          style="font-size: 0.85rem;">{% trans "Buy Now" %}</button>
       </form>
     </div>
     {% if product.is_rental and product.show_rental_storefront %}
@@ -388,14 +476,6 @@
       rentBtn.addEventListener("change", refreshMode);
     }
     document.body.addEventListener('cartItemAdded', function () {
-      const addToCartGroup = document.getElementById('pdp-add-to-cart-group');
-      if (addToCartGroup) {
-        addToCartGroup.classList.add('d-none');
-      }
-      const viewCartGroup = document.getElementById('pdp-view-cart-group');
-      if (viewCartGroup) {
-        viewCartGroup.classList.remove('d-none');
-      }
       const stickyBuyForm = document.getElementById('sticky-buy-form');
       if (stickyBuyForm) {
         stickyBuyForm.classList.add('d-none');
@@ -426,6 +506,103 @@
     }
   });
 </script>
+
+{% if price_data.is_wholesaler == "true" %}
+{% if product.wholesale_tiers.all %}
+<script id="wholesale-tiers-data" type="application/json">
+  [
+    {% for tier in product.wholesale_tiers.all %}
+      {"min": {{ tier.min_quantity }}, "max": {{ tier.max_quantity }}, "price": {{ tier.price }}}
+      {% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+</script>
+{% endif %}
+<script>
+  function updateWholesaleQuantity(val) {
+    document.querySelectorAll('.pdp-qty-input').forEach(i => i.value = val);
+    const display = document.getElementById('pdp-qty-display');
+    if (display) display.textContent = val;
+
+    //update slider background like a volume slider
+    const slider = document.getElementById("pdp-qty-slider");
+    if (slider) {
+      const min = parseFloat(slider.min) || 1;
+      const max = parseFloat(slider.max) || 100;
+      let percentage = 0;
+      if (max > min) {
+        percentage = ((val - min) / (max - min)) * 100;
+      }
+      slider.style.background = `linear-gradient(to right, var(--floward-primary, #0d6efd) 0%, var(--floward-primary, #0d6efd) ${percentage}%, #e9ecef ${percentage}%, #e9ecef 100%)`;
+    }
+
+    const tiersDataElement = document.getElementById('wholesale-tiers-data');
+    if (tiersDataElement) {
+      try {
+        const tiers = JSON.parse(tiersDataElement.textContent);
+        let activeTier = null;
+        let applicablePrice = 0;
+
+        for (const tier of tiers) {
+          if (val >= tier.min && val <= tier.max) {
+            applicablePrice = parseFloat(tier.price);
+            activeTier = tier;
+            break;
+          }
+        }
+
+        let variantDelta = 0;
+        const variantSelect = document.getElementById('variant-select');
+        if (variantSelect && variantSelect.options[variantSelect.selectedIndex]) {
+          variantDelta = parseFloat(variantSelect.options[variantSelect.selectedIndex].getAttribute('data-price-delta') || 0);
+        }
+
+        const priceDisplay = document.getElementById("pdp-price-value");
+        const wholesaleLabel = document.getElementById("pdp-price-wholesale-label");
+        const wholesaleBadge = document.getElementById("pdp-price-wholesale-badge");
+        const retailContainer = document.getElementById("pdp-retail-price-container");
+
+        if (activeTier) {
+          applicablePrice += variantDelta;
+          if (priceDisplay) priceDisplay.textContent = '{{ display_currency.symbol }}' + applicablePrice.toFixed(2);
+          if (wholesaleLabel) wholesaleLabel.classList.remove("d-none");
+          if (wholesaleBadge) wholesaleBadge.classList.remove("d-none");
+          if (retailContainer) retailContainer.classList.remove("d-none");
+        } else {
+          const retailValEl = document.getElementById("pdp-retail-price-val");
+          if (retailValEl) {
+            applicablePrice = parseFloat(retailValEl.value);
+          }
+          if (priceDisplay) priceDisplay.textContent = '{{ display_currency.symbol }}' + applicablePrice.toFixed(2);
+          if (wholesaleLabel) wholesaleLabel.classList.add("d-none");
+          if (wholesaleBadge) wholesaleBadge.classList.add("d-none");
+          if (retailContainer) retailContainer.classList.add("d-none");
+        }
+      } catch (e) {
+        console.error("Error updating tier price", e);
+      }
+    }
+  }
+
+  //initialize slider background on page load
+  document.addEventListener("DOMContentLoaded", function () {
+    const slider = document.getElementById("pdp-qty-slider");
+    if (slider) {
+      updateWholesaleQuantity(slider.value);
+    }
+  });
+
+  document.body.addEventListener('htmx:afterSettle', function (evt) {
+    if (evt.target.id === 'purchase-actions' || evt.detail.target.id === 'purchase-actions') {
+      const slider = document.getElementById("pdp-qty-slider");
+      if (slider && typeof updateWholesaleQuantity === 'function') {
+        updateWholesaleQuantity(slider.value);
+      }
+    }
+  });
+</script>
+{% endif %}
 {% endblock %}
 
-{% block extra_js %}<script src="{% static 'js/pdp.js' %}"></script>{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/pdp.js' %}"></script>{% endblock %}

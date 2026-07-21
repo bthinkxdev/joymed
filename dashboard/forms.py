@@ -14,6 +14,7 @@ from catalog.models import (
     ProductImage,
     ProductSpecification,
     ProductVariant,
+    ProductWholesaleTier,
     Review,
 )
 from cms.models import BlogPost, FAQItem, HeroSlide, HomepageSection, Page, PolicyDocument
@@ -140,6 +141,24 @@ ProductVariantFormSet = forms.inlineformset_factory(
     Product,
     ProductVariant,
     form=ProductVariantForm,
+    extra=1,
+    can_delete=True,
+)
+
+class ProductWholesaleTierForm(forms.ModelForm):
+    class Meta:
+        model = ProductWholesaleTier
+        fields = ["min_quantity", "max_quantity", "price"]
+        error_messages = {
+            "min_quantity": {"required": "Minimum quantity is required."},
+            "max_quantity": {"required": "Maximum quantity is required."},
+            "price": {"required": "Wholesale price is required."},
+        }
+
+ProductWholesaleTierFormSet = forms.inlineformset_factory(
+    Product,
+    ProductWholesaleTier,
+    form=ProductWholesaleTierForm,
     extra=1,
     can_delete=True,
 )

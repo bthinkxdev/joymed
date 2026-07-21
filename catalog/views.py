@@ -172,7 +172,8 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
     from cart.selectors import get_cart_for_request
 
     cart = get_cart_for_request(request=request)
-    is_in_cart = CartItem.objects.filter(cart=cart, product=product).exists() if cart else False
+    cart_item = CartItem.objects.filter(cart=cart, product=product).first() if cart else None
+    is_in_cart = cart_item is not None
 
     from accounts.models import WishlistItem
     from accounts.subscription_services import get_or_create_wishlist
@@ -194,6 +195,7 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
             "cities": get_active_cities(),
             "whatsapp_number": site_settings.whatsapp_number,
             "is_in_cart": is_in_cart,
+            "cart_item": cart_item,
             "is_in_wishlist": is_in_wishlist,
             "related_products": get_related_products(product=product, user=request.user),
             "product_json_ld": json.dumps(
@@ -249,8 +251,13 @@ def search_suggestions_view(request: HttpRequest) -> HttpResponse:
 def variant_price_view(request: HttpRequest, product_id: int) -> JsonResponse:
     """JSON endpoint for variant price updates on PDP."""
     variant_id = request.GET.get("variant_id")
+    quantity_str = request.GET.get("quantity", "1")
+    try:
+        quantity = int(quantity_str)
+    except ValueError:
+        quantity = 1
     parsed_variant = int(variant_id) if variant_id else None
-    data = get_variant_price(product_id=product_id, variant_id=parsed_variant, user=request.user)
+    data = get_variant_price(product_id=product_id, variant_id=parsed_variant, user=request.user, quantity=quantity)
     return JsonResponse(data)
 
 

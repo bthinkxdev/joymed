@@ -9,23 +9,42 @@
         input.value = vid;
       });
 
-      fetch(url + (vid ? '?variant_id=' + vid : ''))
+      var qtyInput = document.getElementById('pdp-qty');
+      var qty = qtyInput ? qtyInput.value : '1';
+      var queryString = '?quantity=' + qty + (vid ? '&variant_id=' + vid : '');
+
+      fetch(url + queryString)
         .then(function (r) { return r.json(); })
         .then(function (data) {
           var el = document.getElementById('pdp-price');
           var elSticky = document.getElementById('pdp-sticky-price');
+          var retailContainer = document.getElementById('pdp-retail-price-container');
           var symbol = variantSelect.getAttribute('data-currency-symbol') || '₹';
-          if (el) {
-            if (data.is_wholesaler === 'true') {
-              el.innerHTML = '<span class="text-muted small fw-normal">Wholesale Price:</span> ' + symbol + data.price + ' <span class="badge bg-success ms-1 small align-middle" style="font-size: 0.75rem;">Wholesale</span>';
-            } else {
-              el.textContent = symbol + data.price;
-            }
+          var elPriceValue = document.getElementById('pdp-price-value');
+          var wholesaleLabel = document.getElementById('pdp-price-wholesale-label');
+          var wholesaleBadge = document.getElementById('pdp-price-wholesale-badge');
+          
+          if (elPriceValue) {
+            elPriceValue.textContent = symbol + data.price;
+          }
+          
+          if (data.is_tier_active === 'true') {
+            if (wholesaleLabel) wholesaleLabel.classList.remove("d-none");
+            if (wholesaleBadge) wholesaleBadge.classList.remove("d-none");
+            if (retailContainer) retailContainer.classList.remove("d-none");
+          } else {
+            if (wholesaleLabel) wholesaleLabel.classList.add("d-none");
+            if (wholesaleBadge) wholesaleBadge.classList.add("d-none");
+            if (retailContainer) retailContainer.classList.add("d-none");
           }
           if (elSticky) elSticky.textContent = symbol + data.price;
           var elRetail = document.getElementById('pdp-retail-price');
           if (elRetail && data.retail_price) {
             elRetail.textContent = symbol + data.retail_price;
+          }
+          var elRetailVal = document.getElementById('pdp-retail-price-val');
+          if (elRetailVal && data.retail_price) {
+            elRetailVal.value = data.retail_price;
           }
         });
     });

@@ -28,16 +28,8 @@ def storefront(request: HttpRequest) -> dict[str, Any]:
             or path.startswith("/cart/drawer/")
         )
         if not is_checkout_or_payment:
-            buy_now_item_id = request.session.get("buy_now_item_id")
-            if buy_now_item_id:
-                try:
-                    from cart.models import CartItem
-                    CartItem.objects.filter(id=buy_now_item_id).delete()
-                except Exception:
-                    pass
-                finally:
-                    if "buy_now_item_id" in request.session:
-                        del request.session["buy_now_item_id"]
+            pass
+
 
     default_currency = get_default_currency()
     session_currency = request.session.get("storefront_currency", "")

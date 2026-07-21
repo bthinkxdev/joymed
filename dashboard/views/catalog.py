@@ -78,12 +78,16 @@ def _render_product_form(request, product, mode):
         documents = forms.ProductDocumentFormSet(
             request.POST, request.FILES, instance=product, prefix="documents"
         )
+        wholesale_tiers = forms.ProductWholesaleTierFormSet(
+            request.POST, instance=product, prefix="wholesale_tiers"
+        )
         if (
             form.is_valid()
             and variants.is_valid()
             and images.is_valid()
             and specifications.is_valid()
             and documents.is_valid()
+            and wholesale_tiers.is_valid()
         ):
             product = form.save()
             variants.instance = product
@@ -94,6 +98,8 @@ def _render_product_form(request, product, mode):
             specifications.save()
             documents.instance = product
             documents.save()
+            wholesale_tiers.instance = product
+            wholesale_tiers.save()
             messages.success(request, f"Product {'created' if mode == 'create' else 'updated'}.")
             return redirect("dashboard:product-list")
     else:
@@ -104,6 +110,7 @@ def _render_product_form(request, product, mode):
             instance=product, prefix="specifications"
         )
         documents = forms.ProductDocumentFormSet(instance=product, prefix="documents")
+        wholesale_tiers = forms.ProductWholesaleTierFormSet(instance=product, prefix="wholesale_tiers")
 
     for f in [
         form,
@@ -115,6 +122,8 @@ def _render_product_form(request, product, mode):
         specifications.empty_form,
         *documents.forms,
         documents.empty_form,
+        *wholesale_tiers.forms,
+        wholesale_tiers.empty_form,
     ]:
         _style(f)
 
@@ -126,6 +135,7 @@ def _render_product_form(request, product, mode):
         "images": images,
         "specifications": specifications,
         "documents": documents,
+        "wholesale_tiers": wholesale_tiers,
         "form_mode": mode,
         "product": product,
         "cancel_url": reverse("dashboard:product-list"),

@@ -19,13 +19,14 @@ from delivery.selectors import get_delivery_charge
 from marketing.services import validate_coupon_for_cart
 
 
-def _resolve_unit_price(*, product: Product, variant: Optional[ProductVariant], user: Optional[Any] = None
+def _resolve_unit_price(*, product: Product, variant: Optional[ProductVariant], user: Optional[Any] = None, quantity: int = 1
 ) -> Decimal:
     """Compute snapshotted unit price from catalog selector."""
     price_data = get_variant_price(
         product_id=product.pk,
         variant_id=variant.pk if variant else None,
         user=user,
+        quantity=quantity,
     )
     return Decimal(price_data["price"])
 
@@ -70,33 +71,35 @@ def add_to_cart(
     product: Product,
     variant: Optional[ProductVariant] = None,
     quantity: int = 1,
+    overwrite: bool = False,
 ) -> CartItem:
     """
-    Add or increment a cart line.
+    Add or increment a cart line, or overwrite exactly.
     """
     user = (
         cart.customer_profile.user
         if (cart.customer_profile and cart.customer_profile.user_id)
         else None
     )
-    unit_price = _resolve_unit_price(product=product, variant=variant, user=user)
 
-    item, created = CartItem.objects.get_or_create(
-        cart=cart,
-        product=product,
-        variant=variant,
-        defaults={
-            "quantity": quantity,
-            "unit_price_at_add": unit_price,
-        },
-    )
-    if not created:
-        item.quantity += quantity
-        if item.unit_price_at_add != unit_price:
-            item.unit_price_at_add = unit_price
-            item.save(update_fields=["quantity", "unit_price_at_add", "updated_at"])
-        else:
-            item.save(update_fields=["quantity", "updated_at"])
+    item = CartItem.objects.filter(cart=cart, product=product, variant=variant).first()
+    
+    if item:
+        new_quantity = quantity if overwrite else item.quantity + quantity
+        unit_price = _resolve_unit_price(product=product, variant=variant, user=user, quantity=new_quantity)
+        item.quantity = new_quantity
+        item.unit_price_at_add = unit_price
+        item.save(update_fields=["quantity", "unit_price_at_add", "updated_at"])
+    else:
+        unit_price = _resolve_unit_price(product=product, variant=variant, user=user, quantity=quantity)
+        item = CartItem.objects.create(
+            cart=cart,
+            product=product,
+            variant=variant,
+            quantity=quantity,
+            unit_price_at_add=unit_price,
+        )
+
     return item
 
 
@@ -133,8 +136,21 @@ def adjust_cart_item_quantity(
     if new_quantity < 1:
         new_quantity = 1
 
+    user = (
+        cart.customer_profile.user
+        if (cart.customer_profile and cart.customer_profile.user_id)
+        else None
+    )
+    unit_price = _resolve_unit_price(
+        product=item.product,
+        variant=item.variant,
+        user=user,
+        quantity=new_quantity,
+    )
+
     item.quantity = new_quantity
-    item.save(update_fields=["quantity", "updated_at"])
+    item.unit_price_at_add = unit_price
+    item.save(update_fields=["quantity", "unit_price_at_add", "updated_at"])
     return item
 
 @transaction.atomic
@@ -222,9 +238,12 @@ def merge_carts(*, guest_cart: Cart, user_profile) -> None:
         guest_cart.session_key = None
         if is_wholesaler:
             for item in guest_cart.items.all():
-                price = item.product.wholesale_rate
-                if item.variant:
-                    price = price + item.variant.price_delta
+                price = _resolve_unit_price(
+                    product=item.product,
+                    variant=item.variant,
+                    user=u,
+                    quantity=item.quantity,
+                )
                 item.unit_price_at_add = price
                 item.save(update_fields=["unit_price_at_add", "updated_at"])
         guest_cart.save(update_fields=["customer_profile", "session_key", "updated_at"])
@@ -242,7 +261,7 @@ def merge_carts(*, guest_cart: Cart, user_profile) -> None:
         if user_item:
             user_item.quantity += item.quantity
             if is_wholesaler:
-                price = item.product.wholesale_rate
+                price = item.product.wholesale_rate if item.product.wholesale_rate else item.product.base_price
                 if item.variant:
                     price = price + item.variant.price_delta
                 user_item.unit_price_at_add = price
@@ -253,7 +272,7 @@ def merge_carts(*, guest_cart: Cart, user_profile) -> None:
         else:
             item.cart = user_cart
             if is_wholesaler:
-                price = item.product.wholesale_rate
+                price = item.product.wholesale_rate if item.product.wholesale_rate else item.product.base_price
                 if item.variant:
                     price = price + item.variant.price_delta
                 item.unit_price_at_add = price
