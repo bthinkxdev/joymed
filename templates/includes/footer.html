@@ -3,7 +3,12 @@
   <div class="container">
     <div class="row g-4">
       <div class="col-md-4 col-lg-2">
-        <div class="footer-brand mb-2">JOYMED HEALTHCARE</div>
+        <div class="d-flex align-items-center mb-3">
+          {% if site_settings.logo %}
+            <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name }} Logo" style="height: 36px; width: auto; object-fit: contain;" class="me-2">
+          {% endif %}
+          <div class="footer-brand mb-0">{{ site_settings.site_name|default:"JOYMED HEALTHCARE" }}</div>
+        </div>
         <p class="small text-muted mb-0">{% trans "Online wellness & medical supplies delivery in Kerala." %}</p>
       </div>
       <div class="col-6 col-md-2">
@@ -30,10 +35,14 @@
       </div>
       <div class="col-md-4 col-lg-2">
         <h6>{% trans "Contact" %}</h6>
-        <p class="small text-muted mb-1">{% trans "Ernakulam, Kerala" %}</p>
-        <p class="small text-muted mb-0">{% trans "Customer support available 24/7" %}</p>
+        <p class="small text-muted mb-0">
+          <strong>{% trans "Wholesale Location" %}</strong><br>
+          Opposite caritas hospital junction, Thellakom p. O, Kottayam 685604<br>
+          <i class="bi bi-telephone-fill small"></i> 6282906721
+        </p>
       </div>
     </div>
-    <p class="footer-copy text-center mb-0">&copy; {% now "Y" %} JOYMED HEALTHCARE. {% trans "All rights reserved." %}</p>
+    <p class="footer-copy text-center mb-0">&copy; {% now "Y" %} JOYMED HEALTHCARE. {% trans "All rights reserved." %}
+    </p>
   </div>
 </footer>
