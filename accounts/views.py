@@ -415,15 +415,24 @@ def dashboard_view(request: HttpRequest) -> HttpResponse:
             "approval_status": wholesaler.approval_status,
             "approval_status_display": wholesaler.get_approval_status_display(),
         }
+        dashboard_context = get_customer_dashboard_context(user=request.user)
         if _wants_json(request):
             return _success_response({
                 "wholesaler": context,
+                "dashboard": {
+                    "recent_orders": [_serialize_order(o) for o in dashboard_context.recent_orders] if dashboard_context else [],
+                    "unread_notification_count": dashboard_context.unread_notification_count if dashboard_context else 0,
+                },
                 "show_wholesaler_approval_modal": show_modal
             })
         return render(
             request, 
             "accounts/dashboard.html", 
-            {"wholesaler": context, "show_wholesaler_approval_modal": show_modal}
+            {
+                "wholesaler": context, 
+                "dashboard": dashboard_context,
+                "show_wholesaler_approval_modal": show_modal
+            }
         )
 
     context = get_customer_dashboard_context(user=request.user)
@@ -454,6 +463,123 @@ def dashboard_view(request: HttpRequest) -> HttpResponse:
             }
         )
     return render(request, "accounts/dashboard.html", {"dashboard": context, "show_wholesaler_approval_modal": show_modal})
+
+
+from django.views.decorators.http import require_http_methods
+from accounts.forms import CustomerProfileEditForm
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def edit_profile_view(request: HttpRequest) -> HttpResponse:
+    """Edit retail customer profile and default address."""
+    from accounts.selectors import get_customer_dashboard_context
+    context = get_customer_dashboard_context(user=request.user)
+    if not context:
+        return redirect("accounts:dashboard")
+        
+    profile = context.profile
+    address = context.default_address
+    
+    initial = {
+        "name": request.user.get_full_name(),
+        "email": request.user.email or request.user.username,
+        "phone": profile.phone,
+    }
+    if address:
+        initial.update({
+            "address_line1": address.line1,
+            "address_line2": address.line2,
+            "city_id": address.city_id,
+        })
+        
+    if request.method == "POST":
+        form = CustomerProfileEditForm(request.POST, initial=initial)
+        if form.is_valid():
+            name = form.cleaned_data["name"]
+            if name:
+                parts = name.split(" ", 1)
+                request.user.first_name = parts[0]
+                request.user.last_name = parts[1] if len(parts) > 1 else ""
+                request.user.save(update_fields=["first_name", "last_name"])
+            
+            profile.phone = form.cleaned_data["phone"]
+            profile.save(update_fields=["phone", "updated_at"])
+            
+            line1 = form.cleaned_data["address_line1"]
+            if line1:
+                city_id = form.cleaned_data.get("city_id")
+                line2 = form.cleaned_data.get("address_line2", "")
+                
+                if address:
+                    address.line1 = line1
+                    address.line2 = line2
+                    if city_id:
+                        address.city_id = int(city_id)
+                    address.save(update_fields=["line1", "line2", "city_id", "updated_at"])
+                else:
+                    from accounts.models import Address
+                    from accounts.services import set_default_address
+                    new_addr = Address.objects.create(
+                        customer_profile=profile,
+                        line1=line1,
+                        line2=line2,
+                        city_id=int(city_id) if city_id else None,
+                        label="Default Address"
+                    )
+                    set_default_address(customer_profile=profile, address_id=new_addr.pk)
+                    
+            from django.contrib import messages
+            messages.success(request, "Profile updated successfully.")
+            return redirect("accounts:dashboard")
+    else:
+        form = CustomerProfileEditForm(initial=initial)
+        
+    return render(request, "accounts/edit_profile.html", {"form": form})
+
+
+from accounts.forms import WholesalerProfileEditForm
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def edit_wholesaler_profile_view(request: HttpRequest) -> HttpResponse:
+    """Edit wholesaler profile."""
+    if not hasattr(request.user, "wholesaler_profile"):
+        return redirect("accounts:dashboard")
+        
+    wholesaler = request.user.wholesaler_profile
+    
+    initial = {
+        "name": request.user.get_full_name(),
+        "email": request.user.email or request.user.username,
+        "company_name": wholesaler.company_name,
+        "phone": wholesaler.phone_number,
+        "gst": wholesaler.gst,
+        "address": wholesaler.address,
+    }
+        
+    if request.method == "POST":
+        form = WholesalerProfileEditForm(request.POST, initial=initial)
+        if form.is_valid():
+            name = form.cleaned_data["name"]
+            if name:
+                parts = name.split(" ", 1)
+                request.user.first_name = parts[0]
+                request.user.last_name = parts[1] if len(parts) > 1 else ""
+                request.user.save(update_fields=["first_name", "last_name"])
+            
+            wholesaler.company_name = form.cleaned_data["company_name"]
+            wholesaler.phone_number = form.cleaned_data["phone"]
+            wholesaler.gst = form.cleaned_data["gst"]
+            wholesaler.address = form.cleaned_data["address"]
+            wholesaler.save(update_fields=["company_name", "phone_number", "gst", "address"])
+            
+            from django.contrib import messages
+            messages.success(request, "Wholesaler profile updated successfully.")
+            return redirect("accounts:dashboard")
+    else:
+        form = WholesalerProfileEditForm(initial=initial)
+        
+    return render(request, "accounts/edit_wholesaler_profile.html", {"form": form})
 
 
 @login_required

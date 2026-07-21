@@ -251,3 +251,29 @@ class EmailOTPVerifyForm(forms.Form):
             "maxlength": "4",
         }),
     )
+
+class CustomerProfileEditForm(forms.Form):
+    """Form to edit retail customer profile and default address."""
+    
+    name = forms.CharField(max_length=150, label="Full name", widget=forms.TextInput(attrs={"class": "form-control"}))
+    email = forms.EmailField(label="Email", required=False, widget=forms.EmailInput(attrs={"class": "form-control", "readonly": True}))
+    phone = forms.CharField(max_length=20, label="Phone number", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    
+    address_line1 = forms.CharField(max_length=255, label="Address Line 1", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    address_line2 = forms.CharField(max_length=255, label="Address Line 2", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    city_id = forms.ChoiceField(label="City", required=False, widget=forms.Select(attrs={"class": "form-select"}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from delivery.models import City
+        self.fields["city_id"].choices = [("", "Select City")] + [(c.pk, c.name) for c in City.objects.filter(is_active=True)]
+
+class WholesalerProfileEditForm(forms.Form):
+    """Form to edit wholesaler profile."""
+    
+    name = forms.CharField(max_length=150, label="Full name", widget=forms.TextInput(attrs={"class": "form-control"}))
+    company_name = forms.CharField(max_length=200, label="Company Name", widget=forms.TextInput(attrs={"class": "form-control"}))
+    email = forms.EmailField(label="Email", required=False, widget=forms.EmailInput(attrs={"class": "form-control", "readonly": True}))
+    phone = forms.CharField(max_length=20, label="Phone number", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    gst = forms.CharField(max_length=50, label="GST Number", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    address = forms.CharField(max_length=255, label="Address", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))

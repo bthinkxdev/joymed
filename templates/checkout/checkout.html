@@ -56,7 +56,7 @@
 
             <div class="mb-3">
               <label class="form-label small">{% trans "Address Line 1" %} <span class="text-danger">*</span></label>
-              <input type="text" name="guest_address_line1" class="form-control form-control-sm" value="{{ checkout_session.address.line1|default:'' }}">
+              <input type="text" name="guest_address_line1" class="form-control form-control-sm" value="{{ checkout_session.address.line1|default:wholesaler_address|default:'' }}">
               <div id="error-guest_address_line1" class="text-danger small mt-1"></div>
             </div>
             <div class="mb-3">

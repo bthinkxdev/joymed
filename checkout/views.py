@@ -44,18 +44,29 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
     if city and delivery_date:
         delivery_slots = get_available_slots(city=city, delivery_date=delivery_date)
 
-    addresses_raw = get_saved_addresses(customer_profile=profile, page=1)["results"] if profile else []
     addresses = []
-    seen = set()
-    for addr in addresses_raw:
-        key = (
-            addr.line1.strip().lower(),
-            addr.line2.strip().lower(),
-            addr.city_id,
-        )
-        if key not in seen:
-            seen.add(key)
-            addresses.append(addr)
+    if profile:
+        from accounts.models import Address
+        dashboard_address = profile.default_address
+        if not dashboard_address:
+            dashboard_address = Address.objects.select_related("city").filter(customer_profile=profile).first()
+        if dashboard_address:
+            addresses = [dashboard_address]
+        elif hasattr(request.user, "wholesaler_profile"):
+            from delivery.models import City
+            from accounts.services import create_address
+            first_city = City.objects.filter(is_active=True).first()
+            if first_city:
+                dashboard_address = create_address(
+                    customer_profile=profile,
+                    label="Registered Address",
+                    line1=request.user.wholesaler_profile.address[:255],
+                    line2="",
+                    city_id=first_city.pk,
+                    is_default=True
+                )
+                addresses = [dashboard_address]
+            
     from delivery.models import City
     active_cities = City.objects.filter(is_active=True)
 
@@ -74,17 +85,23 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
             continue
         available_gateways[key] = adapter
 
+    wholesaler_address = ""
+    if hasattr(request.user, "wholesaler_profile"):
+        wholesaler_address = request.user.wholesaler_profile.address
+
     return render(
         request,
         "checkout/checkout.html",
         {
-            "checkout_session": session,
+            "cart": cart,
             "summary": summary,
+            "checkout_session": session,
             "addresses": addresses,
             "active_cities": active_cities,
             "delivery_slots": delivery_slots,
             "payment_gateways": available_gateways,
             "selected_gateway_key": selected_gateway_key,
+            "wholesaler_address": wholesaler_address,
         },
     )
 
@@ -169,6 +186,11 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
                     city_id=int(guest_city_id),
                     label="Delivery Address"
                 )
+                
+            if profile.default_address is None:
+                from accounts.services import set_default_address
+                set_default_address(customer_profile=profile, address_id=address.pk)
+                
             update_checkout_session(checkout_session=session, address=address)
             
             #update session customer profile
@@ -206,6 +228,11 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
                     city_id=int(guest_city_id),
                     label="Delivery Address"
                 )
+            
+            if profile.default_address is None:
+                from accounts.services import set_default_address
+                set_default_address(customer_profile=profile, address_id=address.pk)
+                
             update_checkout_session(checkout_session=session, address=address)
 
     delivery_form = CheckoutDeliveryForm(request.POST)

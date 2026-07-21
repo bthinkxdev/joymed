@@ -70,9 +70,13 @@ def get_customer_dashboard_context(*, user: User) -> Optional[CustomerDashboardC
     recent_orders = orders_page["results"]
     unread_count = get_unread_notification_count(user=user)
 
+    address = profile.default_address
+    if not address:
+        address = Address.objects.select_related("city").filter(customer_profile=profile).first()
+
     return CustomerDashboardContext(
         profile=profile,
-        default_address=profile.default_address,
+        default_address=address,
         recent_orders=recent_orders,
         unread_notification_count=unread_count,
     )
