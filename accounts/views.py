@@ -863,10 +863,20 @@ def customer_invoice_detail(request: HttpRequest, pk: int) -> HttpResponse:
     from django.shortcuts import get_object_or_404
     
     order = get_object_or_404(
-        Order.objects.select_related("customer_profile__user", "currency"), 
+        Order.objects.select_related("customer_profile__user", "currency", "cart"), 
         pk=pk
     )
     
+    #security check to prevent unauthorized invoice downloads
+    if request.user.is_authenticated:
+        if order.customer_profile and order.customer_profile.user != request.user:
+            from django.http import Http404
+            raise Http404("Invoice not found.")
+    else:
+        if order.cart and order.cart.session_key != request.session.session_key:
+            from django.http import Http404
+            raise Http404("Invoice not found.")
+
     context = {
         "order": order,
         "site_settings": SiteSettings.objects.first(),
