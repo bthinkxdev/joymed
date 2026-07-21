@@ -22,6 +22,7 @@ urlpatterns = [
     path("password/forgot/", views.forgot_password_view, name="forgot-password"),
     path("password/reset/", views.reset_password_view, name="reset-password"),
     path("dashboard/", views.dashboard_view, name="dashboard"),
+    path("dashboard/orders/<int:pk>/invoice/", views.customer_invoice_detail, name="customer-invoice"),
     path("addresses/", views.address_list_create_view, name="address-list-create"),
     path("addresses/<int:address_id>/", views.address_detail_view, name="address-detail"),
     path("payment-methods/", views.payment_methods_list_view, name="payment-methods-list"),

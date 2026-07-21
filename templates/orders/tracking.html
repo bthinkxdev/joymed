@@ -5,6 +5,9 @@
 
 {% block content %}
 <div class="container page-container tracking-page">
+  <div class="mb-4">
+    <a href="{% url 'orders:detail' order.pk %}" class="btn btn-outline-secondary btn-sm"><i class="ti ti-arrow-left"></i> {% trans "Back to Order" %}</a>
+  </div>
   <h1 class="section-title mb-1">{% trans "Order" %} {{ order.order_number }}</h1>
   <p class="section-subtitle mb-4">
     {% trans "Current status" %}:

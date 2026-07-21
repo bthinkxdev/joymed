@@ -853,3 +853,22 @@ def email_otp_verify_view(request: HttpRequest) -> HttpResponse:
             if url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}):
                 return redirect(next_url)
         return redirect("accounts:dashboard")
+
+
+@require_http_methods(["GET"])
+def customer_invoice_detail(request: HttpRequest, pk: int) -> HttpResponse:
+    """Render the HTML invoice for an order for a customer or wholesaler."""
+    from orders.models import Order
+    from core.models import SiteSettings
+    from django.shortcuts import get_object_or_404
+    
+    order = get_object_or_404(
+        Order.objects.select_related("customer_profile__user", "currency"), 
+        pk=pk
+    )
+    
+    context = {
+        "order": order,
+        "site_settings": SiteSettings.objects.first(),
+    }
+    return render(request, "shared/order_invoice.html", context)

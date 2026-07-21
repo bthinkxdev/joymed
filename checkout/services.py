@@ -150,10 +150,13 @@ def place_order(
         addr = session.address
         address_snapshot = {
             "name": addr.customer_profile.user.get_full_name() if (addr.customer_profile and addr.customer_profile.user) else "",
+            "email": addr.customer_profile.user.email if (addr.customer_profile and addr.customer_profile.user) else "",
+            "phone": addr.customer_profile.phone if addr.customer_profile else "",
             "label": addr.label,
             "line1": addr.line1,
             "line2": addr.line2,
-            "city": addr.city.name if addr.city_id else "",
+            "city": addr.city.name if hasattr(addr, 'city') and addr.city else "",
+            "state": addr.city.state.name if hasattr(addr, 'city') and addr.city and getattr(addr.city, 'state', None) else "",
         }
 
     try:

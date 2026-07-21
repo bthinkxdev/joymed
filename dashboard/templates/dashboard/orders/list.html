@@ -20,13 +20,19 @@
     <div class="card table-responsive">
       <table class="table mb-0 text-nowrap table-hover align-middle">
         <thead class="table-light">
-          <tr><th>Order #</th><th>Customer</th><th>Status</th><th>Payment</th><th>Total</th><th>Placed</th><th class="text-end">Actions</th></tr>
+          <tr><th>Order #</th><th>Customer</th><th>Status</th><th>Payment</th><th>Total</th><th>Placed</th><th class="text-center">Invoice</th><th class="text-end">Actions</th></tr>
         </thead>
         <tbody>
           {% for order in objects %}
           <tr>
             <td><a href="{% url 'dashboard:order-detail' order.pk %}">{{ order.order_number }}</a></td>
-            <td>{{ order.customer_profile|default:"Guest" }}</td>
+            <td>
+              {% if order.cart and not order.cart.customer_profile %}
+                Guest
+              {% else %}
+                {{ order.customer_profile|default:"Guest" }}
+              {% endif %}
+            </td>
             <td><span class="badge bg-primary-subtle text-primary">{{ order.get_order_status_display }}</span></td>
             <td>
               {% if order.payment_status_display == 'Success' or order.payment_status_display == 'Paid' %}
@@ -39,10 +45,15 @@
             </td>
             <td>{{ order.total_amount|floatformat:2 }} {% if order.currency %}{{ order.currency.code }}{% endif %}</td>
             <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
-            <td class="text-end"><a href="{% url 'dashboard:order-detail' order.pk %}" class="btn btn-sm btn-light"><i class="ti ti-eye"></i></a></td>
+            <td class="text-center">
+              <a href="{% url 'dashboard:order-invoice' order.pk %}" class="btn btn-sm btn-outline-secondary" title="View Invoice" target="_blank"><i class="ti ti-file-invoice"></i> View</a>
+            </td>
+            <td class="text-end">
+              <a href="{% url 'dashboard:order-detail' order.pk %}" class="btn btn-sm btn-light" title="View Order"><i class="ti ti-eye"></i></a>
+            </td>
           </tr>
           {% empty %}
-          <tr><td colspan="7" class="text-center text-secondary py-5">No orders found.</td></tr>
+          <tr><td colspan="8" class="text-center text-secondary py-5">No orders found.</td></tr>
           {% endfor %}
         </tbody>
       </table>

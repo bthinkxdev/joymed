@@ -119,7 +119,22 @@ def order_payment_transition(request: HttpRequest, pk: int) -> HttpResponse:
             messages.success(request, f"Payment marked as {dict(PaymentStatus.choices).get(new_status)}.")
     elif not tx:
         messages.error(request, "Could not update payment status: No payment records found.")
-    else:
-        messages.error(request, "Invalid payment status selected.")
         
     return redirect("dashboard:order-detail", pk=pk)
+
+
+@dashboard_required
+@require_http_methods(["GET"])
+def order_invoice_detail(request: HttpRequest, pk: int) -> HttpResponse:
+    """Render the HTML invoice for an order."""
+    from core.models import SiteSettings
+    order = get_object_or_404(
+        Order.objects.select_related("customer_profile__user", "currency"), pk=pk
+    )
+    
+    context = {
+        "order": order,
+        "site_settings": SiteSettings.objects.first(),
+    }
+    return render(request, "shared/order_invoice.html", context)
+
