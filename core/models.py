@@ -204,6 +204,11 @@ class SiteSettings(TimeStampedModel):
     instagram_url = models.URLField(blank=True)
     twitter_url = models.URLField(blank=True)
     whatsapp_number = models.CharField(max_length=20, blank=True)
+    vendor_email = models.EmailField(
+        blank=True,
+        verbose_name="Vendor Email",
+        help_text="Email address to receive quote requests and contact inquiries.",
+    )
     default_currency = models.ForeignKey(
         Currency,
         on_delete=models.PROTECT,
@@ -252,3 +257,31 @@ class SiteSettings(TimeStampedModel):
 
     def delete(self, *args, **kwargs) -> tuple[int, dict[str, int]]:
         raise RuntimeError("SiteSettings singleton cannot be deleted.")
+
+
+class ContactInquiry(TimeStampedModel):
+    """Stores contact form submissions and quote requests."""
+
+    name = models.CharField(max_length=255, verbose_name="Name")
+    email = models.EmailField(verbose_name="Email Address")
+    message = models.TextField(verbose_name="Message")
+    product = models.ForeignKey(
+        "catalog.Product",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="inquiries",
+        verbose_name="Related Product",
+        help_text="The product this inquiry is about (for quote requests)."
+    )
+
+    class Meta:
+        verbose_name = "Contact Inquiry"
+        verbose_name_plural = "Contact Inquiries"
+
+    def __str__(self) -> str:
+        return f"Inquiry from {self.name} ({self.email})"
+
+    @property
+    def inquiry_type(self) -> str:
+        return "Quote Request" if self.product_id else "Contact Enquiry"

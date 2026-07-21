@@ -1,0 +1,25 @@
+{% extends "dashboard/crud/list.html" %}
+
+{% block content %}
+<div class="mb-4">
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a class="nav-link {% if active_tab == 'all' or not active_tab %}active fw-semibold{% endif %}" href="?tab=all{% if search_query %}&q={{ search_query }}{% endif %}">
+        <i class="ti ti-messages me-1"></i>All Inquiries
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if active_tab == 'quote' %}active fw-semibold{% endif %}" href="?tab=quote{% if search_query %}&q={{ search_query }}{% endif %}">
+        <i class="ti ti-file-invoice me-1"></i>Quote Requests
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if active_tab == 'contact' %}active fw-semibold{% endif %}" href="?tab=contact{% if search_query %}&q={{ search_query }}{% endif %}">
+        <i class="ti ti-mail me-1"></i>Contact Enquiries
+      </a>
+    </li>
+  </ul>
+</div>
+
+{{ block.super }}
+{% endblock %}

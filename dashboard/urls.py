@@ -58,6 +58,9 @@ urlpatterns = [
         customers.WholesalerUpdateView.as_view(),
         name="wholesaler-update",
     ),
+    path("inquiry/", customers.ContactInquiryListView.as_view(), name="inquiry-list"),
+    path("inquiry/<int:pk>/", customers.inquiry_detail, name="inquiry-detail"),
+    path("inquiry/<int:pk>/delete/", customers.ContactInquiryDeleteView.as_view(), name="inquiry-delete"),
     path("settings/", misc.settings_view, name="settings"),
     path("payment/", misc.payment_list, name="payment-list"),
 ]

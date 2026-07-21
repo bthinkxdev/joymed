@@ -68,7 +68,9 @@
       {% if product.variant_list %}
       <div class="mb-3">
         <label class="form-label small fw-medium">{% trans "Select Option" %}</label>
-        <select id="variant-select" class="form-select" data-price-url="{% url 'catalog:variant-price' product_id=product.pk %}" data-currency-symbol="{{ display_currency.symbol }}">
+        <select id="variant-select" class="form-select"
+          data-price-url="{% url 'catalog:variant-price' product_id=product.pk %}"
+          data-currency-symbol="{{ display_currency.symbol }}">
           <option value="">{% trans "Standard" %}</option>
           {% for v in product.variant_list %}
           <option value="{{ v.pk }}">{{ v.name }} (+{{ v.price_delta }})</option>
@@ -89,12 +91,20 @@
 
       <div id="purchase-actions" class="d-flex flex-column gap-2 mb-3">
         <!-- Add to Cart -->
-        <div id="pdp-add-to-cart-group" class="d-flex gap-2 align-items-center w-100 {% if is_in_cart %}d-none{% endif %}">
+        <div id="pdp-add-to-cart-group"
+          class="d-flex gap-2 align-items-center w-100 {% if is_in_cart %}d-none{% endif %}">
           {% if product.is_in_stock %}
-          <div class="qty-stepper d-flex align-items-center border rounded-pill overflow-hidden" style="width: fit-content; height: 38px; background: #fff;">
-            <button class="qty-stepper__btn" type="button" onclick="let inp = document.getElementById('pdp-qty'); if(inp.value > 1) { inp.value = parseInt(inp.value) - 1; document.querySelectorAll('.pdp-qty-input').forEach(i => i.value = inp.value); }" style="padding: 2px 12px; font-size: 16px; border: none; background: transparent; height: 100%;">&minus;</button>
-            <input type="number" id="pdp-qty" class="qty-stepper__value border-0 text-center fw-semibold pdp-qty-input" style="width: 40px; outline: none; background: transparent; margin: 0; text-align: center; height: 100%;" value="1" min="1" readonly>
-            <button class="qty-stepper__btn" type="button" onclick="let inp = document.getElementById('pdp-qty'); inp.value = parseInt(inp.value) + 1; document.querySelectorAll('.pdp-qty-input').forEach(i => i.value = inp.value);" style="padding: 2px 12px; font-size: 16px; border: none; background: transparent; height: 100%;">&plus;</button>
+          <div class="qty-stepper d-flex align-items-center border rounded-pill overflow-hidden"
+            style="width: fit-content; height: 38px; background: #fff;">
+            <button class="qty-stepper__btn" type="button"
+              onclick="let inp = document.getElementById('pdp-qty'); if(inp.value > 1) { inp.value = parseInt(inp.value) - 1; document.querySelectorAll('.pdp-qty-input').forEach(i => i.value = inp.value); }"
+              style="padding: 2px 12px; font-size: 16px; border: none; background: transparent; height: 100%;">&minus;</button>
+            <input type="number" id="pdp-qty" class="qty-stepper__value border-0 text-center fw-semibold pdp-qty-input"
+              style="width: 40px; outline: none; background: transparent; margin: 0; text-align: center; height: 100%;"
+              value="1" min="1" readonly>
+            <button class="qty-stepper__btn" type="button"
+              onclick="let inp = document.getElementById('pdp-qty'); inp.value = parseInt(inp.value) + 1; document.querySelectorAll('.pdp-qty-input').forEach(i => i.value = inp.value);"
+              style="padding: 2px 12px; font-size: 16px; border: none; background: transparent; height: 100%;">&plus;</button>
           </div>
           {% endif %}
 
@@ -123,35 +133,55 @@
           <form method="post" action="{% url 'cart:wishlist-toggle' %}" class="flex-shrink-0">
             {% csrf_token %}
             <input type="hidden" name="product_id" value="{{ product.pk }}">
-            <button type="submit" class="btn btn-outline-floward px-3" aria-label="{% trans 'Wishlist' %}" style="height: 38px; display: flex; align-items: center; justify-content: center; border-radius: var(--floward-radius-pill);">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="{% if is_in_wishlist %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <button type="submit" class="btn btn-outline-floward px-3" aria-label="{% trans 'Wishlist' %}"
+              style="height: 38px; display: flex; align-items: center; justify-content: center; border-radius: var(--floward-radius-pill);">
+              <svg width="20" height="20" viewBox="0 0 24 24"
+                fill="{% if is_in_wishlist %}currentColor{% else %}none{% endif %}" stroke="currentColor"
+                stroke-width="2">
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
             </button>
           </form>
         </div>
 
         <!-- View Cart -->
-        <div id="pdp-view-cart-group" class="d-flex gap-2 align-items-center w-100 {% if not is_in_cart %}d-none{% endif %}">
+        <div id="pdp-view-cart-group"
+          class="d-flex gap-2 align-items-center w-100 {% if not is_in_cart %}d-none{% endif %}">
           <a href="{% url 'cart:page' %}" class="btn btn-outline-floward flex-grow-1 py-2">
             {% trans "View Cart" %}
           </a>
           <form method="post" action="{% url 'cart:wishlist-toggle' %}" class="flex-shrink-0">
             {% csrf_token %}
             <input type="hidden" name="product_id" value="{{ product.pk }}">
-            <button type="submit" class="btn btn-outline-floward px-3 py-2" aria-label="{% trans 'Wishlist' %}" style="height: 42px; display: flex; align-items: center; justify-content: center; border-radius: var(--floward-radius-pill);">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="{% if is_in_wishlist %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <button type="submit" class="btn btn-outline-floward px-3 py-2" aria-label="{% trans 'Wishlist' %}"
+              style="height: 42px; display: flex; align-items: center; justify-content: center; border-radius: var(--floward-radius-pill);">
+              <svg width="20" height="20" viewBox="0 0 24 24"
+                fill="{% if is_in_wishlist %}currentColor{% else %}none{% endif %}" stroke="currentColor"
+                stroke-width="2">
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
             </button>
           </form>
         </div>
 
-        <!-- Buy Now -->
-        <form id="buy-now-form" method="post" action="{% url 'cart:add' %}" class="w-100"
-          hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
-          {% csrf_token %}
-          <input type="hidden" name="product_id" value="{{ product.pk }}">
-          <input type="hidden" name="quantity" class="pdp-qty-input" value="1">
-          <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="">
-          <button type="submit" name="buy_now" value="true" class="btn btn-floward w-100 py-2">{% trans "Buy Now" %}</button>
-        </form>
+        <!-- Buy Now & Quote -->
+        <div class="d-flex gap-2 w-100">
+          <form id="buy-now-form" method="post" action="{% url 'cart:add' %}" style="flex: 1 1 0;" hx-post="{% url 'cart:add' %}"
+            hx-target="#cart-drawer-body" hx-swap="innerHTML">
+            {% csrf_token %}
+            <input type="hidden" name="product_id" value="{{ product.pk }}">
+            <input type="hidden" name="quantity" class="pdp-qty-input" value="1">
+            <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="">
+            <button type="submit" name="buy_now" value="true" class="btn btn-floward w-100 py-2">{% trans "Buy Now" %}</button>
+          </form>
+
+          {% if price_data.is_wholesaler == "true" %}
+          <!-- request a quote -->
+          <a href="{% url 'core:contact-us' %}?product={{ product.pk }}" class="btn btn-floward py-2 d-flex align-items-center justify-content-center text-center" style="flex: 1 1 0; padding-left: 0; padding-right: 0;">{% trans "Request a Quote" %}</a>
+          {% endif %}
+        </div>
       </div>
 
 
@@ -165,8 +195,9 @@
     <div class="pdp-sticky-price" id="pdp-sticky-price">{% money_label price_data.price display_currency %}</div>
     <div class="d-flex flex-column gap-1 flex-grow-1" id="pdp-sticky-actions-group">
       <!-- Add to Cart -->
-      <form id="sticky-buy-form" method="post" action="{% url 'cart:add' %}" class="w-100 {% if is_in_cart %}d-none{% endif %}"
-        hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
+      <form id="sticky-buy-form" method="post" action="{% url 'cart:add' %}"
+        class="w-100 {% if is_in_cart %}d-none{% endif %}" hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body"
+        hx-swap="innerHTML">
         {% csrf_token %}
         <input type="hidden" name="product_id" value="{{ product.pk }}">
         <input type="hidden" name="quantity" class="pdp-qty-input" value="1">
@@ -176,7 +207,8 @@
 
       <!-- View Cart -->
       <div id="pdp-sticky-view-cart-btn" class="w-100 {% if not is_in_cart %}d-none{% endif %}">
-        <a href="{% url 'cart:page' %}" class="btn btn-outline-floward w-100 py-1" style="font-size: 0.85rem; display: block; text-align: center;">{% trans "View Cart" %}</a>
+        <a href="{% url 'cart:page' %}" class="btn btn-outline-floward w-100 py-1"
+          style="font-size: 0.85rem; display: block; text-align: center;">{% trans "View Cart" %}</a>
       </div>
 
       <!-- Buy Now -->
@@ -229,10 +261,12 @@
         <h2 class="section-title h5 mb-3">{% trans "Manuals & Documents" %}</h2>
         <div class="d-flex flex-column gap-3">
           {% for doc in product.documents.all %}
-          <div class="d-flex align-items-center justify-content-between p-3 border rounded shadow-sm hover-shadow bg-white">
+          <div
+            class="d-flex align-items-center justify-content-between p-3 border rounded shadow-sm hover-shadow bg-white">
             <div class="d-flex align-items-center gap-3">
               <div class="flex-shrink-0 text-danger" style="font-size: 1.75rem;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                  stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                   <polyline points="14 2 14 8 20 8"></polyline>
                   <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -241,20 +275,26 @@
                 </svg>
               </div>
               <div>
-                <h4 class="mb-0 fw-semibold text-dark" style="font-size: 0.95rem; line-height: 1.2;">{{ doc.title }}</h4>
+                <h4 class="mb-0 fw-semibold text-dark" style="font-size: 0.95rem; line-height: 1.2;">{{ doc.title }}
+                </h4>
                 <span class="text-muted small">PDF {% trans "Document" %}</span>
               </div>
             </div>
             <div class="d-flex gap-2">
-              <a href="{{ doc.document_file.url }}" target="_blank" class="btn btn-sm btn-outline-floward d-flex align-items-center gap-1 py-1 px-2" style="font-size: 0.8rem;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <a href="{{ doc.document_file.url }}" target="_blank"
+                class="btn btn-sm btn-outline-floward d-flex align-items-center gap-1 py-1 px-2"
+                style="font-size: 0.8rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
                 {% trans "View" %}
               </a>
-              <a href="{{ doc.document_file.url }}" download class="btn btn-sm btn-floward d-flex align-items-center gap-1 py-1 px-2" style="font-size: 0.8rem;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <a href="{{ doc.document_file.url }}" download
+                class="btn btn-sm btn-floward d-flex align-items-center gap-1 py-1 px-2" style="font-size: 0.8rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="7 10 12 15 17 10"></polyline>
                   <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -302,6 +342,10 @@
   {% endif %}
 </div>
 
+{% if price_data.is_wholesaler == "true" %}
+<!-- quote request modal removed in favor of redirect to contact page -->
+{% endif %}
+
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const buyBtn = document.getElementById("mode_buy");
@@ -343,7 +387,7 @@
       buyBtn.addEventListener("change", refreshMode);
       rentBtn.addEventListener("change", refreshMode);
     }
-    document.body.addEventListener('cartItemAdded', function() {
+    document.body.addEventListener('cartItemAdded', function () {
       const addToCartGroup = document.getElementById('pdp-add-to-cart-group');
       if (addToCartGroup) {
         addToCartGroup.classList.add('d-none');

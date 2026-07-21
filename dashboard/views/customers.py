@@ -6,9 +6,10 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 
 from accounts.models import CustomerProfile, Wholesaler
+from core.models import ContactInquiry
 from dashboard import forms
 from dashboard.access import dashboard_required
-from dashboard.views.base import DashboardListView, DashboardUpdateView
+from dashboard.views.base import DashboardListView, DashboardUpdateView, DashboardDeleteView
 
 
 class CustomerListView(DashboardListView):
@@ -149,3 +150,62 @@ class WholesalerUpdateView(DashboardUpdateView):
 
         return super().form_valid(form)
 
+
+class ContactInquiryListView(DashboardListView):
+    model = ContactInquiry
+    nav_section = "inquiries"
+    url_basename = "inquiry"
+    singular_name = "Inquiry"
+    plural_name = "Inquiries"
+    search_fields = ["name", "email", "message"]
+    select_related = ["product"]
+    can_create = False
+    can_view = True
+    can_edit = False
+    can_delete = True
+    template_name = "dashboard/customers/inquiry_list.html"
+    columns = [
+        {"label": "Name", "name": "name"},
+        {"label": "Email", "name": "email"},
+        {"label": "Type", "name": "inquiry_type"},
+        {"label": "Product", "name": "product.name"},
+        {"label": "Date", "name": "created_at", "type": "date"},
+    ]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        active_tab = self.request.GET.get("tab", "all").strip().lower()
+        if active_tab == "quote":
+            qs = qs.filter(product__isnull=False)
+        elif active_tab == "contact":
+            qs = qs.filter(product__isnull=True)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        active_tab = self.request.GET.get("tab", "all").strip().lower()
+        context["active_tab"] = active_tab
+        
+        if active_tab != "quote":
+            context["columns"] = [col for col in self.columns if col["name"] != "product.name"]
+            
+        return context
+
+
+class ContactInquiryDeleteView(DashboardDeleteView):
+    model = ContactInquiry
+    nav_section = "inquiries"
+    url_basename = "inquiry"
+    singular_name = "Inquiry"
+
+
+@dashboard_required
+def inquiry_detail(request: HttpRequest, pk: int) -> HttpResponse:
+    """Read full inquiry message."""
+    inquiry = get_object_or_404(ContactInquiry.objects.select_related("product"), pk=pk)
+    context = {
+        "nav_section": "inquiries",
+        "page_title": f"Inquiry from {inquiry.name}",
+        "inquiry": inquiry,
+    }
+    return render(request, "dashboard/customers/inquiry_detail.html", context)

@@ -20,11 +20,20 @@ def send_email(*, email: str, subject: str, message: str) -> None:
     """Dispatch an email via Django's configured backend (console in dev, SMTP in production)."""
     from django.core.mail import send_mail
     from django.conf import settings
+    from core.services import get_site_settings
+    
     logger.info("Email to %s [%s]: %s", email, subject, message)
+    
+    site_settings = get_site_settings()
+    if site_settings.vendor_email:
+        from_email = f'"{site_settings.vendor_email}" <{settings.DEFAULT_FROM_EMAIL}>'
+    else:
+        from_email = settings.DEFAULT_FROM_EMAIL
+    
     send_mail(
         subject=subject,
         message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        from_email=from_email,
         recipient_list=[email],
         fail_silently=False,
     )

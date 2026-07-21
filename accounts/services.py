@@ -691,10 +691,18 @@ def send_wholesaler_registration_admin_email(wholesaler: Wholesaler) -> None:
         f"Contact Email: {wholesaler.user.email}\n\n"
         f"Please log in to admin dashboard to review and approve this account"
     )
+    from core.services import get_site_settings
+    
+    site_settings = get_site_settings()
+    if site_settings.vendor_email:
+        from_email = f'"{site_settings.vendor_email}" <{settings.DEFAULT_FROM_EMAIL}>'
+    else:
+        from_email = settings.DEFAULT_FROM_EMAIL
+
     send_mail(
         subject=subject,
         message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        from_email=from_email,
         recipient_list=recipient_list,
         fail_silently=True,
     )

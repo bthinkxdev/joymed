@@ -420,11 +420,15 @@ class SiteSettingsForm(forms.ModelForm):
             "instagram_url",
             "twitter_url",
             "whatsapp_number",
+            "vendor_email",
             "tax_rate_percent",
             "default_shipping_charge",
             "razorpay_key_id",
             "razorpay_key_secret",
         ]
+        labels = {
+            "vendor_email": "Email",
+        }
 
 
 class OrderStatusForm(forms.Form):

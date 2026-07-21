@@ -55,9 +55,14 @@
       </a>
     </li>
 
-    <li>
       <a class="nav-link {% if nav_section == 'wholesalers' %}active{% endif %}" href="{% url 'dashboard:wholesaler-list' %}">
         <i class="ti ti-building-store"></i><span class="nav-text">Wholesalers</span>
+      </a>
+    </li>
+
+    <li>
+      <a class="nav-link {% if nav_section == 'inquiries' %}active{% endif %}" href="{% url 'dashboard:inquiry-list' %}">
+        <i class="ti ti-messages"></i><span class="nav-text">Inquiries</span>
       </a>
     </li>
 

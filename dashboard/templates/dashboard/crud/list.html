@@ -27,7 +27,7 @@
         <thead class="table-light">
           <tr>
             {% for col in columns %}<th>{{ col.label }}</th>{% endfor %}
-            {% if can_edit or can_delete %}<th class="text-end">Actions</th>{% endif %}
+            {% if can_view or can_edit or can_delete %}<th class="text-end">Actions</th>{% endif %}
           </tr>
         </thead>
         <tbody>
@@ -61,8 +61,11 @@
               {% endif %}
             </td>
             {% endfor %}
-            {% if can_edit or can_delete %}
+            {% if can_view or can_edit or can_delete %}
             <td class="text-end">
+              {% if can_view %}
+              <a href="{% row_action_url url_basename 'detail' obj.pk %}" class="btn btn-sm btn-light" title="View"><i class="ti ti-eye"></i></a>
+              {% endif %}
               {% if can_edit %}
               <a href="{% row_action_url url_basename 'update' obj.pk %}" class="btn btn-sm btn-light" title="Edit"><i class="ti ti-edit"></i></a>
               {% endif %}

@@ -44,6 +44,7 @@ class DashboardListView(DashboardContextMixin, ListView):
     singular_name: str = ""
     plural_name: str = ""
     can_create: bool = True
+    can_view: bool = False
     can_edit: bool = True
     can_delete: bool = True
     default_ordering: list[str] = ["-pk"]
@@ -73,6 +74,7 @@ class DashboardListView(DashboardContextMixin, ListView):
         context["search_query"] = self.request.GET.get("q", "")
         context["searchable"] = bool(self.search_fields)
         context["can_create"] = self.can_create
+        context["can_view"] = self.can_view
         context["can_edit"] = self.can_edit
         context["can_delete"] = self.can_delete
         if self.can_create and self.url_basename:
