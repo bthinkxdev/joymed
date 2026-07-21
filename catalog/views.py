@@ -283,5 +283,11 @@ def delivery_estimate_view(request: HttpRequest, product_id: int) -> JsonRespons
 
 @require_GET
 def rental_list_view(request: HttpRequest) -> HttpResponse:
-    products = Product.objects.filter(is_active=True, is_rental=True, show_rental_storefront=True)
-    return render(request, "catalog/rentals.html", {"products": products})
+    from catalog.selectors import _primary_image_prefetch, PLP_CARD_FIELDS
+    products = (
+        Product.objects.filter(is_active=True, is_rental=True, show_rental_storefront=True)
+        .select_related("category", "brand")
+        .prefetch_related(_primary_image_prefetch())
+        .only(*PLP_CARD_FIELDS)
+    )
+    return render(request, "catalog/rentals.html", {"products": list(products)})

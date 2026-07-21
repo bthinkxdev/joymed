@@ -132,13 +132,11 @@
       </div>
       {% endif %}
       {% if product.is_rental and product.show_rental_storefront %}
-      <div class="mb-3">
-        <div class="btn-group w-100" role="group">
-          <input type="radio" class="btn-check" name="pdp_mode" id="mode_buy" autocomplete="off" checked>
-          <label class="btn btn-outline-floward" for="mode_buy">{% trans "Buy" %}</label>
-          <input type="radio" class="btn-check" name="pdp_mode" id="mode_rent" autocomplete="off">
-          <label class="btn btn-outline-floward" for="mode_rent">{% trans "Rent" %}</label>
-        </div>
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="mode_rent" autocomplete="off">
+        <label class="form-check-label fw-medium" for="mode_rent">
+          {% trans "Rent this Product" %}
+        </label>
       </div>
       {% endif %}
 
@@ -436,19 +434,20 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const buyBtn = document.getElementById("mode_buy");
     const rentBtn = document.getElementById("mode_rent");
-    const buyForm = document.getElementById("buy-form");
-    const buyNowForm = document.getElementById("buy-now-form");
-    const rentAction = document.getElementById("rent-action");
-    const stickyActionsGroup = document.getElementById("pdp-sticky-actions-group");
-    const stickyRentAction = document.getElementById("sticky-rent-action");
     const priceDisplay = document.getElementById("pdp-price");
     const stickyPriceDisplay = document.getElementById("pdp-sticky-price");
     const originalPriceHtml = priceDisplay ? priceDisplay.innerHTML : "";
     const originalStickyPriceHtml = stickyPriceDisplay ? stickyPriceDisplay.innerHTML : "";
     const rentalPrice = "{{ product.rental_price|default:'' }}";
-    function refreshMode() {
+    
+    window.refreshMode = function() {
+      const buyForm = document.getElementById("buy-form");
+      const buyNowForm = document.getElementById("buy-now-form");
+      const rentAction = document.getElementById("rent-action");
+      const stickyActionsGroup = document.getElementById("pdp-sticky-actions-group");
+      const stickyRentAction = document.getElementById("sticky-rent-action");
+
       if (rentBtn && rentBtn.checked) {
         if (buyForm) buyForm.classList.add("d-none");
         if (buyNowForm) buyNowForm.classList.add("d-none");
@@ -470,10 +469,10 @@
         if (priceDisplay) priceDisplay.innerHTML = originalPriceHtml;
         if (stickyPriceDisplay) stickyPriceDisplay.innerHTML = originalStickyPriceHtml;
       }
-    }
-    if (buyBtn && rentBtn) {
-      buyBtn.addEventListener("change", refreshMode);
-      rentBtn.addEventListener("change", refreshMode);
+    };
+    
+    if (rentBtn) {
+      rentBtn.addEventListener("change", window.refreshMode);
     }
     document.body.addEventListener('cartItemAdded', function () {
       const stickyBuyForm = document.getElementById('sticky-buy-form');
@@ -593,10 +592,14 @@
   });
 
   document.body.addEventListener('htmx:afterSettle', function (evt) {
-    if (evt.target.id === 'purchase-actions' || evt.detail.target.id === 'purchase-actions') {
+    const targetId = evt.target ? evt.target.id : (evt.detail && evt.detail.target ? evt.detail.target.id : null);
+    if (targetId === 'purchase-actions') {
       const slider = document.getElementById("pdp-qty-slider");
       if (slider && typeof updateWholesaleQuantity === 'function') {
         updateWholesaleQuantity(slider.value);
+      }
+      if (typeof window.refreshMode === 'function') {
+        window.refreshMode();
       }
     }
   });
