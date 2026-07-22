@@ -455,10 +455,10 @@
         if (stickyActionsGroup) stickyActionsGroup.classList.add("d-none");
         if (stickyRentAction) stickyRentAction.classList.remove("d-none");
         if (priceDisplay && rentalPrice) {
-          priceDisplay.innerHTML = "{{ display_currency.symbol }}" + rentalPrice + " / day";
+          priceDisplay.innerHTML = "{{ display_currency.symbol }}" + rentalPrice + " / month";
         }
         if (stickyPriceDisplay && rentalPrice) {
-          stickyPriceDisplay.innerHTML = "{{ display_currency.symbol }}" + rentalPrice + " / day";
+          stickyPriceDisplay.innerHTML = "{{ display_currency.symbol }}" + rentalPrice + " / month";
         }
       } else {
         if (buyForm) buyForm.classList.remove("d-none");
