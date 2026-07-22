@@ -9,7 +9,7 @@ from dashboard.views.base import (
     DashboardListView,
     DashboardUpdateView,
 )
-from delivery.models import City, DeliverySlot
+from delivery.models import City
 
 
 class CityListView(DashboardListView):
@@ -52,41 +52,4 @@ class CityDeleteView(DashboardDeleteView):
     singular_name = "City"
 
 
-class DeliverySlotListView(DashboardListView):
-    model = DeliverySlot
-    nav_section = "slots"
-    url_basename = "slot"
-    singular_name = "Delivery Slot"
-    plural_name = "Delivery Slots"
-    search_fields = ["name"]
-    columns = [
-        {"label": "Name", "name": "name"},
-        {"label": "Start", "name": "start_time"},
-        {"label": "End", "name": "end_time"},
-        {"label": "Type", "name": "get_slot_type_display"},
-        {"label": "Capacity", "name": "max_capacity_per_day"},
-        {"label": "Active", "name": "is_active", "type": "bool"},
-    ]
 
-
-class DeliverySlotCreateView(DashboardCreateView):
-    model = DeliverySlot
-    form_class = forms.DeliverySlotForm
-    nav_section = "slots"
-    url_basename = "slot"
-    singular_name = "Delivery Slot"
-
-
-class DeliverySlotUpdateView(DashboardUpdateView):
-    model = DeliverySlot
-    form_class = forms.DeliverySlotForm
-    nav_section = "slots"
-    url_basename = "slot"
-    singular_name = "Delivery Slot"
-
-
-class DeliverySlotDeleteView(DashboardDeleteView):
-    model = DeliverySlot
-    nav_section = "slots"
-    url_basename = "slot"
-    singular_name = "Delivery Slot"

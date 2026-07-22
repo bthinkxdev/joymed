@@ -69,13 +69,11 @@ class Order(TimeStampedModel):
         db_index=True,
         verbose_name="Order status",
     )
-    delivery_slot_booking = models.ForeignKey(
-        "delivery.DeliverySlotBooking",
-        on_delete=models.SET_NULL,
+    delivery_date = models.DateField(
         null=True,
         blank=True,
-        related_name="orders",
-        verbose_name="Delivery slot booking",
+        verbose_name="Delivery date",
+        db_index=True,
     )
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     coupon_discount = models.DecimalField(max_digits=12, decimal_places=2, default=0)

@@ -53,14 +53,7 @@ class CheckoutSession(TimeStampedModel):
         verbose_name="Delivery address",
     )
     delivery_date = models.DateField(null=True, blank=True, verbose_name="Delivery date")
-    delivery_slot = models.ForeignKey(
-        "delivery.DeliverySlot",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="checkout_sessions",
-        verbose_name="Delivery slot",
-    )
+
     idempotency_key = models.CharField(
         max_length=64,
         unique=True,

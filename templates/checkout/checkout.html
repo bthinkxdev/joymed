@@ -79,20 +79,10 @@
         <div class="checkout-step">
           <h2>{% trans "Delivery" %}</h2>
           <div class="row g-2">
-            <div class="col-md-6">
+            <div class="col-md-12">
               <label class="form-label small">{% trans "Date" %}</label>
               <input type="date" name="delivery_date" class="form-control" value="{{ checkout_session.delivery_date|date:'Y-m-d'|default:'' }}">
               <div id="error-delivery_date" class="text-danger small mt-1"></div>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label small">{% trans "Time slot" %}</label>
-              <select name="delivery_slot_id" class="form-select">
-                <option value="">{% trans "Select slot" %}</option>
-                {% for slot in delivery_slots %}
-                <option value="{{ slot.pk }}" {% if checkout_session.delivery_slot_id == slot.pk %}selected{% endif %}>{{ slot.name }}</option>
-                {% endfor %}
-              </select>
-              <div id="error-delivery_slot_id" class="text-danger small mt-1"></div>
             </div>
           </div>
         </div>
@@ -144,7 +134,7 @@
           <span class="flex-shrink-0 fw-semibold" style="font-size: 0.875rem;">{{ display_currency.symbol }}{{ line.line_subtotal }}</span>
         </div>
         {% endfor %}
-        
+
         {% if summary.coupon_code %}
         <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
           <span class="small fw-semibold text-floward">{{ summary.coupon_code }}</span>

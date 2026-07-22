@@ -153,10 +153,4 @@ urlpatterns += _crud(
     delivery.CityUpdateView,
     delivery.CityDeleteView,
 )
-urlpatterns += _crud(
-    "slot",
-    delivery.DeliverySlotListView,
-    delivery.DeliverySlotCreateView,
-    delivery.DeliverySlotUpdateView,
-    delivery.DeliverySlotDeleteView,
-)
+

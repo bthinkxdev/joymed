@@ -11,13 +11,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from catalog.models import Product
-from delivery.models import (
-    City,
-    Country,
-    DeliverySlot,
-    DeliverySlotBooking,
-    DeliverySlotType,
-)
+from delivery.models import City, Country
 
 
 def get_active_countries() -> list[Country]:
@@ -47,107 +41,28 @@ def _same_day_allowed(*, city: City, delivery_date: date) -> bool:
     return timezone.localtime().hour < city.same_day_cutoff_hour
 
 
-def get_available_slots(
-    *,
-    city: City,
-    delivery_date: Union[date, str],
-) -> list[DeliverySlot]:
-    """
-    Return active delivery slots with remaining capacity for a city and date.
-
-    Excludes slots at ``max_capacity_per_day`` and applies the city's
-    per-city same-day cutoff hour.
-
-    Query guarantee: 1 SELECT on delivery slots with annotated booking counts.
-    """
-    if isinstance(delivery_date, str):
-        delivery_date = date.fromisoformat(delivery_date)
-
-    if delivery_date < timezone.localdate():
-        return []
-    if not _same_day_allowed(city=city, delivery_date=delivery_date):
-        return []
-
-    qs = DeliverySlot.objects.filter(is_active=True)
-
-    booking_count = DeliverySlotBooking.objects.filter(
-        slot_id=OuterRef("pk"),
-        date=delivery_date,
-    ).values("current_bookings")[:1]
-
-    qs = (
-        qs.annotate(
-            bookings=Coalesce(Subquery(booking_count), 0),
-        )
-        .filter(bookings__lt=F("max_capacity_per_day"))
-        .order_by("start_time")
-    )
-    return list(qs)
-
-
-def get_available_delivery_slots(
-    *,
-    city_id: Optional[int] = None,
-    delivery_date: Optional[str] = None,
-) -> list[DeliverySlot]:
-    """
-    Backward-compatible wrapper around ``get_available_slots``.
-
-    When city/date are omitted, returns all active slots (legacy gift builder).
-    """
-    if city_id and delivery_date:
-        city = City.objects.filter(pk=city_id, is_active=True).first()
-        if city is None:
-            return []
-        return get_available_slots(
-            city=city,
-            delivery_date=delivery_date,
-        )
-
-    qs = DeliverySlot.objects.filter(is_active=True)
-    return list(qs.order_by("start_time"))
-
-
 def get_earliest_delivery_estimate(*, product: Product, destination_city: City) -> dict[str, Any]:
     """
     Return the earliest delivery estimate for a product to a destination city.
 
-    Uses per-city same-day cutoff, product same-day eligibility, and slot
-    capacity — replacing the Phase 4/5 today/tomorrow stub.
+    Uses per-city same-day cutoff.
     """
     today = timezone.localdate()
-    candidate_dates: list[date] = []
-    if _same_day_allowed(
-        city=destination_city,
-        delivery_date=today,
-    ):
-        candidate_dates.append(today)
-    candidate_dates.append(today + timedelta(days=1))
-    candidate_dates.append(today + timedelta(days=2))
+    
+    if _same_day_allowed(city=destination_city, delivery_date=today):
+        return {
+            "label": "Today",
+            "delivery_date": today.isoformat(),
+            "is_same_day": True,
+            "city": destination_city.name,
+        }
 
-    for candidate in candidate_dates:
-        slots = get_available_slots(
-            city=destination_city,
-            delivery_date=candidate,
-        )
-        if slots:
-            is_same_day = candidate == today
-            label = "Today" if is_same_day else candidate.strftime("%a, %b %d")
-            return {
-                "label": label,
-                "delivery_date": candidate.isoformat(),
-                "is_same_day": is_same_day,
-                "city": destination_city.name,
-                "slot_count": len(slots),
-            }
-
-    fallback = today + timedelta(days=1)
+    tomorrow = today + timedelta(days=1)
     return {
         "label": "Tomorrow",
-        "delivery_date": fallback.isoformat(),
+        "delivery_date": tomorrow.isoformat(),
         "is_same_day": False,
         "city": destination_city.name,
-        "slot_count": 0,
     }
 
 
@@ -160,9 +75,3 @@ def get_delivery_charge(*, item_count: int, destination_city: City) -> Decimal:
     if item_count <= 0:
         return Decimal("0.00")
     return destination_city.delivery_charge_base
-
-
-def get_slot_booking_count(*, slot_id: int, delivery_date: date) -> int:
-    """Return current bookings for a slot on a date. Query guarantee: 1 SELECT."""
-    booking = DeliverySlotBooking.objects.filter(slot_id=slot_id, date=delivery_date).first()
-    return booking.current_bookings if booking else 0

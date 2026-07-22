@@ -19,7 +19,7 @@ from catalog.models import (
 )
 from cms.models import BlogPost, FAQItem, HeroSlide, HomepageSection, Page, PolicyDocument
 from core.models import SiteSettings
-from delivery.models import City, DeliverySlot
+from delivery.models import City
 from marketing.models import Coupon, FlashSale, NewsletterSubscriber
 
 _DATE = forms.DateInput(attrs={"type": "date"})
@@ -434,18 +434,7 @@ class CityForm(SlugAutoMixin):
         self.fields["slug"].required = False
 
 
-class DeliverySlotForm(forms.ModelForm):
-    class Meta:
-        model = DeliverySlot
-        fields = [
-            "name",
-            "start_time",
-            "end_time",
-            "slot_type",
-            "max_capacity_per_day",
-            "is_active",
-        ]
-        widgets = {"start_time": _TIME, "end_time": _TIME}
+
 
 
 class SiteSettingsForm(forms.ModelForm):

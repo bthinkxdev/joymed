@@ -14,7 +14,7 @@ from cart.services import get_or_create_cart
 from checkout.forms import CheckoutAddressForm, CheckoutDeliveryForm, CheckoutPaymentForm
 from checkout.selectors import get_checkout_session_by_id
 from checkout.services import create_checkout_session, place_order, update_checkout_session
-from delivery.selectors import get_available_slots
+
 from payments.registry import PAYMENT_GATEWAYS
 from payments.services import process_payment
 
@@ -38,11 +38,7 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
         customer_profile=profile,
         session_key=request.session.session_key or "",
     )
-    city = session.address.city if session.address_id else None
-    delivery_date = session.delivery_date.isoformat() if session.delivery_date else None
-    delivery_slots = []
-    if city and delivery_date:
-        delivery_slots = get_available_slots(city=city, delivery_date=delivery_date)
+
 
     addresses = []
     if profile:
@@ -99,7 +95,7 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
             "checkout_session": session,
             "addresses": addresses,
             "active_cities": active_cities,
-            "delivery_slots": delivery_slots,
+
             "payment_gateways": available_gateways,
             "selected_gateway_key": selected_gateway_key,
             "wholesaler_address": wholesaler_address,
@@ -242,7 +238,6 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
         update_checkout_session(
             checkout_session=session,
             delivery_date=delivery_form.cleaned_data.get("delivery_date"),
-            delivery_slot_id=delivery_form.cleaned_data.get("delivery_slot_id"),
         )
 
     order = place_order(

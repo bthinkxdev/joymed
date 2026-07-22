@@ -21,7 +21,7 @@ from cart.services import add_to_cart, apply_coupon
 from catalog.models import Product, ProductVariant, VariantType
 from checkout.services import create_checkout_session, place_order, update_checkout_session
 from core.selectors import get_default_currency
-from delivery.models import City, DeliverySlot, DeliverySlotType
+from delivery.models import City
 from marketing.models import Coupon, CouponDiscountType
 from orders.exceptions import InvalidOrderStatusTransitionError
 from orders.models import Order, OrderStatus, OrderStatusHistory, ProofOfDelivery
@@ -79,7 +79,6 @@ class Command(BaseCommand):
         self.stdout.write("Setting up prerequisites (stock, slots, customers)...")
         self._ensure_stock(products)
         city = self._ensure_city()
-        slots = self._ensure_slots()
         customers = self._ensure_customers(city)
         self._ensure_coupons()
 
@@ -89,7 +88,6 @@ class Command(BaseCommand):
         scenarios = self._build_scenarios(
             products=products,
             customers=customers,
-            slots=slots,
         )
 
         for idx, sc in enumerate(scenarios, start=1):
@@ -160,26 +158,6 @@ class Command(BaseCommand):
                 same_day_cutoff_hour=14,
             )
         return city
-
-    def _ensure_slots(self) -> dict[str, DeliverySlot]:
-        specs = [
-            ("Morning 9am–12pm", time(9, 0), time(12, 0), DeliverySlotType.MORNING),
-            ("Evening 6pm–9pm", time(18, 0), time(21, 0), DeliverySlotType.EVENING),
-        ]
-        slots: dict[str, DeliverySlot] = {}
-        for name, start, end, stype in specs:
-            slot, _ = DeliverySlot.objects.get_or_create(
-                name=name,
-                defaults={
-                    "start_time": start,
-                    "end_time": end,
-                    "slot_type": stype,
-                    "max_capacity_per_day": 50,
-                    "is_active": True,
-                },
-            )
-            slots[stype] = slot
-        return slots
 
     def _ensure_variant(self, product: Product) -> ProductVariant:
         variant, _ = ProductVariant.objects.get_or_create(
@@ -258,7 +236,7 @@ class Command(BaseCommand):
         )
 
     def _build_scenarios(
-        self, *, products, customers, slots
+        self, *, products, customers
     ) -> list[dict]:
         p = products
         c = customers
@@ -312,7 +290,6 @@ class Command(BaseCommand):
                     "lines": [(p[10 % len(p)], None, 1)],
                     "address": c[4].default_address,
                     "delivery_date": future,
-                    "delivery_slot": slots[DeliverySlotType.MORNING],
                 },
             },
             {
@@ -352,7 +329,6 @@ class Command(BaseCommand):
         coupon_code: str | None = None,
         address=None,
         delivery_date=None,
-        delivery_slot=None,
     ) -> Order:
         existing = Order.objects.filter(idempotency_key=idem_key).first()
         if existing:
@@ -379,12 +355,11 @@ class Command(BaseCommand):
         session = create_checkout_session(
             cart=cart, customer_profile=profile, session_key=session_key or ""
         )
-        if address or delivery_date or delivery_slot:
+        if address or delivery_date:
             update_checkout_session(
                 checkout_session=session,
                 address=address,
                 delivery_date=delivery_date,
-                delivery_slot_id=delivery_slot.pk if delivery_slot else None,
             )
 
         return place_order(

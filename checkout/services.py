@@ -13,9 +13,7 @@ from cart.selectors import get_cart_summary
 from catalog.services import adjust_stock
 from checkout.exceptions import CheckoutSessionError
 from checkout.models import CheckoutSession, CheckoutSessionStatus
-from delivery.exceptions import SlotFullyBookedError
-from delivery.selectors import get_available_slots
-from delivery.services import reserve_delivery_slot
+
 from marketing.models import Coupon
 from marketing.services import record_coupon_redemption
 from orders.models import Order, OrderItem, OrderStatus
@@ -54,7 +52,7 @@ def update_checkout_session(
     checkout_session: CheckoutSession,
     address: Optional[Address] = None,
     delivery_date: Optional[date] = None,
-    delivery_slot_id: Optional[int] = None,
+
     invoice_details: Optional[dict[str, Any]] = None,
 ) -> CheckoutSession:
     """Persist checkout step data on the session."""
@@ -62,8 +60,7 @@ def update_checkout_session(
         checkout_session.address = address
     if delivery_date is not None:
         checkout_session.delivery_date = delivery_date
-    if delivery_slot_id is not None:
-        checkout_session.delivery_slot_id = delivery_slot_id
+
     if invoice_details is not None:
         checkout_session.invoice_details = invoice_details
     checkout_session.save()
@@ -99,7 +96,7 @@ def place_order(
             "cart__currency",
             "address",
             "address__city",
-            "delivery_slot",
+
         )
         .filter(pk=checkout_session_id)
         .first()
@@ -123,23 +120,7 @@ def place_order(
     if not summary.lines:
         raise CheckoutSessionError("Cart is empty.")
 
-    slot_booking = None
-    if session.delivery_slot_id and session.delivery_date and session.address_id:
-        city = session.address.city
-        available = get_available_slots(
-            city=city,
-            delivery_date=session.delivery_date,
-        )
-        available_ids = {slot.pk for slot in available}
-        if session.delivery_slot_id not in available_ids:
-            raise SlotFullyBookedError(
-                f"Delivery slot {session.delivery_slot_id} is fully booked on "
-                f"{session.delivery_date.isoformat()}."
-            )
-        slot_booking = reserve_delivery_slot(
-            slot=session.delivery_slot,
-            delivery_date=session.delivery_date,
-        )
+
 
     for line in summary.lines:
         target = line.variant if line.variant else line.product
@@ -166,7 +147,7 @@ def place_order(
             order_number=generate_order_number(),
             idempotency_key=idempotency_key,
             order_status=OrderStatus.RECEIVED,
-            delivery_slot_booking=slot_booking,
+            delivery_date=session.delivery_date,
             subtotal=summary.subtotal,
             coupon_discount=summary.coupon_discount,
             delivery_charge=summary.delivery_charge,

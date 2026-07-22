@@ -4,13 +4,7 @@ from __future__ import annotations
 
 from django.contrib import admin
 
-from delivery.models import (
-    City,
-    Country,
-    DeliverySlot,
-    DeliverySlotBooking,
-    DeliveryZone,
-)
+from delivery.models import City, Country, DeliveryZone
 
 
 @admin.register(Country)
@@ -45,20 +39,4 @@ class DeliveryZoneAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "city")
 
 
-@admin.register(DeliverySlot)
-class DeliverySlotAdmin(admin.ModelAdmin):
-    list_display = (
-        "name",
-        "slot_type",
-        "start_time",
-        "end_time",
-        "max_capacity_per_day",
-        "is_active",
-    )
-    list_filter = ("is_active", "slot_type")
 
-
-@admin.register(DeliverySlotBooking)
-class DeliverySlotBookingAdmin(admin.ModelAdmin):
-    list_display = ("slot", "date", "current_bookings", "updated_at")
-    list_filter = ("date",)
