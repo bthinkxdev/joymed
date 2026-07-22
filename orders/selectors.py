@@ -34,8 +34,6 @@ def get_customer_orders(
     queryset = (
         Order.objects.select_related(
             "currency",
-            "delivery_slot_booking",
-            "delivery_slot_booking__slot",
         )
         .filter(customer_profile=customer_profile)
         .order_by("-created_at")
@@ -80,8 +78,6 @@ def get_order_tracking_view(
     queryset = Order.objects.select_related(
         "customer_profile",
         "currency",
-        "delivery_slot_booking",
-        "delivery_slot_booking__slot",
         "proof_of_delivery",
     ).prefetch_related(
         Prefetch(
