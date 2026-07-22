@@ -150,8 +150,7 @@
           {% if price_data.is_wholesaler == "true" %}
           <div class="wholesale-slider-container flex-grow-1 me-2 mb-2">
             <label for="pdp-qty-slider" class="form-label small fw-medium mb-1 d-flex justify-content-between">
-              <span>{% trans "Quantity" %}: <span id="pdp-qty-display" class="fw-bold">{{ cart_item.quantity|default:1
-                  }}</span></span>
+              <span>{% trans "Quantity" %}: <span id="pdp-qty-display" class="fw-bold">{{ cart_item.quantity|default:1 }}</span></span>
             </label>
             {% with tiers=product.wholesale_tiers.all %}
             {% if tiers %}
