@@ -279,7 +279,7 @@
 
 
       <p class="small {% if product.is_in_stock %}text-success{% else %}text-danger{% endif %} mb-0">
-        {% if product.is_in_stock %}{% trans "In stock — order now" %}{% else %}{% trans "Out of stock" %}{% endif %}
+        {% if product.is_in_stock %}{% trans "In stock" %}({{ product.stock_quantity|default:0 }}) — {% trans "order now" %}{% else %}{% trans "Out of stock" %}{% endif %}
       </p>
     </div>
   </div>
@@ -529,6 +529,57 @@
       observer.observe(purchaseActions);
     }
   });
+
+  document.addEventListener('submit', function (e) {
+    const elt = e.target;
+    if (elt && elt.tagName === 'FORM' && ['buy-form', 'buy-now-form', 'sticky-buy-form', 'sticky-buy-now-form'].includes(elt.id)) {
+      const qtyInput = elt.querySelector('.pdp-qty-input');
+      if (qtyInput) {
+        const qty = parseInt(qtyInput.value, 10);
+        const maxStock = parseInt("{{ product.stock_quantity|default:0 }}", 10);
+        if (maxStock > 0 && qty > maxStock) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          
+          let toastContainer = document.querySelector('.toast-container');
+          if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            toastContainer.style.zIndex = '1060';
+            document.body.appendChild(toastContainer);
+          }
+          
+          const toastEl = document.createElement('div');
+          toastEl.className = 'toast align-items-center text-white bg-danger border-0';
+          toastEl.setAttribute('role', 'alert');
+          toastEl.setAttribute('aria-live', 'assertive');
+          toastEl.setAttribute('aria-atomic', 'true');
+          
+          const isWholesaler = "{{ price_data.is_wholesaler }}" === "true";
+          const extraMessage = isWholesaler 
+             ? '{% trans "Please use Request a Quote for larger orders." %}'
+             : '{% trans "Please contact support for larger orders." %}';
+          
+          toastEl.innerHTML = `
+            <div class="d-flex">
+              <div class="toast-body">
+                {% trans "Sorry, only" %} ${maxStock} {% trans "items are currently in stock." %}<br><small>${extraMessage}</small>
+              </div>
+              <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+          `;
+          
+          toastContainer.appendChild(toastEl);
+          const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+          toast.show();
+          
+          toastEl.addEventListener('hidden.bs.toast', function () {
+            toastEl.remove();
+          });
+        }
+      }
+    }
+  }, true);
 </script>
 
 {% if price_data.is_wholesaler == "true" %}
