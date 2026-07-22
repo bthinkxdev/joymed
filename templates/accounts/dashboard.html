@@ -110,9 +110,13 @@
         <a href="{% url 'catalog:plp' %}" class="btn btn-floward btn-sm mt-3">{% trans "Start shopping" %}</a>
         {% endif %}
       </div>
-      <div class="d-flex gap-2 flex-wrap">
-        <a href="{% url 'catalog:plp' %}" class="btn btn-outline-floward btn-sm">{% trans "Continue shopping" %}</a>
-        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary btn-sm">{% trans "Logout" %}</a>
+      <div class="row g-2">
+        <div class="col-6">
+          <a href="{% url 'catalog:plp' %}" class="btn btn-outline-floward btn-sm w-100 px-1 h-100 d-flex align-items-center justify-content-center">{% trans "Continue shopping" %}</a>
+        </div>
+        <div class="col-6">
+          <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary btn-sm w-100 px-1 h-100 d-flex align-items-center justify-content-center">{% trans "Logout" %}</a>
+        </div>
       </div>
     </div>
     {% else %}
@@ -190,9 +194,13 @@
         {% endif %}
       </div>
 
-      <div class="d-flex gap-2 flex-wrap">
-        <a href="{% url 'catalog:plp' %}" class="btn btn-outline-floward btn-sm">{% trans "Continue shopping" %}</a>
-        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary btn-sm">{% trans "Logout" %}</a>
+      <div class="row g-2">
+        <div class="col-6">
+          <a href="{% url 'catalog:plp' %}" class="btn btn-outline-floward btn-sm w-100 px-1 h-100 d-flex align-items-center justify-content-center">{% trans "Continue shopping" %}</a>
+        </div>
+        <div class="col-6">
+          <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary btn-sm w-100 px-1 h-100 d-flex align-items-center justify-content-center">{% trans "Logout" %}</a>
+        </div>
       </div>
     </div>
     {% endif %}

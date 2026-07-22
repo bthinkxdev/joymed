@@ -120,7 +120,18 @@
       {% if product.variant_list %}
       <div class="mb-3">
         <label class="form-label small fw-medium">{% trans "Select Option" %}</label>
-        <select id="variant-select" class="form-select"
+        <div class="dropdown">
+          <button class="form-select dropdown-toggle d-flex justify-content-between align-items-center text-start shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="variant-select-btn">
+            <span id="variant-select-label">{% trans "Standard" %}</span>
+          </button>
+          <ul class="dropdown-menu w-100 shadow-sm border" aria-labelledby="variant-select-btn">
+            <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('variant-select').value=''; document.getElementById('variant-select').selectedIndex=0; document.getElementById('variant-select-label').textContent='{% trans 'Standard' %}'; document.getElementById('variant-select').dispatchEvent(new Event('change'));">{% trans "Standard" %}</a></li>
+            {% for v in product.variant_list %}
+            <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('variant-select').value='{{ v.pk }}'; document.getElementById('variant-select').selectedIndex={{ forloop.counter }}; document.getElementById('variant-select-label').textContent='{{ v.name|escapejs }}{% if v.price_delta %} (+{% money_label v.price_delta display_currency %}){% endif %}'; document.getElementById('variant-select').dispatchEvent(new Event('change'));">{{ v.name }}{% if v.price_delta %} (+{% money_label v.price_delta display_currency %}){% endif %}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+        <select id="variant-select" class="d-none"
           data-price-url="{% url 'catalog:variant-price' product_id=product.pk %}"
           data-currency-symbol="{{ display_currency.symbol }}">
           <option value="">{% trans "Standard" %}</option>
@@ -284,8 +295,7 @@
         <input type="hidden" name="product_id" value="{{ product.pk }}">
         <input type="hidden" name="quantity" class="pdp-qty-input" value="{{ cart_item.quantity|default:1 }}">
         <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="">
-        <button type="submit" class="btn btn-floward w-100 py-1" style="font-size: 0.85rem;">{% trans "Add to Cart"
-          %}</button>
+        <button type="submit" class="btn btn-floward w-100 py-1" style="font-size: 0.85rem;">{% trans "Add to Cart" %}</button>
       </form>
 
       <!-- View Cart -->
@@ -397,7 +407,7 @@
   {% endif %}
 
   <section class="mt-5 pt-4 border-top" id="reviews">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-3">
       <h2 class="section-title h5 mb-0">{% trans "Reviews" %}</h2>
       {% if has_delivered_order %}
       <div class="text-muted small">
