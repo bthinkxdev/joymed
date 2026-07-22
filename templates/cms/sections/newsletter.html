@@ -1,12 +1,15 @@
 {% load i18n %}
-<section class="newsletter-section py-5 mb-0">
+<section class="jm-newsletter">
   <div class="container">
-    <div class="newsletter-card text-center">
-      {% include "cms/sections/_section_title.html" with section_context=section_context fallback_key="Join Our Newsletter" %}
-      <p class="section-subtitle mb-4">{% trans "Get exclusive offers and gifting inspiration." %}</p>
-      <form class="newsletter-form" method="post" action="{% url 'marketing:newsletter-subscribe' %}">
+    <div class="jm-newsletter__card">
+      <div class="jm-newsletter__copy">
+        <h2 class="section-title">{% if section_context.title %}{{ section_context.title }}{% else %}{% trans "Stay Informed" %}{% endif %}</h2>
+        <p class="section-subtitle mb-0">{% trans "Product updates, clinical tips, and exclusive institutional offers — no spam." %}</p>
+      </div>
+      <form class="jm-newsletter__form" method="post" action="{% url 'marketing:newsletter-subscribe' %}">
         {% csrf_token %}
-        <input type="email" name="email" class="form-control" placeholder="{{ section_context.placeholder|default:'Email address' }}" required aria-label="{% trans 'Email' %}">
+        <label class="visually-hidden" for="jm-newsletter-email">{% trans "Email" %}</label>
+        <input id="jm-newsletter-email" type="email" name="email" class="form-control" placeholder="{{ section_context.placeholder|default:'Email address' }}" required aria-label="{% trans 'Email' %}">
         <button type="submit" class="btn btn-floward">{% trans "Subscribe" %}</button>
       </form>
     </div>

@@ -7,7 +7,7 @@ from typing import Any, Optional
 
 from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.db.models import Avg, Prefetch, Q, QuerySet
+from django.db.models import Avg, Count, Prefetch, Q, QuerySet
 
 from catalog.models import (
     ModerationStatus,
@@ -69,12 +69,17 @@ def _primary_image_prefetch() -> Prefetch:
 
 def _homepage_rail_queryset(*, filters: Q) -> QuerySet[Product]:
     """Base queryset for a single homepage rail with shared optimizations."""
+    approved = Q(reviews__moderation_status=ModerationStatus.APPROVED)
     return (
         Product.objects.filter(is_active=True)
         .filter(filters)
         .select_related("category", "brand")
         .prefetch_related(_primary_image_prefetch())
         .only(*PLP_CARD_FIELDS)
+        .annotate(
+            average_rating=Avg("reviews__rating", filter=approved),
+            review_count=Count("reviews", filter=approved),
+        )
         .order_by("-created_at")[:HOMEPAGE_RAIL_LIMIT]
     )
 
@@ -84,17 +89,48 @@ def get_homepage_product_rails() -> dict[str, list[Product]]:
     Return homepage merchandising rails keyed by rail name.
 
     Query guarantee: exactly 6 DB queries total (3 rails × 2 queries each) —
-      trending/bestsellers share one evaluated bestseller rail.
+      trending/bestsellers share one evaluated bestseller rail —
+      plus one flash-sale discount lookup for all unique product ids.
     """
     bestseller_rail = list(_homepage_rail_queryset(filters=Q(is_bestseller=True)))
     new_arrivals = list(_homepage_rail_queryset(filters=Q(is_new_arrival=True)))
     featured = list(_homepage_rail_queryset(filters=Q(is_featured=True)))
-    return {
+    rails = {
         "trending": bestseller_rail,
         "bestsellers": bestseller_rail,
         "new_arrivals": new_arrivals,
         "featured": featured,
     }
+    _decorate_homepage_rail_prices(rails)
+    return rails
+
+
+def _decorate_homepage_rail_prices(rails: dict[str, list[Product]]) -> None:
+    """Attach flash-sale display_price / flags onto homepage rail products."""
+    from marketing.selectors import get_flash_sale_discounts_for_products
+
+    seen: dict[int, Product] = {}
+    for products in rails.values():
+        for product in products:
+            seen[product.pk] = product
+    if not seen:
+        return
+
+    discounts = get_flash_sale_discounts_for_products(
+        product_prices={pid: p.base_price for pid, p in seen.items()},
+    )
+    for product in seen.values():
+        pct = discounts.get(product.pk)
+        if pct is None:
+            product.display_price = product.base_price
+            product.is_flash_sale = False
+            product.flash_discount_percentage = None
+            continue
+        discount = (product.base_price * pct / Decimal("100")).quantize(Decimal("0.01"))
+        product.display_price = product.base_price - discount
+        product.is_flash_sale = True
+        product.flash_discount_percentage = pct
+        product.original_price = product.base_price
 
 
 def _apply_plp_filters(queryset: QuerySet[Product], filters: dict[str, Any]) -> QuerySet[Product]:
@@ -204,11 +240,16 @@ def get_plp_products(
             discount_pct = flash_discounts.get(product.pk)
             if discount_pct is None:
                 display_prices[product.pk] = product.base_price
+                product.is_flash_sale = False
+                product.flash_discount_percentage = None
             else:
                 discount = (product.base_price * discount_pct / Decimal("100")).quantize(
                     Decimal("0.01")
                 )
                 display_prices[product.pk] = product.base_price - discount
+                product.is_flash_sale = True
+                product.flash_discount_percentage = discount_pct
+                product.original_price = product.base_price
             product.display_price = display_prices[product.pk]
             product.is_wholesale_price = False
 

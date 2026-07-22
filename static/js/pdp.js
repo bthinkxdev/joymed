@@ -53,7 +53,10 @@
   var citySelect = document.getElementById('delivery-city');
   if (citySelect) {
     citySelect.addEventListener('change', function () {
-      var url = this.getAttribute('data-estimate-url') + '?city=' + this.value;
+      if (!this.value) {
+        return;
+      }
+      var url = this.getAttribute('data-estimate-url') + '?city=' + encodeURIComponent(this.value);
       fetch(url)
         .then(function (r) { return r.json(); })
         .then(function (data) {

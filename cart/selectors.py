@@ -105,17 +105,30 @@ def get_cart_count(*, request: HttpRequest) -> int:
     return get_cart_item_count(cart=cart)
 
 
-def get_wishlist_count(*, request: HttpRequest) -> int:
-    """Return wishlist item count from the persistent Wishlist model."""
+def _wishlist_items_qs(*, request: HttpRequest):
+    """Shared queryset for the current request's wishlist items."""
     from accounts.models import WishlistItem
 
     if request.user.is_authenticated and hasattr(request.user, "customer_profile"):
         return WishlistItem.objects.filter(
             wishlist__customer_profile=request.user.customer_profile
-        ).count()
+        )
+    guest_id = request.session.get("guest_wishlist_id")
+    if guest_id:
+        return WishlistItem.objects.filter(wishlist_id=guest_id)
     if not request.session.session_key:
-        return 0
-    return WishlistItem.objects.filter(wishlist__session_key=request.session.session_key).count()
+        return WishlistItem.objects.none()
+    return WishlistItem.objects.filter(wishlist__session_key=request.session.session_key)
+
+
+def get_wishlist_count(*, request: HttpRequest) -> int:
+    """Return wishlist item count from the persistent Wishlist model."""
+    return _wishlist_items_qs(request=request).count()
+
+
+def get_wishlist_product_ids(*, request: HttpRequest) -> set[int]:
+    """Return product IDs currently on the request wishlist."""
+    return set(_wishlist_items_qs(request=request).values_list("product_id", flat=True))
 
 
 def get_cart_summary(*, cart: Cart) -> CartSummary:

@@ -87,7 +87,7 @@ class HeroSlide(TimeStampedModel):
         max_length=200,
         blank=True,
         verbose_name="Title",
-        help_text="Used as the media alt text for accessibility and SEO.",
+        help_text="Shown over the banner when set. Also used as media alt text.",
     )
     image = models.ImageField(
         upload_to="cms/hero/images/",

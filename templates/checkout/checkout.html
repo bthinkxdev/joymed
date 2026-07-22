@@ -4,8 +4,8 @@
 {% block title %}{% trans "Checkout" %} | JOYMED HEALTHCARE{% endblock %}
 
 {% block content %}
-<div class="container page-container checkout-page">
-  <h1 class="section-title mb-4">{% trans "Checkout" %}</h1>
+<div class="container page-container checkout-page jm-page">
+  <h1 class="section-title jm-page-title">{% trans "Checkout" %}</h1>
   <div class="row g-4">
     <div class="col-lg-7">
       <form id="checkout-form" method="post" action="{% url 'checkout:place-order' %}"

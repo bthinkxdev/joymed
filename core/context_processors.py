@@ -6,7 +6,7 @@ from typing import Any
 
 from django.http import HttpRequest
 
-from cart.selectors import get_cart_count, get_wishlist_count
+from cart.selectors import get_cart_count, get_wishlist_count, get_wishlist_product_ids
 from catalog.selectors import get_category_tree
 from core.selectors import get_currency_by_code, get_default_currency
 from core.services import get_site_settings
@@ -27,6 +27,7 @@ def storefront(request: HttpRequest) -> dict[str, Any]:
             or path == "/favicon.ico"
             or path.startswith("/cart/count/")
             or path.startswith("/cart/drawer/")
+            or path.startswith("/cart/wishlist/count/")
         )
         if not is_checkout_or_payment:
             pass
@@ -43,11 +44,13 @@ def storefront(request: HttpRequest) -> dict[str, Any]:
         (c for c in countries if c.code == session_country),
         countries[0] if countries else None,
     )
+    wishlist_product_ids = get_wishlist_product_ids(request=request)
     return {
         "site_settings": get_site_settings(),
         "category_tree": get_category_tree(),
         "cart_count": get_cart_count(request=request),
         "wishlist_count": get_wishlist_count(request=request),
+        "wishlist_product_ids": wishlist_product_ids,
         "default_currency": default_currency,
         "display_currency": display_currency,
         "session_language": request.session.get("django_language", ""),

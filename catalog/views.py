@@ -105,9 +105,9 @@ def plp_view(request: HttpRequest, category_slug: str | None = None) -> HttpResp
 
     active_cat = resolved_cat if resolved_cat else None
     title = (
-        resolve_meta_title(obj=active_cat, fallback="Shop All Flowers & Gifts")
+        resolve_meta_title(obj=active_cat, fallback="Shop All | JOYMED HEALTHCARE")
         if active_cat
-        else "Shop All Flowers & Gifts"
+        else "Shop All | JOYMED HEALTHCARE"
     )
     description = (
         f"Browse {active_cat.name} and delivery available in Kerala."
@@ -130,7 +130,6 @@ def plp_view(request: HttpRequest, category_slug: str | None = None) -> HttpResp
             "categories": filter_options["categories"],
             "brands": filter_options["brands"],
             "subcategories": subcategories,
-            "view_mode": request.COOKIES.get("plp_view", "grid"),
             "active_category": active_cat,
         }
     )

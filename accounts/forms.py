@@ -205,7 +205,8 @@ class WholesalerRegistrationForm(forms.Form):
     gst = forms.CharField(
         max_length=50,
         label="GST Number",
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "GST Number"}),
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "GST Number (optional)"}),
     )
     address = forms.CharField(
         max_length=255,

@@ -944,7 +944,7 @@ def email_otp_verify_view(request: HttpRequest) -> HttpResponse:
                 name=pending_data["name"],
                 company_name=pending_data["company_name"],
                 phone_number=pending_data["phone_number"],
-                gst=pending_data["gst"],
+                gst=pending_data.get("gst", "") or "",
                 address=pending_data["address"],
                 referrer_page=referrer,
             )

@@ -1,0 +1,49 @@
+{% load i18n %}
+{# Single source of truth for storefront location copy. Pass compact=1 for footer. #}
+<div class="jm-locations{% if compact %} jm-locations--compact{% endif %}">
+  <div class="jm-locations__block">
+    <strong class="jm-locations__label">{% trans "Wholesale location" %}</strong>
+    <p class="jm-locations__body">
+      Joymed Healthcare<br>
+      Opposite Caritas Hospital Junction,<br>
+      Thellakom P. O<br>
+      Kottayam<br>
+      685604<br>
+      <a href="tel:6282906721">6282906721</a>
+    </p>
+  </div>
+
+  <div class="jm-locations__block">
+    <strong class="jm-locations__label">{% trans "Retail" %}</strong>
+    <p class="jm-locations__body">
+      Joymed Healthcare<br>
+      Near Lisie Hospital<br>
+      North Kaloor, Ernakulam<br>
+      <a href="tel:7306076382">7306076382</a>
+    </p>
+  </div>
+
+  {% if not compact %}
+  <div class="jm-locations__block jm-locations__block--branches">
+    <strong class="jm-locations__label">{% trans "Our branches" %}</strong>
+    <ul class="jm-locations__branches" role="list">
+      <li>Ernakulam</li>
+      <li>Idukki, Kattappana</li>
+      <li>Thalayolaparmbu, Muttichira</li>
+      <li>Kottayam</li>
+      <li>Pala</li>
+      <li>Alappuzha</li>
+      <li>Pathanamthitta</li>
+      <li>Chenganoor</li>
+      <li>Kozachery</li>
+      <li>Kollam</li>
+      <li>Kottarakkara</li>
+      <li>Trivandrum</li>
+    </ul>
+  </div>
+  {% else %}
+  <p class="jm-locations__branches-link mb-0">
+    <a href="{% url 'core:contact-us' %}">{% trans "Our branches" %} →</a>
+  </p>
+  {% endif %}
+</div>

@@ -1,48 +1,57 @@
-{% load i18n %}
-<footer class="site-footer">
+{% load i18n static %}
+<footer class="site-footer jm-footer">
   <div class="container">
-    <div class="row g-4">
-      <div class="col-md-4 col-lg-2">
-        <div class="d-flex align-items-center mb-3">
+    <div class="jm-footer__grid">
+      <div class="jm-footer__brand">
+        <div class="jm-footer__logo">
           {% if site_settings.logo %}
-            <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name }} Logo" style="height: 36px; width: auto; object-fit: contain;" class="me-2">
+            <img src="{{ site_settings.logo.url }}" alt="" width="36" height="36">
+          {% else %}
+            <img src="{% static 'dashboard/images/logo.png' %}" alt="" width="36" height="36">
           {% endif %}
-          <div class="footer-brand mb-0">{{ site_settings.site_name|default:"JOYMED HEALTHCARE" }}</div>
+          <span>{{ site_settings.site_name|default:"JOYMED HEALTHCARE" }}</span>
         </div>
-        <p class="small text-muted mb-0">{% trans "Online wellness & medical supplies delivery in Kerala." %}</p>
+        <p class="jm-footer__tagline">{% trans "Premium medical equipment marketplace for hospitals, clinics, and home care across India." %}</p>
+        <div class="jm-footer__social">
+          {% if site_settings.facebook_url %}<a href="{{ site_settings.facebook_url }}" aria-label="Facebook" rel="noopener">Facebook</a>{% endif %}
+          {% if site_settings.instagram_url %}<a href="{{ site_settings.instagram_url }}" aria-label="Instagram" rel="noopener">Instagram</a>{% endif %}
+          {% if site_settings.twitter_url %}<a href="{{ site_settings.twitter_url }}" aria-label="Twitter" rel="noopener">Twitter</a>{% endif %}
+        </div>
       </div>
-      <div class="col-6 col-md-2">
+
+      <div>
         <h6>{% trans "Shop" %}</h6>
         <a href="{% url 'catalog:plp' %}">{% trans "All Products" %}</a>
         <a href="{% url 'catalog:plp' %}?bestseller=1">{% trans "Best Sellers" %}</a>
         <a href="{% url 'catalog:plp' %}?featured=1">{% trans "Featured" %}</a>
         <a href="{% url 'catalog:plp' %}?new_arrival=1">{% trans "New Arrivals" %}</a>
+        <a href="{% url 'catalog:rental-list' %}">{% trans "Rentals" %}</a>
       </div>
-      <div class="col-6 col-md-2">
+
+      <div>
         <h6>{% trans "Company" %}</h6>
         <a href="{% url 'core:about-us' %}">{% trans "About Us" %}</a>
-        <a href="{% url 'core:privacy-policy' %}">{% trans "Privacy Policy" %}</a>
-      </div>
-      <div class="col-6 col-md-2">
-        <h6>{% trans "Services" %}</h6>
-        <a href="{% url 'catalog:rental-list' %}">{% trans "Equipment Rentals" %}</a>
-        <a href="#">{% trans "Home Delivery" %}</a>
-      </div>
-      <div class="col-6 col-md-2">
-        <h6>{% trans "Customer Service" %}</h6>
         <a href="{% url 'core:contact-us' %}">{% trans "Contact Us" %}</a>
+        <a href="{% url 'accounts:wholesaler-register' %}">{% trans "Wholesale Enquiry" %}</a>
         <a href="{% url 'core:faq' %}">{% trans "FAQ" %}</a>
       </div>
-      <div class="col-md-4 col-lg-2">
+
+      <div>
+        <h6>{% trans "Policies" %}</h6>
+        <a href="{% url 'core:privacy-policy' %}">{% trans "Privacy Policy" %}</a>
+        <a href="{% url 'core:contact-us' %}">{% trans "Support" %}</a>
+      </div>
+
+      <div class="jm-footer__contact">
         <h6>{% trans "Contact" %}</h6>
-        <p class="small text-muted mb-0">
-          <strong>{% trans "Wholesale Location" %}</strong><br>
-          Opposite caritas hospital junction, Thellakom p. O, Kottayam 685604<br>
-          <i class="bi bi-telephone-fill small"></i> 6282906721
+        {% include "includes/jm_locations.html" with compact=1 %}
+        {% if site_settings.vendor_email %}
+        <p class="mb-0">
+          <a href="mailto:{{ site_settings.vendor_email }}">{{ site_settings.vendor_email }}</a>
         </p>
+        {% endif %}
       </div>
     </div>
-    <p class="footer-copy text-center mb-0">&copy; {% now "Y" %} JOYMED HEALTHCARE. {% trans "All rights reserved." %}
-    </p>
+    <p class="footer-copy text-center mb-0">&copy; {% now "Y" %} JOYMED HEALTHCARE. {% trans "All rights reserved." %}</p>
   </div>
 </footer>

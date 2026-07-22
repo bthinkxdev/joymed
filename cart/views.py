@@ -11,7 +11,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from cart.exceptions import CartItemNotFoundError
 from cart.forms import CartCouponForm, CartQuantityForm
-from cart.selectors import get_cart_count, get_cart_for_request, get_cart_summary
+from cart.selectors import get_cart_count, get_cart_for_request, get_cart_summary, get_wishlist_count
 from cart.services import (
     add_to_cart,
     adjust_cart_item_quantity,
@@ -96,6 +96,16 @@ def cart_count_view(request: HttpRequest) -> HttpResponse:
         request,
         "cart/partials/count_badge.html",
         {"count": get_cart_count(request=request)},
+    )
+
+
+@require_GET
+def wishlist_count_view(request: HttpRequest) -> HttpResponse:
+    """HTMX partial for wishlist badges — lightweight COUNT only."""
+    return render(
+        request,
+        "cart/partials/wishlist_count_badge.html",
+        {"count": get_wishlist_count(request=request)},
     )
 
 
@@ -217,7 +227,30 @@ def cart_coupon_remove_view(request: HttpRequest) -> HttpResponse:
 
 @require_POST
 def wishlist_toggle_view(request: HttpRequest) -> HttpResponse:
-    """Toggle wishlist item; redirect back."""
+    """Toggle wishlist item; return JSON for HTMX or redirect back."""
     product_id = int(request.POST.get("product_id", 0))
-    toggle_wishlist(request=request, product_id=product_id)
+    added = toggle_wishlist(request=request, product_id=product_id)
+    count = get_wishlist_count(request=request)
+    if request.headers.get("HX-Request"):
+        response = HttpResponse(
+            json.dumps(
+                {
+                    "status": "added" if added else "removed",
+                    "product_id": product_id,
+                    "added": added,
+                    "count": count,
+                }
+            ),
+            content_type="application/json",
+        )
+        response["HX-Trigger"] = json.dumps(
+            {
+                "wishlistUpdated": {
+                    "added": added,
+                    "product_id": product_id,
+                    "count": count,
+                }
+            }
+        )
+        return response
     return redirect(request.META.get("HTTP_REFERER", "/"))

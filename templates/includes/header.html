@@ -1,107 +1,106 @@
 {% load i18n static %}
-<header class="site-header sticky-top">
-  <div class="trust-bar d-none d-md-block">
-    <div class="container trust-bar__inner">
-      <span class="trust-bar__item">
-        <svg class="trust-bar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        {% trans "Fast & Secure Delivery" %}
-      </span>
-      <span class="trust-bar__item">
-        <svg class="trust-bar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        {% trans "Quality Assured Products" %}
-      </span>
-      <span class="trust-bar__item">
-        <svg class="trust-bar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-        {% trans "Trusted Healthcare Solutions" %}
-      </span>
+<header class="site-header jm-header sticky-top">
+  <div class="jm-topbar d-none d-lg-block">
+    <div class="container jm-topbar__inner">
+      <div class="jm-topbar__trust">
+        <span class="jm-topbar__item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          {% trans "Fast & Secure Delivery" %}
+        </span>
+        <span class="jm-topbar__item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          {% trans "Quality Assured Products" %}
+        </span>
+        <span class="jm-topbar__item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          {% trans "Trusted Healthcare Solutions" %}
+        </span>
+      </div>
+      <div class="jm-topbar__meta">
+        {% if site_settings.whatsapp_number %}
+        <a class="jm-topbar__link" href="tel:{{ site_settings.whatsapp_number }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          {{ site_settings.whatsapp_number }}
+        </a>
+        {% else %}
+        <a class="jm-topbar__link" href="tel:6282906721">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          6282906721
+        </a>
+        {% endif %}
+        <a class="jm-topbar__cta" href="{% url 'accounts:wholesaler-register' %}">{% trans "Wholesale Enquiry" %}</a>
+      </div>
     </div>
   </div>
-  
-  <nav class="navbar navbar-expand-lg container py-2">
-    <div class="navbar-row">
 
-      <div class="navbar-col navbar-col--start">
-        <button class="navbar-toggler border-0 shadow-none p-2 d-lg-none"
-                type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
-                aria-controls="mainNav" aria-expanded="false" aria-label="{% trans 'Menu' %}">
-          <span class="navbar-toggler-icon"></span>
+  <div class="jm-header__main">
+    <div class="container jm-header__main-inner">
+      <div class="jm-header__start">
+        <button class="jm-menu-toggle d-lg-none"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#jmMainNav"
+                aria-controls="jmMainNav"
+                aria-expanded="false"
+                aria-label="{% trans 'Menu' %}">
+          <svg class="jm-menu-toggle__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16"/>
+          </svg>
         </button>
 
-        <button type="button"
-                class="header-icon header-icon--trigger d-lg-none"
-                id="mobile-search-open"
-                aria-label="{% trans 'Search' %}"
-                aria-controls="mobile-search-overlay"
-                aria-expanded="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3.6-3.6"/></svg>
-        </button>
-
-        <div class="collapse navbar-collapse" id="mainNav">
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'cms:homepage' %}">{% trans "Home" %}</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'catalog:plp' %}">{% trans "Shop All" %}</a>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarCategoriesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                {% trans "Categories" %}
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="navbarCategoriesDropdown">
-                {% for cat in category_tree %}
-                  <li>
-                    <a class="dropdown-item fw-bold text-dark py-2" href="{% url 'catalog:plp-category' category_slug=cat.slug %}">
-                      {{ cat.name }}
-                    </a>
-                  </li>
-                  {% for child in cat.children.all %}
-                    <li>
-                      <a class="dropdown-item ps-4 text-muted py-1" href="{% url 'catalog:plp-category' category_slug=child.slug %}">
-                        {{ child.name }}
-                      </a>
-                    </li>
-                  {% endfor %}
-                  {% if not forloop.last %}
-                    <li><hr class="dropdown-divider my-2"></li>
-                  {% endif %}
-                {% endfor %}
-              </ul>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'catalog:rental-list' %}">{% trans "Rentals" %}</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'core:contact-us' %}">{% trans "Contact Us" %}</a>
-            </li>
-          </ul>
-        </div>
+        <a class="jm-logo" href="{% url 'cms:homepage' %}" aria-label="JOYMED HEALTHCARE">
+          <img src="{% if site_settings.logo %}{{ site_settings.logo.url }}{% else %}{% static 'dashboard/images/logo.png' %}{% endif %}"
+               alt="" width="40" height="40" class="jm-logo__mark">
+          <span class="jm-logo__text">JOYMED <span>HEALTHCARE</span></span>
+        </a>
       </div>
 
-      <a class="navbar-brand navbar-col navbar-col--brand d-flex align-items-center" href="{% url 'cms:homepage' %}">
-        <img src="{% static 'dashboard/images/logo.png' %}" alt="JOYMED HEALTHCARE" style="height: 40px; width: auto; object-fit: contain;" class="me-2">
-        <span>JOYMED<span class="d-none d-sm-inline"> HEALTHCARE</span></span>
-      </a>
-
-      <div class="navbar-col navbar-col--end">
-        <div class="search-wrap search-wrap--header position-relative d-none d-lg-block">
+      <form class="jm-search d-none d-lg-flex" action="{% url 'catalog:plp' %}" method="get" role="search">
+        <div class="dropdown jm-search__cat">
+          <button type="button"
+                  class="jm-search__cat-btn dropdown-toggle"
+                  id="jm-search-category-btn"
+                  data-bs-toggle="dropdown"
+                  data-bs-auto-close="outside"
+                  aria-expanded="false"
+                  aria-haspopup="listbox"
+                  aria-label="{% trans 'All Categories' %}">
+            <span class="jm-search__cat-label">{% trans "All Categories" %}</span>
+          </button>
+          <ul class="dropdown-menu jm-search__cat-menu" role="listbox" aria-labelledby="jm-search-category-btn">
+            <li>
+              <button type="button" class="dropdown-item is-active" role="option" data-jm-search-cat value="" aria-selected="true">
+                {% trans "All Categories" %}
+              </button>
+            </li>
+            {% for cat in category_tree %}
+            <li>
+              <button type="button" class="dropdown-item" role="option" data-jm-search-cat value="{{ cat.pk }}" aria-selected="false">
+                {{ cat.name }}
+              </button>
+            </li>
+            {% endfor %}
+          </ul>
+          <input type="hidden" name="category" id="jm-search-category" value="">
+        </div>
+        <div class="jm-search__field">
           <input type="search"
-                id="site-search-input"
-                name="q"
-                class="form-control"
-                placeholder="{% trans 'Search medical equipments...' %}"
-                hx-get="{% url 'catalog:search-suggest' %}"
-                hx-trigger="keyup changed delay:300ms, search"
-                hx-target="#search-suggestions"
-                hx-indicator="#search-suggestions-indicator"
-                hx-swap="innerHTML"
-                autocomplete="off"
-                spellcheck="false"
-                role="combobox"
-                aria-controls="search-suggestions"
-                aria-expanded="false"
-                aria-autocomplete="list"
-                aria-label="{% trans 'Search' %}">
+                 id="site-search-input"
+                 name="q"
+                 class="jm-search__input"
+                 placeholder="{% trans 'Search medical equipment, brands...' %}"
+                 hx-get="{% url 'catalog:search-suggest' %}"
+                 hx-trigger="keyup changed delay:300ms, search"
+                 hx-target="#search-suggestions"
+                 hx-indicator="#search-suggestions-indicator"
+                 hx-swap="innerHTML"
+                 autocomplete="off"
+                 spellcheck="false"
+                 role="combobox"
+                 aria-controls="search-suggestions"
+                 aria-expanded="false"
+                 aria-autocomplete="list"
+                 aria-label="{% trans 'Search' %}">
           <div class="search-suggestions-dropdown" id="search-suggestions-dropdown">
             <div id="search-suggestions-indicator" class="search-suggestions-loading htmx-indicator" aria-live="polite">
               <span class="search-suggestions-spinner" aria-hidden="true"></span>
@@ -110,37 +109,39 @@
             <div id="search-suggestions" class="search-suggestions-body" role="listbox"></div>
           </div>
         </div>
-
-        <a class="header-icon d-flex" href="{% url 'accounts:wishlist' %}" title="{% trans 'Wishlist' %}" aria-label="{% trans 'Wishlist' %}">
-          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          {% if wishlist_count %}<span class="badge-count">{{ wishlist_count }}</span>{% endif %}
-        </a>
-
-        <button class="header-icon btn-ghost" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-label="{% trans 'Cart' %}">
-          <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-          <span id="cart-count-badge"
-                hx-get="{% url 'cart:count' %}"
-                hx-trigger="load, cartItemAdded from:body, cartUpdated from:body, pageshow from:window"
-                hx-swap="innerHTML"
-                aria-live="polite">
-            {% include "cart/partials/count_badge.html" with count=cart_count %}
-          </span>
+        <button type="submit" class="jm-search__btn" aria-label="{% trans 'Search' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3.6-3.6"/></svg>
         </button>
+      </form>
+
+      <div class="jm-header__actions">
+        <div class="jm-search-nudge d-lg-none">
+          <button type="button"
+                  class="jm-action jm-search-nudge__btn"
+                  id="mobile-search-open"
+                  aria-label="{% trans 'Search' %}"
+                  aria-controls="mobile-search-overlay"
+                  aria-expanded="false"
+                  aria-describedby="jm-search-nudge-tip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3.6-3.6"/></svg>
+          </button>
+          <span class="jm-search-nudge__tip" id="jm-search-nudge-tip" role="status">
+            {% trans "Use me to find products" %}
+          </span>
+        </div>
 
         {% if user.is_authenticated %}
-        <div class="dropdown d-inline-block">
-          <button class="header-icon header-icon--account btn-ghost dropdown-toggle border-0" type="button" data-bs-toggle="dropdown" aria-label="{% trans 'Account' %}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
+        <div class="dropdown d-none d-lg-block">
+          <button class="jm-action dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% trans 'Account' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="jm-action__label d-none d-xl-inline">{% trans "Account" %}</span>
           </button>
-          <ul class="dropdown-menu dropdown-menu-end">
+          <ul class="dropdown-menu dropdown-menu-end jm-dropdown">
             <li>
-              <a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'accounts:dashboard' %}">
+              <a class="dropdown-item" href="{% url 'accounts:dashboard' %}">
                 {% trans "My Account" %}
                 {% if user.wholesaler_profile %}
-                  <span class="badge {% if user.wholesaler_profile.approval_status == 'approved' %}bg-success{% else %}bg-warning text-dark{% endif %} ms-1 small" style="font-size: 0.7rem;">
+                  <span class="badge {% if user.wholesaler_profile.approval_status == 'approved' %}bg-success{% else %}bg-warning text-dark{% endif %} ms-1" style="font-size:0.65rem">
                     {{ user.wholesaler_profile.get_approval_status_display }}
                   </span>
                 {% endif %}
@@ -150,29 +151,134 @@
           </ul>
         </div>
         {% else %}
-        <a class="header-icon border-0 d-flex" href="{% url 'accounts:login-email-otp' %}?next={{ request.get_full_path|urlencode }}" title="{% trans 'Login' %}" aria-label="{% trans 'Login' %}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-            <polyline points="10 17 15 12 10 7"/>
-            <line x1="15" y1="12" x2="3" y2="12"/>
-          </svg>
+        <a class="jm-action d-none d-lg-inline-flex" href="{% url 'accounts:login-email-otp' %}?next={{ request.get_full_path|urlencode }}" aria-label="{% trans 'Account' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="jm-action__label d-none d-xl-inline">{% trans "Account" %}</span>
+        </a>
+        {% endif %}
+
+        <a class="jm-action jm-action--wishlist d-none d-lg-inline-flex"
+           id="jm-header-wishlist"
+           href="{% url 'accounts:wishlist' %}"
+           aria-label="{% trans 'Wishlist' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span class="jm-action__label d-none d-xl-inline">{% trans "Wishlist" %}</span>
+          <span id="wishlist-count-badge"
+                class="jm-action__badge-wrap"
+                hx-get="{% url 'cart:wishlist-count' %}"
+                hx-trigger="load, wishlistUpdated from:body, pageshow from:window"
+                hx-swap="innerHTML"
+                aria-live="polite">
+            {% include "cart/partials/wishlist_count_badge.html" with count=wishlist_count %}
+          </span>
         </a>
 
-        <a href="{% url 'accounts:wholesaler-register' %}" class="btn btn-sm btn-outline-floward d-none d-md-inline-flex align-items-center ms-2 px-3 py-1 fw-bold text-uppercase" style="font-size: 0.7rem; border-radius: 20px; letter-spacing: 0.5px; height: 32px;">
-          {% trans "Wholesaler" %}
+        <button class="jm-action jm-action--cart" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-label="{% trans 'Cart' %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <span class="jm-action__label d-none d-xl-inline">{% trans "Cart" %}</span>
+          <span id="cart-count-badge"
+                class="jm-action__badge-wrap"
+                hx-get="{% url 'cart:count' %}"
+                hx-trigger="load, cartItemAdded from:body, cartUpdated from:body, pageshow from:window"
+                hx-swap="innerHTML"
+                aria-live="polite">
+            {% include "cart/partials/count_badge.html" with count=cart_count %}
+          </span>
+        </button>
+
+        {% if user.is_authenticated and user.wholesaler_profile %}
+        <a href="{% url 'accounts:dashboard' %}" class="jm-header__wholesale d-lg-none" aria-label="{% trans 'Wholesaler account' %}">
+          <span>{% trans "Wholesaler?" %}</span>
+        </a>
+        {% else %}
+        <a href="{% url 'accounts:wholesaler-register' %}" class="jm-header__wholesale d-lg-none" aria-label="{% trans 'Wholesaler registration' %}">
+          <span>{% trans "Wholesaler?" %}</span>
         </a>
         {% endif %}
       </div>
+    </div>
 
+  </div>
+
+  <nav class="jm-nav d-none d-lg-block" aria-label="{% trans 'Primary' %}">
+    <div class="container jm-nav__inner">
+      <div class="dropdown jm-mega">
+        <button class="jm-mega__trigger" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          {% trans "Shop by Category" %}
+        </button>
+        <div class="dropdown-menu jm-mega__menu">
+          <div class="jm-mega__grid">
+            {% for cat in category_tree %}
+            <div class="jm-mega__col">
+              <a class="jm-mega__parent" href="{% url 'catalog:plp-category' category_slug=cat.slug %}">{{ cat.name }}</a>
+              {% for child in cat.children.all %}
+              <a class="jm-mega__child" href="{% url 'catalog:plp-category' category_slug=child.slug %}">{{ child.name }}</a>
+              {% endfor %}
+            </div>
+            {% empty %}
+            <a class="jm-mega__parent" href="{% url 'catalog:plp' %}">{% trans "All Products" %}</a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <ul class="jm-nav__links">
+        <li><a class="jm-nav__link {% if request.resolver_match.url_name == 'homepage' %}is-active{% endif %}" href="{% url 'cms:homepage' %}">{% trans "Home" %}</a></li>
+        <li><a class="jm-nav__link" href="{% url 'catalog:plp' %}">{% trans "Shop All" %}</a></li>
+        <li><a class="jm-nav__link" href="{% url 'cms:homepage' %}#featured-brands">{% trans "Brands" %}</a></li>
+        <li><a class="jm-nav__link" href="{% url 'catalog:rental-list' %}">{% trans "Rentals" %}</a></li>
+        <li><a class="jm-nav__link" href="{% url 'core:contact-us' %}">{% trans "Services" %}</a></li>
+        <li><a class="jm-nav__link" href="{% url 'core:about-us' %}">{% trans "About Us" %}</a></li>
+        <li><a class="jm-nav__link" href="{% url 'core:contact-us' %}">{% trans "Contact Us" %}</a></li>
+      </ul>
+
+      {% if user.is_authenticated and user.wholesaler_profile %}
+      <a href="{% url 'accounts:dashboard' %}" class="jm-nav__wholesale">{% trans "Wholesale Enquiry" %}</a>
+      {% else %}
+      <a href="{% url 'accounts:wholesaler-register' %}" class="jm-nav__wholesale">{% trans "Wholesale Enquiry" %}</a>
+      {% endif %}
     </div>
   </nav>
+
+  <div class="collapse d-lg-none" id="jmMainNav">
+    <div class="jm-mobile-nav container">
+      <a href="{% url 'cms:homepage' %}">{% trans "Home" %}</a>
+      <a href="{% url 'catalog:plp' %}">{% trans "Shop All" %}</a>
+      {% for cat in category_tree %}
+      <a href="{% url 'catalog:plp-category' category_slug=cat.slug %}">{{ cat.name }}</a>
+      {% endfor %}
+      <a href="{% url 'catalog:rental-list' %}">{% trans "Rentals" %}</a>
+      <a href="{% url 'core:about-us' %}">{% trans "About Us" %}</a>
+      <a href="{% url 'core:contact-us' %}">{% trans "Contact Us" %}</a>
+      {% if user.is_authenticated and user.wholesaler_profile %}
+      <a href="{% url 'accounts:dashboard' %}" class="jm-mobile-nav__cta">{% trans "Wholesaler?" %}</a>
+      {% else %}
+      <a href="{% url 'accounts:wholesaler-register' %}" class="jm-mobile-nav__cta">{% trans "Wholesaler?" %}</a>
+      {% endif %}
+    </div>
+  </div>
 </header>
+
+{% with wa=site_settings.whatsapp_number|default:"6282906721" %}
+<a class="jm-wa-float"
+   href="https://wa.me/{{ wa|cut:'+'|cut:' '|cut:'-' }}?text={{ 'Hi JOYMED, I have an enquiry.'|urlencode }}"
+   target="_blank"
+   rel="noopener noreferrer"
+   aria-label="{% trans 'WhatsApp enquiry' %}">
+  <span class="jm-wa-float__pulse" aria-hidden="true"></span>
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path fill="currentColor" d="M20.52 3.48A11.86 11.86 0 0 0 12.04 0C5.5 0 .16 5.34.16 11.88c0 2.1.55 4.14 1.6 5.95L0 24l6.35-1.66a11.86 11.86 0 0 0 5.69 1.45h.01c6.54 0 11.88-5.34 11.88-11.88 0-3.17-1.24-6.16-3.41-8.43zM12.05 21.1h-.01a9.2 9.2 0 0 1-4.69-1.28l-.34-.2-3.77.99 1.01-3.67-.22-.38a9.2 9.2 0 0 1-1.41-4.9c0-5.08 4.14-9.22 9.23-9.22 2.46 0 4.78.96 6.52 2.7a9.16 9.16 0 0 1 2.7 6.53c0 5.09-4.14 9.23-9.22 9.23zm5.06-6.91c-.28-.14-1.64-.81-1.9-.9-.25-.1-.44-.14-.62.14-.19.28-.72.9-.88 1.08-.16.19-.33.21-.61.07-.28-.14-1.18-.43-2.25-1.39-.83-.74-1.39-1.65-1.55-1.93-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.5.14-.16.19-.28.28-.47.1-.19.05-.35-.02-.5-.07-.14-.62-1.49-.85-2.04-.22-.53-.45-.46-.62-.47h-.53c-.19 0-.5.07-.76.35-.26.28-1 1-1 2.43s1.02 2.82 1.16 3.01c.14.19 2.01 3.07 4.87 4.31.68.29 1.21.47 1.62.6.68.21 1.3.18 1.79.11.55-.08 1.64-.67 1.87-1.32.23-.65.23-1.2.16-1.32-.07-.11-.25-.18-.53-.32z"/>
+  </svg>
+</a>
+{% endwith %}
+
 <div class="mobile-search d-lg-none" id="mobile-search-overlay" aria-hidden="true">
   <div class="mobile-search__backdrop" data-search-dismiss></div>
   <div class="mobile-search__sheet" role="dialog" aria-modal="true" aria-label="{% trans 'Search' %}">
     <div class="mobile-search__bar">
       <span class="mobile-search__field">
-        <svg class="mobile-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3.6-3.6"/></svg>
+        <svg class="mobile-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3.6-3.6"/></svg>
         <input type="search"
                id="mobile-search-input"
                name="q"
@@ -188,7 +294,7 @@
                aria-label="{% trans 'Search' %}"
                aria-controls="mobile-search-results">
         <button type="button" class="mobile-search__clear" id="mobile-search-clear" aria-label="{% trans 'Clear' %}" hidden>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </span>
       <button type="button" class="mobile-search__cancel" data-search-dismiss>{% trans "Cancel" %}</button>
@@ -196,6 +302,7 @@
     <div class="mobile-search__results" id="mobile-search-results" role="listbox" aria-label="{% trans 'Search results' %}"></div>
   </div>
 </div>
+
 <div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
   <div class="offcanvas-header">
     <h5 class="offcanvas-title" id="cartOffcanvasLabel">{% trans "Your Cart" %}</h5>
@@ -209,13 +316,42 @@
 </div>
 </div>
 
+<div class="modal fade" id="jmQuickViewModal" tabindex="-1" aria-labelledby="jmQuickViewTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content jm-qv">
+      <button type="button" class="btn-close jm-qv__close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+      <div class="jm-qv__grid">
+        <div class="jm-qv__media">
+          <img id="jm-qv-image" src="" alt="">
+        </div>
+        <div class="jm-qv__body">
+          <p class="jm-qv__badge" id="jm-qv-badge" hidden></p>
+          <h3 class="jm-qv__title" id="jmQuickViewTitle"></h3>
+          <p class="jm-qv__price" id="jm-qv-price"></p>
+          <p class="jm-qv__stock" id="jm-qv-stock"></p>
+          <div class="jm-qv__actions">
+            <a id="jm-qv-pdp" href="#" class="btn btn-floward">{% trans "View Details" %}</a>
+            <form id="jm-qv-cart" method="post" action="{% url 'cart:add' %}"
+                  hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
+              {% csrf_token %}
+              <input type="hidden" name="product_id" id="jm-qv-product-id" value="">
+              <input type="hidden" name="quantity" value="1">
+              <button type="submit" class="btn btn-outline-floward" data-bs-dismiss="modal">{% trans "Add to Cart" %}</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% if show_wholesaler_approval_modal %}
 <div class="modal fade" id="wholesalerApprovalModal" tabindex="-1" aria-labelledby="wholesalerApprovalModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg rounded-4">
       <div class="modal-header border-0 bg-light py-3 px-4">
         <h5 class="modal-title fw-bold text-dark d-flex align-items-center" id="wholesalerApprovalModalLabel">
-          <svg class="text-warning me-2" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <svg class="text-warning me-2" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
           {% trans "Registration Successful" %}
@@ -224,11 +360,11 @@
       </div>
       <div class="modal-body px-4 py-3">
         <p class="mb-0 text-muted small">
-          {% trans "Your wholesaler application has been submitted successfully and is currently in a <strong>Pending Approval</strong> state. Our admin team will review your application shortly. A verification confirmation/password setup link will be emailed to you upon approval." %}
+          {% trans "Your wholesaler application has been submitted successfully and is currently in a Pending Approval state. Our admin team will review your application shortly. A verification confirmation/password setup link will be emailed to you upon approval." %}
         </p>
       </div>
       <div class="modal-footer border-0 px-4 pb-4">
-        <button type="button" class="btn text-white px-4 fw-semibold" style="background-color: #1B4332;" data-bs-dismiss="modal">
+        <button type="button" class="btn btn-floward px-4 fw-semibold" data-bs-dismiss="modal">
           {% trans "Got it" %}
         </button>
       </div>

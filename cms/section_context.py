@@ -67,15 +67,17 @@ def _hero_slider(config: dict[str, Any]) -> dict[str, Any]:
     slides = get_hero_slides()
     if slides:
         return {"slides": slides}
+
+    legacy_slides = config.get("slides") or []
     fallback = [
         {
             "type": "image",
-            "src": slide.get("image", ""),
-            "poster": "",
-            "title": slide.get("title") or slide.get("headline") or "",
+            "src": slide.get("image") or slide.get("src") or "",
+            "poster": slide.get("poster") or "",
+            "title": slide.get("title") or "",
         }
-        for slide in config.get("slides", [])
-        if slide.get("image")
+        for slide in legacy_slides
+        if isinstance(slide, dict) and (slide.get("image") or slide.get("src"))
     ]
     return {"slides": fallback}
 

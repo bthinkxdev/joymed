@@ -15,8 +15,9 @@ class BaseSectionConfigForm(forms.Form):
 
 
 class HeroSliderConfigForm(BaseSectionConfigForm):
-    headline = forms.CharField(max_length=200, required=False)
-    cta_text = forms.CharField(max_length=80, required=False)
+    """Hero slides are managed via HeroSlide uploads — no section JSON caption config."""
+
+    pass
 
 
 
@@ -135,12 +136,7 @@ def _flatten_config_for_form(*, section_type: str, config: dict) -> dict:
             "post_urls": "\n".join(config.get("post_urls", [])),
         }
     if section_type == HomepageSectionType.HERO_SLIDER:
-        slides = config.get("slides", [])
-        first = slides[0] if slides else {}
-        return {
-            "headline": first.get("headline", ""),
-            "cta_text": first.get("cta_text", ""),
-        }
+        return {}
     return {k: v for k, v in config.items() if isinstance(v, (str, int, float, bool))}
 
 
@@ -150,12 +146,5 @@ def config_from_form(*, section_type: str, form: BaseSectionConfigForm) -> dict:
         return {}
     data = form.to_config()
     if section_type == HomepageSectionType.HERO_SLIDER:
-        return {
-            "slides": [
-                {
-                    "headline": data.get("headline", ""),
-                    "cta_text": data.get("cta_text", ""),
-                }
-            ]
-        }
+        return {}
     return data

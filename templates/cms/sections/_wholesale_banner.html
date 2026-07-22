@@ -1,0 +1,19 @@
+{% load i18n static %}
+<aside class="jm-wholesale jm-wholesale--banner">
+  <img class="jm-wholesale__bg"
+       src="{% static 'img/wholesale_banner.png' %}"
+       alt=""
+       width="1200"
+       height="600"
+       loading="lazy"
+       decoding="async"
+       aria-hidden="true">
+  <div class="jm-wholesale__inner">
+    <div class="jm-wholesale__copy">
+      <p class="jm-wholesale__eyebrow">{% trans "Exclusive for Dealers" %}</p>
+      <h3 class="jm-wholesale__title">{% trans "Wholesale Benefits" %}</h3>
+      <p class="jm-wholesale__text">{% trans "Better Prices, Bigger Savings." %}</p>
+      <a href="{% url 'accounts:wholesaler-register' %}" class="btn btn-floward fw-bold">{% trans "Register as Dealer" %} →</a>
+    </div>
+  </div>
+</aside>

@@ -1,8 +1,23 @@
 {% load i18n %}
 {% if section_context.banner.url and section_context.banner.image %}
-<section class="container mb-5">
-  <a href="{{ section_context.banner.url }}" class="promo-banner d-block rounded overflow-hidden">
-    <img src="{{ section_context.banner.image }}" alt="{{ section_context.banner.title }}" class="w-100" width="1200" height="300" loading="lazy">
-  </a>
+<section class="jm-section">
+  <div class="container">
+    <a href="{{ section_context.banner.url }}" class="jm-promo-banner">
+      <img src="{{ section_context.banner.image }}" alt="{{ section_context.banner.title }}" width="1200" height="320" loading="lazy">
+    </a>
+  </div>
+</section>
+{% else %}
+<section class="jm-section">
+  <div class="container">
+    <aside class="jm-wholesale jm-wholesale--wide">
+      <div class="jm-wholesale__inner">
+        <p class="jm-wholesale__eyebrow">{% trans "Institutional Pricing" %}</p>
+        <h3 class="jm-wholesale__title">{% if section_context.title %}{{ section_context.title }}{% else %}{% trans "Bulk Orders Special Discounts" %}{% endif %}</h3>
+        <p class="jm-wholesale__text">{% trans "Best pricing for hospitals, clinics & healthcare institutions. Dedicated account support for wholesale partners." %}</p>
+        <a href="{% url 'accounts:wholesaler-register' %}" class="btn btn-floward">{% trans "Enquire Now" %}</a>
+      </div>
+    </aside>
+  </div>
 </section>
 {% endif %}

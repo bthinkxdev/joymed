@@ -1,17 +1,62 @@
 {% load i18n %}
-<section class="container mb-5">
-  {% include "cms/sections/_section_title.html" with section_context=section_context fallback_key="Customer Reviews" %}
-  <div class="row g-3">
-    {% for review in section_context.reviews %}
-    <div class="col-md-4">
-      <article class="review-card h-100">
-        <div class="review-card__stars text-floward mb-2" aria-label="{% trans 'Rating' %} {{ review.rating }}">
+<section class="jm-section jm-reviews">
+  <div class="container">
+    <div class="jm-reviews__intro">
+      <h2 class="section-title">{% if section_context.title %}{{ section_context.title }}{% else %}{% trans "Trusted by Healthcare Professionals" %}{% endif %}</h2>
+      <p class="section-subtitle">{% trans "Real feedback from clinics, hospitals, and caregivers across India." %}</p>
+    </div>
+
+    <div class="jm-metrics" role="list">
+      <div class="jm-metrics__item" role="listitem">
+        <strong>10k+</strong>
+        <span>{% trans "Products Delivered" %}</span>
+      </div>
+      <div class="jm-metrics__item" role="listitem">
+        <strong>500+</strong>
+        <span>{% trans "Healthcare Partners" %}</span>
+      </div>
+      <div class="jm-metrics__item" role="listitem">
+        <strong>4.8★</strong>
+        <span>{% trans "Average Rating" %}</span>
+      </div>
+      <div class="jm-metrics__item" role="listitem">
+        <strong>24/7</strong>
+        <span>{% trans "Expert Support" %}</span>
+      </div>
+    </div>
+
+    <div class="jm-reviews__grid">
+      {% for review in section_context.reviews %}
+      <article class="jm-review-card">
+        <div class="jm-review-card__stars" aria-label="{% trans 'Rating' %} {{ review.rating }}">
           {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
         </div>
-        <h3 class="review-card__title">{{ review.title }}</h3>
-        <p class="review-card__body">{{ review.body|truncatewords:24 }}</p>
+        <h3 class="jm-review-card__title">{{ review.title }}</h3>
+        <p class="jm-review-card__body">{{ review.body|truncatewords:28 }}</p>
+        {% if review.product %}
+        <p class="jm-review-card__meta">{{ review.product.name }}</p>
+        {% endif %}
       </article>
+      {% empty %}
+      <article class="jm-review-card">
+        <div class="jm-review-card__stars">★★★★★</div>
+        <h3 class="jm-review-card__title">{% trans "Reliable equipment, fast delivery" %}</h3>
+        <p class="jm-review-card__body">{% trans "JOYMED has become our go-to partner for hospital-grade mobility and monitoring equipment. Quality is consistent and support is excellent." %}</p>
+        <p class="jm-review-card__meta">{% trans "Clinic Procurement Lead" %}</p>
+      </article>
+      <article class="jm-review-card">
+        <div class="jm-review-card__stars">★★★★★</div>
+        <h3 class="jm-review-card__title">{% trans "Wholesale pricing that works" %}</h3>
+        <p class="jm-review-card__body">{% trans "Bulk ordering was simple and transparent. The team understood our institutional requirements and delivered on schedule." %}</p>
+        <p class="jm-review-card__meta">{% trans "Hospital Admin" %}</p>
+      </article>
+      <article class="jm-review-card">
+        <div class="jm-review-card__stars">★★★★☆</div>
+        <h3 class="jm-review-card__title">{% trans "Trusted brands, clear guidance" %}</h3>
+        <p class="jm-review-card__body">{% trans "From wheelchairs to diagnostics, product information is clear and the catalog feels curated for professionals." %}</p>
+        <p class="jm-review-card__meta">{% trans "Physiotherapy Centre" %}</p>
+      </article>
+      {% endfor %}
     </div>
-    {% endfor %}
   </div>
 </section>
