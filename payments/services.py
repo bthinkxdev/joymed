@@ -38,6 +38,12 @@ def confirm_payment_success(*, payment_transaction: PaymentTransaction) -> Payme
             from cart.models import CartItem
             CartItem.objects.filter(cart=cart).delete()
 
+        #send order placement confirmation email
+        from notifications.tasks import dispatch_order_confirmation_notification
+        transaction.on_commit(
+            lambda: dispatch_order_confirmation_notification.delay(order_id=order.pk)
+        )
+
     return payment_transaction
 
 

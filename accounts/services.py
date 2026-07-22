@@ -673,17 +673,24 @@ def send_wholesaler_registration_admin_email(wholesaler: Wholesaler) -> None:
     from django.core.mail import send_mail
     from django.conf import settings
     
-    recipient_list = list(
-        UserModel.objects.filter(is_superuser=True)
-        .exclude(email="")
-        .values_list("email", flat=True)
-    )
-    if not recipient_list:
-        recipient_list = [settings.DEFAULT_FROM_EMAIL]
+    from core.services import get_site_settings
+    site_settings = get_site_settings()
+
+    if site_settings.vendor_email:
+        recipient_list = [site_settings.vendor_email]
+    else:
+        recipient_list = list(
+            UserModel.objects.filter(is_superuser=True)
+            .exclude(email="")
+            .values_list("email", flat=True)
+        )
+        if not recipient_list:
+            recipient_list = [settings.DEFAULT_FROM_EMAIL]
 
     subject = f"New Wholesaler Registered: {wholesaler.company_name}"
     message = (
         f"A new wholesaler has registered and verified their email address.\n\n"
+        f"Name: {wholesaler.user.get_full_name()}\n"
         f"Company Name: {wholesaler.company_name}\n"
         f"Phone Number: {wholesaler.phone_number}\n"
         f"GST Number: {wholesaler.gst}\n"
@@ -691,18 +698,11 @@ def send_wholesaler_registration_admin_email(wholesaler: Wholesaler) -> None:
         f"Contact Email: {wholesaler.user.email}\n\n"
         f"Please log in to admin dashboard to review and approve this account"
     )
-    from core.services import get_site_settings
-    
-    site_settings = get_site_settings()
-    if site_settings.vendor_email:
-        from_email = f'"{site_settings.vendor_email}" <{settings.DEFAULT_FROM_EMAIL}>'
-    else:
-        from_email = settings.DEFAULT_FROM_EMAIL
 
     send_mail(
         subject=subject,
         message=message,
-        from_email=from_email,
+        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=recipient_list,
         fail_silently=True,
     )
