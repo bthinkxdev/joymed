@@ -160,4 +160,37 @@
     </div>
   </div>
 </div>
+
+<div id="order-processing-overlay" class="d-none position-fixed top-0 start-0 w-100 h-100 bg-white" style="z-index: 9999; opacity: 0.95;">
+  <div class="d-flex flex-column justify-content-center align-items-center h-100">
+    <div class="spinner-border text-success mb-3" role="status" style="width: 3rem; height: 3rem;">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <h4 class="fw-bold text-dark">{% trans "Confirming Order!" %}</h4>
+    <p class="text-muted">{% trans "Please wait while we confirm your order..." %}</p>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var checkoutForm = document.getElementById('checkout-form');
+    if (checkoutForm) {
+      checkoutForm.addEventListener('htmx:beforeSend', function(event) {
+        var selectedGateway = document.querySelector('input[name="gateway_key"]:checked');
+        if (selectedGateway && selectedGateway.value === 'cod') {
+          document.getElementById('order-processing-overlay').classList.remove('d-none');
+        }
+      });
+      checkoutForm.addEventListener('htmx:afterSwap', function(event) {
+        document.getElementById('order-processing-overlay').classList.add('d-none');
+      });
+      checkoutForm.addEventListener('htmx:responseError', function(event) {
+        document.getElementById('order-processing-overlay').classList.add('d-none');
+      });
+      checkoutForm.addEventListener('htmx:sendError', function(event) {
+        document.getElementById('order-processing-overlay').classList.add('d-none');
+      });
+    }
+  });
+</script>
 {% endblock %}
