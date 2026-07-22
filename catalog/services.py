@@ -150,4 +150,14 @@ def moderate_review(
     review.moderation_status = decision
     review.moderated_by = moderator
     review.save(update_fields=["moderation_status", "moderated_by", "updated_at"])
+    
+    #dismiss the notification for all admins
+    from notifications.models import Notification
+    body_text = f'Review "{review.title}" on {review.product.name} awaits approval.'
+    Notification.objects.filter(
+        title="Review pending moderation", 
+        body=body_text,
+        is_read=False
+    ).update(is_read=True)
+
     return review

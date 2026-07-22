@@ -32,6 +32,46 @@
                   {% if item.variant %}
                   <small class="text-muted">{{ item.variant.name }}</small>
                   {% endif %}
+                  {% if order.order_status == 'delivered' %}
+                  <div class="mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#reviewModal{{ item.product.id }}">
+                      {% trans "Write a Review" %}
+                    </button>
+                  </div>
+                  
+                  <!-- review modal -->
+                  <div class="modal fade" id="reviewModal{{ item.product.id }}" tabindex="-1" aria-labelledby="reviewModalLabel{{ item.product.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="reviewModalLabel{{ item.product.id }}">{% trans "Review" %} - {{ item.product.name }}</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form action="{% url 'catalog:submit-review' item.product.id %}" method="post">
+                          {% csrf_token %}
+                          <div class="modal-body">
+                            <div class="mb-3">
+                              <label for="rating{{ item.product.id }}" class="form-label">{% trans "Rating (1-5)" %}</label>
+                              <input type="number" class="form-control" id="rating{{ item.product.id }}" name="rating" min="1" max="5" required>
+                            </div>
+                            <div class="mb-3">
+                              <label for="title{{ item.product.id }}" class="form-label">{% trans "Title" %}</label>
+                              <input type="text" class="form-control" id="title{{ item.product.id }}" name="title" required placeholder="{% trans 'Brief summary of your review' %}">
+                            </div>
+                            <div class="mb-3">
+                              <label for="body{{ item.product.id }}" class="form-label">{% trans "Review Body" %}</label>
+                              <textarea class="form-control" id="body{{ item.product.id }}" name="body" rows="4" required placeholder="{% trans 'What did you think about this product?' %}"></textarea>
+                            </div>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                            <button type="submit" class="btn btn-primary">{% trans "Submit Review" %}</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  {% endif %}
                 </div>
                 <div class="col-4 col-sm-2 text-center">
                   <span class="text-muted small d-block d-sm-none">{% trans "Qty" %}</span>

@@ -397,12 +397,28 @@
   {% endif %}
 
   <section class="mt-5 pt-4 border-top" id="reviews">
-    <h2 class="section-title h5 mb-3">{% trans "Reviews" %}</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="section-title h5 mb-0">{% trans "Reviews" %}</h2>
+      {% if has_delivered_order %}
+      <div class="text-muted small">
+        {% trans "You can review this product from your" %} 
+        <a href="{% url 'orders:list' %}" class="text-decoration-underline text-floward">{% trans "Order History" %}</a>.
+      </div>
+      {% endif %}
+    </div>
+    
     {% for review in product.approved_reviews %}
     <div class="py-3 border-bottom">
-      <div class="d-flex justify-content-between align-items-start">
-        <strong class="small">{{ review.title }}</strong>
-        <span class="text-floward small">★ {{ review.rating }}</span>
+      <div class="d-flex justify-content-between align-items-start mb-1">
+        <div>
+          <strong class="small d-block">{{ review.title }}</strong>
+          <span class="text-muted small" style="font-size: 0.75rem;">
+            {{ review.customer.user.get_full_name|default:review.customer.user.username|default:"Customer" }} 
+            <span class="mx-1">•</span> 
+            {{ review.created_at|date:"M d, Y" }}
+          </span>
+        </div>
+        <span class="text-floward small fw-bold">★ {{ review.rating }}</span>
       </div>
       <p class="mb-0 small text-muted mt-1">{{ review.body }}</p>
     </div>

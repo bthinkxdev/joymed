@@ -6,9 +6,14 @@ import json
 
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
-from django.views.decorators.http import require_GET
+from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.http import require_GET, require_POST
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 from catalog.models import Product
+from catalog.forms import ReviewSubmissionForm
+from catalog.services import submit_review
 
 from catalog.selectors import (
     get_category_by_slug,
@@ -181,6 +186,16 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
     wishlist = get_or_create_wishlist(request=request)
     is_in_wishlist = WishlistItem.objects.filter(wishlist=wishlist, product_id=product.pk).exists()
 
+
+    has_delivered_order = False
+    if request.user.is_authenticated and hasattr(request.user, "customer_profile"):
+        from orders.models import OrderItem, OrderStatus
+        has_delivered_order = OrderItem.objects.filter(
+            product=product,
+            order__customer_profile=request.user.customer_profile,
+            order__order_status=OrderStatus.DELIVERED
+        ).exists()
+
     context = seo_context(
         request=request,
         obj=product,
@@ -198,6 +213,7 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
             "cart_item": cart_item,
             "is_in_wishlist": is_in_wishlist,
             "related_products": get_related_products(product=product, user=request.user),
+            "has_delivered_order": has_delivered_order,
             "product_json_ld": json.dumps(
                 build_product_json_ld(
                     product=product,
@@ -291,3 +307,31 @@ def rental_list_view(request: HttpRequest) -> HttpResponse:
         .only(*PLP_CARD_FIELDS)
     )
     return render(request, "catalog/rentals.html", {"products": list(products)})
+
+@require_POST
+@login_required
+def submit_review_view(request, product_id: int):
+    """Handle product review submission from the customer order details page."""
+    product = get_object_or_404(Product, pk=product_id, is_active=True)
+    from catalog.forms import ReviewSubmissionForm
+    form = ReviewSubmissionForm(request.POST)
+    
+    if not hasattr(request.user, "customer_profile"):
+        messages.error(request, "Only customers can submit reviews.")
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+        
+    if form.is_valid():
+        from catalog.services import submit_review
+        submit_review(
+            product=product,
+            customer=request.user.customer_profile,
+            rating=form.cleaned_data["rating"],
+            title=form.cleaned_data["title"],
+            body=form.cleaned_data["body"],
+            is_verified_purchase=True,
+        )
+        messages.success(request, "Thank you for your valuable review!")
+    else:
+        messages.error(request, "There was an error with your review submission. Please check your inputs.")
+        
+    return redirect(request.META.get('HTTP_REFERER', '/'))
