@@ -15,7 +15,12 @@
       {% endwith %}
     </div>
     <div class="cart-line__info">
-      <a href="{% url 'catalog:pdp' slug=line.product.slug %}" class="cart-line__name text-dark">{{ line.product.name }}</a>
+      <a href="{% url 'catalog:pdp' slug=line.product.slug %}" class="cart-line__name text-dark">
+        {{ line.product.name }}
+      </a>
+      {% if line.variant %}
+      <div class="cart-line__meta text-muted small mt-1 mb-1">{{ line.variant.name }}</div>
+      {% endif %}
       {% if user.is_authenticated and user.wholesaler_profile.approval_status == 'approved' %}
       <div class="cart-line__meta text-success">
         {{ display_currency.symbol }}{{ line.unit_price_at_add }}
