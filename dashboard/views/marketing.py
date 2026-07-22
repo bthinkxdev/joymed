@@ -9,7 +9,7 @@ from dashboard.views.base import (
     DashboardListView,
     DashboardUpdateView,
 )
-from marketing.models import Coupon, FlashSale, GiftCard, NewsletterSubscriber
+from marketing.models import Coupon, FlashSale, NewsletterSubscriber
 
 
 class CouponListView(DashboardListView):
@@ -49,44 +49,6 @@ class CouponDeleteView(DashboardDeleteView):
     nav_section = "coupons"
     url_basename = "coupon"
     singular_name = "Coupon"
-
-
-class GiftCardListView(DashboardListView):
-    model = GiftCard
-    nav_section = "giftcards"
-    url_basename = "giftcard"
-    singular_name = "Gift Card"
-    plural_name = "Gift Cards"
-    search_fields = ["code"]
-    columns = [
-        {"label": "Code", "name": "code"},
-        {"label": "Initial", "name": "initial_balance", "type": "money"},
-        {"label": "Balance", "name": "balance", "type": "money"},
-        {"label": "Active", "name": "is_active", "type": "bool"},
-    ]
-
-
-class GiftCardCreateView(DashboardCreateView):
-    model = GiftCard
-    form_class = forms.GiftCardForm
-    nav_section = "giftcards"
-    url_basename = "giftcard"
-    singular_name = "Gift Card"
-
-
-class GiftCardUpdateView(DashboardUpdateView):
-    model = GiftCard
-    form_class = forms.GiftCardForm
-    nav_section = "giftcards"
-    url_basename = "giftcard"
-    singular_name = "Gift Card"
-
-
-class GiftCardDeleteView(DashboardDeleteView):
-    model = GiftCard
-    nav_section = "giftcards"
-    url_basename = "giftcard"
-    singular_name = "Gift Card"
 
 
 class FlashSaleListView(DashboardListView):

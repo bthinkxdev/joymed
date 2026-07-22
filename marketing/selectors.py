@@ -75,3 +75,16 @@ def get_active_flash_sales() -> list[FlashSale]:
             ends_at__gte=now,
         ).prefetch_related("products")
     )
+
+def has_any_active_coupons() -> bool:
+    """Return True if there is at least one currently active coupon."""
+    from django.db.models import Q
+    from marketing.models import Coupon
+    now = timezone.now()
+    return Coupon.objects.filter(
+        is_active=True
+    ).filter(
+        Q(valid_from__isnull=True) | Q(valid_from__lte=now)
+    ).filter(
+        Q(valid_until__isnull=True) | Q(valid_until__gte=now)
+    ).exists()

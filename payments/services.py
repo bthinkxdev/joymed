@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any
 
 from django.db import transaction
 
-from payments.adapters.concrete import GiftVoucherAdapter
 from payments.models import PaymentStatus, PaymentTransaction
 from payments.registry import get_payment_adapter
 
@@ -97,14 +96,7 @@ def process_payment(
     if adapter.is_async:
         return payment_tx
 
-    if gateway_key == GiftVoucherAdapter.key:
-        capture = adapter.capture_with_voucher(
-            intent_id=intent.intent_id,
-            voucher_code=payment_data.get("voucher_code", ""),
-            amount=order.total_amount,
-        )
-    else:
-        capture = adapter.capture(intent_id=intent.intent_id)
+    capture = adapter.capture(intent_id=intent.intent_id)
 
     payment_tx.external_transaction_id = capture.transaction_id
     payment_tx.metadata.update(capture.metadata)

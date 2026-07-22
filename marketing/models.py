@@ -86,30 +86,6 @@ class CouponRedemption(TimeStampedModel):
             models.Index(fields=["coupon", "customer_profile"], name="mkt_coupon_redemption_idx"),
         ]
 
-
-class GiftCard(TimeStampedModel):
-    """Stored-value gift card redeemed at checkout."""
-
-    code = models.CharField(max_length=40, unique=True, db_index=True)
-    initial_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    balance = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Current balance")
-    is_active = models.BooleanField(default=True, db_index=True)
-
-    class Meta:
-        verbose_name = "Gift card"
-        verbose_name_plural = "Gift cards"
-
-    def __str__(self) -> str:
-        return self.code
-
-    @property
-    def current_balance(self):
-        return self.balance
-
-
-GiftVoucher = GiftCard
-
-
 class FlashSale(TimeStampedModel):
     """Time-boxed percentage discount on selected products."""
 

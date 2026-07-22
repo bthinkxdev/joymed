@@ -9,12 +9,11 @@ from django.db import transaction
 from django.db.models import Count
 from django.utils import timezone
 
-from marketing.exceptions import InvalidCouponError, InvalidGiftVoucherError
+from marketing.exceptions import InvalidCouponError
 from marketing.models import (
     Coupon,
     CouponDiscountType,
     CouponRedemption,
-    GiftCard,
     NewsletterSubscriber,
 )
 
@@ -90,33 +89,6 @@ def record_coupon_redemption(
         customer_profile_id=customer_profile_id,
         order_id=order_id,
     )
-
-
-@transaction.atomic
-def redeem_gift_voucher(*, code: str, amount: Decimal) -> dict[str, Decimal]:
-    """
-    Redeem value from an internal gift card (GiftVoucherAdapter backing).
-
-    Returns:
-        Dict with ``redeemed_amount`` and remaining ``balance``.
-    """
-    card = (
-        GiftCard.objects.select_for_update()
-        .filter(
-            code__iexact=code.strip(),
-            is_active=True,
-        )
-        .first()
-    )
-    if card is None:
-        raise InvalidGiftVoucherError("Invalid gift card.")
-
-    if card.balance < amount:
-        raise InvalidGiftVoucherError("Insufficient gift card balance.")
-
-    card.balance -= amount
-    card.save(update_fields=["balance", "updated_at"])
-    return {"redeemed_amount": amount, "balance": card.balance}
 
 
 @transaction.atomic

@@ -23,4 +23,4 @@ class CheckoutPaymentForm(forms.Form):
 
     gateway_key = forms.CharField(max_length=40)
     idempotency_key = forms.CharField(max_length=64)
-    voucher_code = forms.CharField(required=False, max_length=40)
+

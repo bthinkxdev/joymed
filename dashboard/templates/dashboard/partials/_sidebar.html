@@ -2,7 +2,8 @@
 <aside id="sidebar" class="sidebar">
   <div class="logo-area">
     <a href="{% url 'dashboard:home' %}" class="d-inline-flex align-items-center">
-      <img src="{% static 'dashboard/images/logo.png' %}" alt="Joymed Admin" width="28" height="28" style="border-radius: 50%; object-fit: contain;" />
+      <img src="{% static 'dashboard/images/logo.png' %}" alt="Joymed Admin" width="28" height="28"
+        style="border-radius: 50%; object-fit: contain;" />
       <span class="logo-text ms-2 fw-semibold">Joymed Admin</span>
     </a>
   </div>
@@ -31,7 +32,8 @@
       </a>
     </li>
     <li>
-      <a class="nav-link {% if nav_section == 'categories' %}active{% endif %}" href="{% url 'dashboard:category-list' %}">
+      <a class="nav-link {% if nav_section == 'categories' %}active{% endif %}"
+        href="{% url 'dashboard:category-list' %}">
         <i class="ti ti-category"></i><span class="nav-text">Categories</span>
       </a>
     </li>
@@ -50,18 +52,21 @@
 
     <li class="px-4 pt-4 pb-2"><small class="nav-text text-secondary text-uppercase">Customers</small></li>
     <li>
-      <a class="nav-link {% if nav_section == 'customers' %}active{% endif %}" href="{% url 'dashboard:customer-list' %}">
+      <a class="nav-link {% if nav_section == 'customers' %}active{% endif %}"
+        href="{% url 'dashboard:customer-list' %}">
         <i class="ti ti-user"></i><span class="nav-text">Customers</span>
       </a>
     </li>
 
-      <a class="nav-link {% if nav_section == 'wholesalers' %}active{% endif %}" href="{% url 'dashboard:wholesaler-list' %}">
-        <i class="ti ti-building-store"></i><span class="nav-text">Wholesalers</span>
-      </a>
+    <a class="nav-link {% if nav_section == 'wholesalers' %}active{% endif %}"
+      href="{% url 'dashboard:wholesaler-list' %}">
+      <i class="ti ti-building-store"></i><span class="nav-text">Wholesalers</span>
+    </a>
     </li>
 
     <li>
-      <a class="nav-link {% if nav_section == 'inquiries' %}active{% endif %}" href="{% url 'dashboard:inquiry-list' %}">
+      <a class="nav-link {% if nav_section == 'inquiries' %}active{% endif %}"
+        href="{% url 'dashboard:inquiry-list' %}">
         <i class="ti ti-messages"></i><span class="nav-text">Inquiries</span>
       </a>
     </li>
@@ -72,30 +77,30 @@
         <i class="ti ti-ticket"></i><span class="nav-text">Coupons</span>
       </a>
     </li>
+
     <li>
-      <a class="nav-link {% if nav_section == 'giftcards' %}active{% endif %}" href="{% url 'dashboard:giftcard-list' %}">
-        <i class="ti ti-credit-card"></i><span class="nav-text">Gift Cards</span>
-      </a>
-    </li>
-    <li>
-      <a class="nav-link {% if nav_section == 'flashsales' %}active{% endif %}" href="{% url 'dashboard:flashsale-list' %}">
+      <a class="nav-link {% if nav_section == 'flashsales' %}active{% endif %}"
+        href="{% url 'dashboard:flashsale-list' %}">
         <i class="ti ti-bolt"></i><span class="nav-text">Flash Sales</span>
       </a>
     </li>
     <li>
-      <a class="nav-link {% if nav_section == 'newsletter' %}active{% endif %}" href="{% url 'dashboard:newsletter-list' %}">
+      <a class="nav-link {% if nav_section == 'newsletter' %}active{% endif %}"
+        href="{% url 'dashboard:newsletter-list' %}">
         <i class="ti ti-mail"></i><span class="nav-text">Newsletter</span>
       </a>
     </li>
 
     <li class="px-4 pt-4 pb-2"><small class="nav-text text-secondary text-uppercase">Content</small></li>
     <li>
-      <a class="nav-link {% if nav_section == 'homepage' %}active{% endif %}" href="{% url 'dashboard:homepagesection-list' %}">
+      <a class="nav-link {% if nav_section == 'homepage' %}active{% endif %}"
+        href="{% url 'dashboard:homepagesection-list' %}">
         <i class="ti ti-layout-dashboard"></i><span class="nav-text">Homepage</span>
       </a>
     </li>
     <li>
-      <a class="nav-link {% if nav_section == 'heroslides' %}active{% endif %}" href="{% url 'dashboard:heroslide-list' %}">
+      <a class="nav-link {% if nav_section == 'heroslides' %}active{% endif %}"
+        href="{% url 'dashboard:heroslide-list' %}">
         <i class="ti ti-photo"></i><span class="nav-text">Hero Slides</span>
       </a>
     </li>

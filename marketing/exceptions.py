@@ -9,7 +9,3 @@ class MarketingError(Exception):
 
 class InvalidCouponError(MarketingError):
     """Raised when a coupon code cannot be applied."""
-
-
-class InvalidGiftVoucherError(MarketingError):
-    """Raised when a gift voucher cannot be redeemed."""

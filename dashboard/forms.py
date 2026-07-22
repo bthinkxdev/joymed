@@ -20,7 +20,7 @@ from catalog.models import (
 from cms.models import BlogPost, FAQItem, HeroSlide, HomepageSection, Page, PolicyDocument
 from core.models import SiteSettings
 from delivery.models import City, DeliverySlot
-from marketing.models import Coupon, FlashSale, GiftCard, NewsletterSubscriber
+from marketing.models import Coupon, FlashSale, NewsletterSubscriber
 
 _DATE = forms.DateInput(attrs={"type": "date"})
 _DATETIME = forms.DateTimeInput(attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M")
@@ -321,11 +321,6 @@ class CouponForm(forms.ModelForm):
         ]
         widgets = {"valid_from": _DATETIME, "valid_until": _DATETIME}
 
-
-class GiftCardForm(forms.ModelForm):
-    class Meta:
-        model = GiftCard
-        fields = ["code", "initial_balance", "balance", "is_active"]
 
 
 class FlashSaleForm(forms.ModelForm):

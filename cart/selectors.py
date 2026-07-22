@@ -177,14 +177,31 @@ def get_cart_summary(*, cart: Cart) -> CartSummary:
             destination_city=cart.destination_city,
         )
 
-    coupon_discount = cart.coupon_discount or Decimal("0.00")
+    coupon_code = cart.coupon_code
+    coupon_discount = Decimal("0.00")
+    if coupon_code:
+        from marketing.services import validate_coupon_for_cart
+        from marketing.exceptions import InvalidCouponError
+        category_ids = [line.product.category_id for line in lines]
+        try:
+            result = validate_coupon_for_cart(
+                code=coupon_code,
+                cart_subtotal=subtotal,
+                customer_profile_id=cart.customer_profile_id,
+                cart_category_ids=category_ids,
+            )
+            coupon_discount = result["discount_amount"]
+        except InvalidCouponError:
+            coupon_code = ""
+            coupon_discount = Decimal("0.00")
+
     grand_total = max(subtotal - coupon_discount + delivery_charge, Decimal("0.00"))
 
     return CartSummary(
         cart=cart,
         lines=lines,
         subtotal=subtotal,
-        coupon_code=cart.coupon_code,
+        coupon_code=coupon_code,
         coupon_discount=coupon_discount,
         delivery_charge=delivery_charge,
         grand_total=grand_total,

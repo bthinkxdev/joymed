@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_GET, require_http_methods
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
 from accounts.selectors import get_address_by_id, get_saved_addresses
 from cart.selectors import get_cart_for_request, get_cart_summary
@@ -89,6 +89,7 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
     if hasattr(request.user, "wholesaler_profile"):
         wholesaler_address = request.user.wholesaler_profile.address
 
+    from marketing.selectors import has_any_active_coupons
     return render(
         request,
         "checkout/checkout.html",
@@ -102,6 +103,7 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
             "payment_gateways": available_gateways,
             "selected_gateway_key": selected_gateway_key,
             "wholesaler_address": wholesaler_address,
+            "has_active_coupons": has_any_active_coupons(),
         },
     )
 
@@ -250,8 +252,6 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
     )
 
     payment_data = {}
-    if form.cleaned_data.get("voucher_code"):
-        payment_data["voucher_code"] = form.cleaned_data["voucher_code"]
 
     gateway_key = form.cleaned_data["gateway_key"]
     process_payment(
@@ -428,4 +428,44 @@ def razorpay_callback_view(request: HttpRequest) -> HttpResponse:
         return redirect("checkout:checkout")
 
 
+@require_POST
+def checkout_coupon_apply_view(request: HttpRequest) -> HttpResponse:
+    """Validate and apply a coupon code from checkout."""
+    from cart.forms import CartCouponForm
+    from cart.services import apply_coupon
+    from marketing.exceptions import InvalidCouponError
+    from django.contrib import messages
+    from cart.selectors import get_cart_for_request
+    from django.utils.translation import gettext as _
 
+    form = CartCouponForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, _("Enter a valid coupon code."))
+        return redirect("checkout:checkout")
+
+    cart = get_cart_for_request(request=request)
+    if cart is None:
+        raise Http404("Cart not found.")
+
+    try:
+        apply_coupon(cart=cart, code=form.cleaned_data["code"])
+        messages.success(request, _("Coupon applied successfully!"))
+    except InvalidCouponError as exc:
+        messages.error(request, str(exc))
+
+    return redirect("checkout:checkout")
+
+
+@require_POST
+def checkout_coupon_remove_view(request: HttpRequest) -> HttpResponse:
+    """Remove any applied coupon from the cart from checkout."""
+    from cart.services import remove_coupon
+    from cart.selectors import get_cart_for_request
+    from django.contrib import messages
+    from django.utils.translation import gettext as _
+    
+    cart = get_cart_for_request(request=request)
+    if cart:
+        remove_coupon(cart=cart)
+        messages.success(request, _("Coupon removed."))
+    return redirect("checkout:checkout")

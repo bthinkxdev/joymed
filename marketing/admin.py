@@ -9,7 +9,6 @@ from marketing.models import (
     Coupon,
     CouponRedemption,
     FlashSale,
-    GiftCard,
     NewsletterSubscriber,
     Referral,
 )
@@ -38,10 +37,7 @@ class CouponAdmin(admin.ModelAdmin):
     inlines = [CouponRedemptionInline]
 
 
-@admin.register(GiftCard)
-class GiftCardAdmin(admin.ModelAdmin):
-    list_display = ("code", "balance", "initial_balance", "is_active")
-    search_fields = ("code",)
+
 
 
 @admin.register(FlashSale)

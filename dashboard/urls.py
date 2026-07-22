@@ -89,13 +89,7 @@ urlpatterns += _crud(
     marketing.CouponUpdateView,
     marketing.CouponDeleteView,
 )
-urlpatterns += _crud(
-    "giftcard",
-    marketing.GiftCardListView,
-    marketing.GiftCardCreateView,
-    marketing.GiftCardUpdateView,
-    marketing.GiftCardDeleteView,
-)
+
 urlpatterns += _crud(
     "flashsale",
     marketing.FlashSaleListView,

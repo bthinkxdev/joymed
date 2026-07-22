@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from payments.adapters.concrete import (
     ApplePayAdapter,
     CardGatewayAdapter,
-    GiftVoucherAdapter,
     GooglePayAdapter,
     CashOnDeliveryAdapter,
     RazorpayAdapter,

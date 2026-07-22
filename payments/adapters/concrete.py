@@ -9,8 +9,6 @@ import uuid
 from decimal import Decimal
 from typing import Any
 
-from marketing.exceptions import InvalidGiftVoucherError
-from marketing.services import redeem_gift_voucher
 from payments.adapters.base import PaymentCaptureResult, PaymentGatewayAdapter, PaymentIntentResult
 
 
@@ -151,54 +149,6 @@ class GooglePayAdapter(PaymentGatewayAdapter):
 
     def refund(self, *, transaction_id: str, amount: Decimal) -> PaymentCaptureResult:
         return PaymentCaptureResult(success=True, transaction_id=f"gp_refund_{transaction_id}")
-
-
-class GiftVoucherAdapter(PaymentGatewayAdapter):
-    """Internal gift voucher adapter — no external HTTP calls."""
-
-    key = "gift_voucher"
-    display_name = "Gift Voucher"
-    is_async = False
-
-    def create_payment_intent(
-        self,
-        *,
-        amount: Decimal,
-        currency: str,
-        metadata: dict[str, Any],
-    ) -> PaymentIntentResult:
-        code = metadata.get("voucher_code", "")
-        intent_id = f"voucher_{code}"
-        return PaymentIntentResult(intent_id=intent_id, metadata=metadata)
-
-    def verify_webhook(self, *, payload: bytes, signature: str) -> dict[str, Any]:
-        raise NotImplementedError("Gift vouchers do not use webhooks.")
-
-    def capture(self, *, intent_id: str) -> PaymentCaptureResult:
-        return PaymentCaptureResult(success=False, transaction_id=intent_id)
-
-    def capture_with_voucher(
-        self,
-        *,
-        intent_id: str,
-        voucher_code: str,
-        amount: Decimal,
-    ) -> PaymentCaptureResult:
-        try:
-            result = redeem_gift_voucher(code=voucher_code, amount=amount)
-        except InvalidGiftVoucherError:
-            return PaymentCaptureResult(success=False, transaction_id=intent_id)
-        return PaymentCaptureResult(
-            success=True,
-            transaction_id=f"voucher_tx_{intent_id}",
-            metadata={
-                "redeemed_amount": str(result["redeemed_amount"]),
-                "balance": str(result["balance"]),
-            },
-        )
-
-    def refund(self, *, transaction_id: str, amount: Decimal) -> PaymentCaptureResult:
-        return PaymentCaptureResult(success=True, transaction_id=f"voucher_refund_{transaction_id}")
 
 
 class CashOnDeliveryAdapter(PaymentGatewayAdapter):

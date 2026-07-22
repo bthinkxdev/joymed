@@ -29,12 +29,14 @@ def _cart_drawer_response(request: HttpRequest, *, hx_triggers: dict | None = No
     """Render cart drawer partial; optionally attach HTMX trigger headers."""
     cart = get_cart_for_request(request=request)
     summary = get_cart_summary(cart=cart) if cart else None
+    from marketing.selectors import has_any_active_coupons
     response = render(
         request,
         "cart/partials/drawer.html",
         {
             "summary": summary,
             "cart_count": summary.item_count if summary else 0,
+            "has_active_coupons": has_any_active_coupons(),
         },
     )
     if hx_triggers:
@@ -54,6 +56,7 @@ def _cart_page_response(
     """Render the standalone cart page's swappable body; optionally attach HTMX triggers."""
     cart = get_cart_for_request(request=request)
     summary = get_cart_summary(cart=cart) if cart else None
+    from marketing.selectors import has_any_active_coupons
     response = render(
         request,
         "cart/partials/page_body.html",
@@ -61,6 +64,7 @@ def _cart_page_response(
             "summary": summary,
             "cart_count": summary.item_count if summary else 0,
             "error": error,
+            "has_active_coupons": has_any_active_coupons(),
         },
     )
     if hx_triggers:
@@ -73,12 +77,14 @@ def cart_page_view(request: HttpRequest) -> HttpResponse:
     """Standalone cart page — full item list, coupon box, and order summary."""
     cart = get_or_create_cart(request=request)
     summary = get_cart_summary(cart=cart)
+    from marketing.selectors import has_any_active_coupons
     return render(
         request,
         "cart/cart_page.html",
         {
             "summary": summary,
             "cart_count": summary.item_count,
+            "has_active_coupons": has_any_active_coupons(),
         },
     )
 
