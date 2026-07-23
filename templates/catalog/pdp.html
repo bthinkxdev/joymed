@@ -66,7 +66,7 @@
         {% if product.variant_list %}
         <div class="jm-pdp-field">
           <label class="jm-pdp-field__label" for="variant-select">{% trans "Option" %}</label>
-          <select id="variant-select"
+          <select id="variant-select" 
                   class="form-select jm-pdp-select"
                   data-price-url="{% url 'catalog:variant-price' product_id=product.pk %}"
                   data-currency-symbol="{{ display_currency.symbol }}">
@@ -96,9 +96,9 @@
         {% endif %}
       </div>
 
-      <div id="purchase-actions" class="jm-pdp-buybox__purchase"
+      <div id="purchase-actions" class="jm-pdp-buybox__purchase" 
         hx-get="{{ request.path }}"
-        hx-select="#purchase-actions"
+        hx-select="#purchase-actions" 
         hx-swap="outerHTML"
         hx-trigger="pageshow from:window, cartItemAdded from:body, cartUpdated from:body">
 
@@ -114,7 +114,7 @@
             {% with tiers=product.wholesale_tiers.all %}
             <input type="range" class="form-range volume-slider" id="pdp-qty-slider" min="1"
               max="{% if tiers %}{{ tiers.last.max_quantity }}{% else %}{{ product.stock_quantity|default:100 }}{% endif %}"
-              value="{{ cart_item.quantity|default:1 }}"
+              value="{{ cart_item.quantity|default:1 }}" 
               oninput="updateWholesaleQuantity(this.value)">
             {% endwith %}
             <input type="hidden" id="pdp-qty" class="pdp-qty-input" value="{{ cart_item.quantity|default:1 }}">
@@ -155,15 +155,15 @@
           {% endif %}
 
           <form method="post" action="{% url 'cart:wishlist-toggle' %}" class="jm-pdp-wish"
-                hx-post="{% url 'cart:wishlist-toggle' %}" hx-swap="none">
+            hx-post="{% url 'cart:wishlist-toggle' %}" hx-swap="none">
             {% csrf_token %}
             <input type="hidden" name="product_id" value="{{ product.pk }}">
-            <button type="submit"
-                    class="jm-pdp-wish__btn jm-wish-btn {% if is_in_wishlist %}is-active{% endif %}"
-                    aria-label="{% trans 'Wishlist' %}"
-                    aria-pressed="{% if is_in_wishlist %}true{% else %}false{% endif %}"
-                    data-jm-wish-btn
-                    data-product-id="{{ product.pk }}">
+            <button type="submit" 
+              class="jm-pdp-wish__btn jm-wish-btn {% if is_in_wishlist %}is-active{% endif %}"
+              aria-label="{% trans 'Wishlist' %}" 
+              aria-pressed="{% if is_in_wishlist %}true{% else %}false{% endif %}"
+              data-jm-wish-btn 
+              data-product-id="{{ product.pk }}">
               <svg width="20" height="20" viewBox="0 0 24 24"
                 fill="{% if is_in_wishlist %}currentColor{% else %}none{% endif %}" stroke="currentColor"
                 stroke-width="2" aria-hidden="true">
@@ -179,15 +179,15 @@
             {% trans "View Cart" %}
           </a>
           <form method="post" action="{% url 'cart:wishlist-toggle' %}" class="jm-pdp-wish"
-                hx-post="{% url 'cart:wishlist-toggle' %}" hx-swap="none">
+            hx-post="{% url 'cart:wishlist-toggle' %}" hx-swap="none">
             {% csrf_token %}
             <input type="hidden" name="product_id" value="{{ product.pk }}">
-            <button type="submit"
-                    class="jm-pdp-wish__btn jm-wish-btn {% if is_in_wishlist %}is-active{% endif %}"
-                    aria-label="{% trans 'Wishlist' %}"
-                    aria-pressed="{% if is_in_wishlist %}true{% else %}false{% endif %}"
-                    data-jm-wish-btn
-                    data-product-id="{{ product.pk }}">
+            <button type="submit" 
+              class="jm-pdp-wish__btn jm-wish-btn {% if is_in_wishlist %}is-active{% endif %}"
+              aria-label="{% trans 'Wishlist' %}" 
+              aria-pressed="{% if is_in_wishlist %}true{% else %}false{% endif %}"
+              data-jm-wish-btn 
+              data-product-id="{{ product.pk }}">
               <svg width="20" height="20" viewBox="0 0 24 24"
                 fill="{% if is_in_wishlist %}currentColor{% else %}none{% endif %}" stroke="currentColor"
                 stroke-width="2" aria-hidden="true">
@@ -225,7 +225,7 @@
     <div class="jm-pdp-sticky__price" id="pdp-sticky-price">{% money_label price_data.price display_currency %}</div>
     <div class="jm-pdp-sticky__actions" id="pdp-sticky-actions-group">
       <form id="sticky-buy-form" method="post" action="{% url 'cart:add' %}"
-        class="jm-pdp-sticky__atc {% if is_in_cart %}d-none{% endif %}"
+        class="jm-pdp-sticky__atc {% if is_in_cart %}d-none{% endif %}" 
         hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
         {% csrf_token %}
         <input type="hidden" name="product_id" value="{{ product.pk }}">
@@ -239,7 +239,7 @@
       </div>
 
       <form id="sticky-buy-now-form" method="post" action="{% url 'cart:add' %}"
-        class="jm-pdp-sticky__buy {% if is_in_cart %}d-none{% endif %}"
+        class="jm-pdp-sticky__buy {% if is_in_cart %}d-none{% endif %}" 
         hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
         {% csrf_token %}
         <input type="hidden" name="product_id" value="{{ product.pk }}">
@@ -488,9 +488,7 @@
       const max = parseFloat(slider.max) || 100;
       let percentage = 0;
       if (max > min) percentage = ((val - min) / (max - min)) * 100;
-      slider.style.background =
-        "linear-gradient(to right, var(--jm-burgundy, #9C274C) 0%, var(--jm-burgundy, #9C274C) " +
-        percentage + "%, #e9ecef " + percentage + "%, #e9ecef 100%)";
+      slider.style.setProperty('--slider-fill', percentage + '%');
     }
 
     const tiersDataElement = document.getElementById("wholesale-tiers-data");
