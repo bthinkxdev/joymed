@@ -97,6 +97,11 @@
 
     <a class="stretched-link jm-product-card__stretch" href="{% url 'catalog:pdp' slug=product.slug %}" aria-label="{% blocktrans with name=product.name %}View {{ name }}{% endblocktrans %}"></a>
 
+    {% if cart_product_ids and product.pk in cart_product_ids %}
+    <a href="{% url 'cart:page' %}" class="btn btn-outline-floward jm-product-card__atc" style="background-color: transparent; border: 1px solid var(--jm-navy); color: var(--jm-navy); position: relative; z-index: 2;">
+      <span>{% trans "View Cart" %}</span>
+    </a>
+    {% else %}
     <form class="jm-product-card__cart" method="post" action="{% url 'cart:add' %}"
           hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
       {% csrf_token %}
@@ -107,5 +112,6 @@
         <span>{% if product.is_in_stock %}{% trans "Add to Cart" %}{% else %}{% trans "Unavailable" %}{% endif %}</span>
       </button>
     </form>
+    {% endif %}
   </div>
 </article>

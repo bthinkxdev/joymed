@@ -795,6 +795,35 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.addEventListener('wishlistUpdated', function (event) {
     syncWishlistChrome(event.detail || {});
   });
+
+  document.body.addEventListener('cartItemAdded', function (event) {
+    var detail = event.detail || {};
+    var productId = detail.product_id ? String(detail.product_id) : '';
+    if (!productId) return;
+
+    document.querySelectorAll('.jm-product-card[data-product-id="' + productId + '"]').forEach(function (card) {
+      var form = card.querySelector('form.jm-product-card__cart');
+      if (form) {
+        var viewCartLink = document.createElement('a');
+        var cartUrl = '/cart/';
+        var existingLink = document.querySelector('a[href*="/cart/"]');
+        if (existingLink) {
+            cartUrl = existingLink.getAttribute('href');
+        }
+
+        viewCartLink.href = cartUrl;
+        viewCartLink.className = 'btn btn-outline-floward jm-product-card__atc';
+        viewCartLink.style.backgroundColor = 'transparent';
+        viewCartLink.style.border = '1px solid var(--jm-navy)';
+        viewCartLink.style.color = 'var(--jm-navy)';
+        viewCartLink.style.position = 'relative';
+        viewCartLink.style.zIndex = '2';
+        viewCartLink.innerHTML = '<span>View Cart</span>';
+
+        form.parentNode.replaceChild(viewCartLink, form);
+      }
+    });
+  });
 })();
 
 /* Joymed: sticky header offset + mobile trust auto-slide */

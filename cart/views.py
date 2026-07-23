@@ -144,7 +144,7 @@ def cart_add_view(request: HttpRequest) -> HttpResponse:
 
     return _cart_drawer_response(
         request,
-        hx_triggers={"cartItemAdded": None},
+        hx_triggers={"cartItemAdded": {"product_id": product.pk}},
     )
 
 

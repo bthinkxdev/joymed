@@ -105,6 +105,14 @@ def get_cart_count(*, request: HttpRequest) -> int:
     return get_cart_item_count(cart=cart)
 
 
+def get_cart_product_ids(*, request: HttpRequest) -> set[int]:
+    """Return a set of product IDs currently in the persistent cart."""
+    cart = get_cart_for_request(request=request)
+    if not cart:
+        return set()
+    return set(CartItem.objects.filter(cart=cart).values_list("product_id", flat=True))
+
+
 def _wishlist_items_qs(*, request: HttpRequest):
     """Shared queryset for the current request's wishlist items."""
     from accounts.models import WishlistItem
