@@ -470,7 +470,7 @@
 <script id="wholesale-tiers-data" type="application/json">
   [
     {% for tier in product.wholesale_tiers.all %}
-      {"min": {{ tier.min_quantity }}, "max": {{ tier.max_quantity }}, "price": {{ tier.price }}}
+      {"min": {{ tier.min_quantity }}, "max": {% if tier.max_quantity %}{{ tier.max_quantity }}{% else %}null{% endif %}, "price": {{ tier.price }}}
       {% if not forloop.last %},{% endif %}
     {% endfor %}
   ]
@@ -478,16 +478,17 @@
 {% endif %}
 <script>
   function updateWholesaleQuantity(val) {
-    document.querySelectorAll(".pdp-qty-input").forEach(function (i) { i.value = val; });
+    const parsedVal = parseInt(val, 10);
+    document.querySelectorAll(".pdp-qty-input").forEach(function (i) { i.value = parsedVal; });
     const display = document.getElementById("pdp-qty-display");
-    if (display) display.textContent = val;
+    if (display) display.textContent = parsedVal;
 
     const slider = document.getElementById("pdp-qty-slider");
     if (slider) {
       const min = parseFloat(slider.min) || 1;
       const max = parseFloat(slider.max) || 100;
       let percentage = 0;
-      if (max > min) percentage = ((val - min) / (max - min)) * 100;
+      if (max > min) percentage = ((parsedVal - min) / (max - min)) * 100;
       slider.style.setProperty('--slider-fill', percentage + '%');
     }
 
@@ -499,7 +500,7 @@
       let applicablePrice = 0;
 
       for (const tier of tiers) {
-        if (val >= tier.min && val <= tier.max) {
+        if (parsedVal >= tier.min && (tier.max === null || parsedVal <= tier.max)) {
           applicablePrice = parseFloat(tier.price);
           activeTier = tier;
           break;

@@ -161,12 +161,6 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
             destination_city=destination_city,
         )
 
-    price_data = get_variant_price(product_id=product.pk, user=request.user)
-    reviews = getattr(product, "approved_reviews", [])
-    review_count = len(reviews)
-    average_rating = None
-    if review_count:
-        average_rating = sum(r.rating for r in reviews) / review_count
 
     from core.services import get_site_settings
 
@@ -178,6 +172,15 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
     cart = get_cart_for_request(request=request)
     cart_item = CartItem.objects.filter(cart=cart, product=product).first() if cart else None
     is_in_cart = cart_item is not None
+
+    quantity = cart_item.quantity if cart_item else 1
+    price_data = get_variant_price(product_id=product.pk, user=request.user, quantity=quantity)
+
+    reviews = getattr(product, "approved_reviews", [])
+    review_count = len(reviews)
+    average_rating = None
+    if review_count:
+        average_rating = sum(r.rating for r in reviews) / review_count
 
     from accounts.models import WishlistItem
     from accounts.subscription_services import get_or_create_wishlist
