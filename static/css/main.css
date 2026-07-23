@@ -3007,6 +3007,22 @@ input[type=range].volume-slider::-moz-range-thumb {
   border: none !important;
   border-radius: 0 !important;
   box-shadow: none !important;
+  width: 100% !important;
+  align-items: stretch !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: auto !important;
+}
+
+.wishlist-card .jm-product-card__body {
+  width: 100% !important;
+  align-items: stretch !important;
+  padding: 0.75rem !important;
+  margin: 0 !important;
+}
+
+.wishlist-card .jm-product-card__cart {
+  margin-top: 0 !important;
 }
 
 .wishlist-card .jm-product-card:hover {

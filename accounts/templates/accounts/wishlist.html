@@ -13,11 +13,11 @@
     <div class="col-6 col-md-3 product-grid-item">
       <div class="wishlist-card">
         {% include "catalog/partials/product_card.html" with product=item.product %}
-        <form method="post" action="{% url 'accounts:wishlist-remove' %}" class="wishlist-card__actions">
+        <!-- <form method="post" action="{% url 'accounts:wishlist-remove' %}" class="wishlist-card__actions">
           {% csrf_token %}
           <input type="hidden" name="product_id" value="{{ item.product_id }}">
           <button type="submit" class="btn btn-outline-floward btn-sm w-100">{% trans "Remove" %}</button>
-        </form>
+        </form> -->
       </div>
     </div>
     {% endfor %}
