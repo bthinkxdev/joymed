@@ -8,7 +8,7 @@ from typing import Any, Optional
 from django.db import transaction
 from django.http import HttpRequest
 
-from cart.exceptions import CartItemNotFoundError
+from cart.exceptions import CartItemNotFoundError, InsufficientStockError
 from cart.models import Cart, CartItem
 from cart.selectors import get_cart_for_request, get_cart_summary
 from catalog.models import Product, ProductVariant
@@ -86,6 +86,14 @@ def add_to_cart(
     
     if item:
         new_quantity = quantity if overwrite else item.quantity + quantity
+    else:
+        new_quantity = quantity
+
+    max_stock = variant.stock_quantity if variant else product.stock_quantity
+    if new_quantity > max_stock:
+        raise InsufficientStockError(f"Only {max_stock} items available in stock.")
+
+    if item:
         unit_price = _resolve_unit_price(product=product, variant=variant, user=user, quantity=new_quantity)
         item.quantity = new_quantity
         item.unit_price_at_add = unit_price
@@ -135,6 +143,10 @@ def adjust_cart_item_quantity(
     new_quantity = item.quantity + delta
     if new_quantity < 1:
         new_quantity = 1
+
+    max_stock = item.variant.stock_quantity if item.variant else item.product.stock_quantity
+    if new_quantity > max_stock:
+        raise InsufficientStockError(f"Only {max_stock} items available in stock.")
 
     user = (
         cart.customer_profile.user

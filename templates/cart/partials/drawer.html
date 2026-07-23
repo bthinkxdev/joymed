@@ -1,6 +1,9 @@
 {% load i18n %}
 {% load static %}
 {% if summary and summary.lines %}
+{% if error %}
+<div class="alert alert-danger py-2 small m-3 mb-0" role="alert">{{ error }}</div>
+{% endif %}
 <div class="cart-drawer-scroll">
   <ul class="list-unstyled mb-0">
     {% for line in summary.lines %}

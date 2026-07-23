@@ -13,3 +13,7 @@ class CartNotFoundError(CartError):
 
 class CartItemNotFoundError(CartError):
     """Raised when a cart line item cannot be resolved for the given cart."""
+
+
+class InsufficientStockError(CartError):
+    """Raised when a requested quantity exceeds available stock."""

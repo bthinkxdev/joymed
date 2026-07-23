@@ -9,7 +9,7 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
-from cart.exceptions import CartItemNotFoundError
+from cart.exceptions import CartItemNotFoundError, InsufficientStockError
 from cart.forms import CartCouponForm, CartQuantityForm
 from cart.selectors import get_cart_count, get_cart_for_request, get_cart_summary, get_wishlist_count
 from cart.services import (
@@ -25,7 +25,7 @@ from catalog.selectors import get_product_for_cart_add
 from marketing.exceptions import InvalidCouponError
 
 
-def _cart_drawer_response(request: HttpRequest, *, hx_triggers: dict | None = None) -> HttpResponse:
+def _cart_drawer_response(request: HttpRequest, *, error: str | None = None, hx_triggers: dict | None = None) -> HttpResponse:
     """Render cart drawer partial; optionally attach HTMX trigger headers."""
     cart = get_cart_for_request(request=request)
     summary = get_cart_summary(cart=cart) if cart else None
@@ -37,6 +37,7 @@ def _cart_drawer_response(request: HttpRequest, *, hx_triggers: dict | None = No
             "summary": summary,
             "cart_count": summary.item_count if summary else 0,
             "has_active_coupons": has_any_active_coupons(),
+            "error": error,
         },
     )
     if hx_triggers:
@@ -125,13 +126,21 @@ def cart_add_view(request: HttpRequest) -> HttpResponse:
 
     buy_now = request.POST.get("buy_now") == "true"
     
-    new_item = add_to_cart(
-        cart=cart,
-        product=product,
-        variant=variant,
-        quantity=quantity,
-        overwrite=True,
-    )
+    try:
+        new_item = add_to_cart(
+            cart=cart,
+            product=product,
+            variant=variant,
+            quantity=quantity,
+            overwrite=True,
+        )
+    except InsufficientStockError as exc:
+        from django.contrib import messages
+        messages.error(request, str(exc))
+        if request.headers.get("HX-Request") and not buy_now:
+            return _cart_drawer_response(request, error=str(exc))
+        # If buy_now or not htmx, redirect back to referer
+        return redirect(request.META.get("HTTP_REFERER", "/"))
 
     if buy_now:
         from django.urls import reverse
@@ -191,6 +200,10 @@ def cart_quantity_view(request: HttpRequest) -> HttpResponse:
         if is_drawer:
             return _cart_drawer_response(request, hx_triggers={"cartUpdated": None})
         return _cart_page_response(request, error=_("That item is no longer in your cart."))
+    except InsufficientStockError as exc:
+        if is_drawer:
+            return _cart_drawer_response(request, error=str(exc))
+        return _cart_page_response(request, error=str(exc))
 
     if is_drawer:
         return _cart_drawer_response(request, hx_triggers={"cartUpdated": None})
