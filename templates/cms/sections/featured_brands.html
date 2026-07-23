@@ -1,5 +1,5 @@
 {% load i18n %}
-<section class="jm-section jm-brands" id="featured-brands">
+<section class="jm-section jm-brands" id="featured-brands" style="scroll-margin-top: 150px;">
   <div class="container">
     <div class="jm-brands__header">
       <h2 class="section-title">{% if section_context.title %}{{ section_context.title }}{% else %}{% trans "Trusted by Leading Brands" %}{% endif %}</h2>
@@ -23,3 +23,17 @@
     </div>
   </div>
 </section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.hash === '#featured-brands' || window.location.search.includes('ref=brands')) {
+      // Small delay to allow the page and sticky header to fully layout before scrolling
+      setTimeout(function() {
+        var el = document.getElementById('featured-brands');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 300);
+    }
+  });
+</script>
