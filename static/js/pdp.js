@@ -25,7 +25,7 @@
           var wholesaleBadge = document.getElementById('pdp-price-wholesale-badge');
           
           if (elPriceValue) {
-            elPriceValue.textContent = symbol + data.price;
+            elPriceValue.textContent = symbol + parseFloat(data.price).toFixed(2).replace(/\.00$/, '');
           }
           
           if (data.is_tier_active === 'true') {
@@ -37,10 +37,10 @@
             if (wholesaleBadge) wholesaleBadge.classList.add("d-none");
             if (retailContainer) retailContainer.classList.add("d-none");
           }
-          if (elSticky) elSticky.textContent = symbol + data.price;
+          if (elSticky) elSticky.textContent = symbol + parseFloat(data.price).toFixed(2).replace(/\.00$/, '');
           var elRetail = document.getElementById('pdp-retail-price');
           if (elRetail && data.retail_price) {
-            elRetail.textContent = symbol + data.retail_price;
+            elRetail.textContent = symbol + parseFloat(data.retail_price).toFixed(2).replace(/\.00$/, '');
           }
           var elRetailVal = document.getElementById('pdp-retail-price-val');
           if (elRetailVal && data.retail_price) {

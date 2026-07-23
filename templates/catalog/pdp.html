@@ -520,14 +520,14 @@
 
       if (activeTier) {
         applicablePrice += variantDelta;
-        if (priceDisplay) priceDisplay.textContent = "{{ display_currency.symbol }}" + applicablePrice.toFixed(2);
+        if (priceDisplay) priceDisplay.textContent = "{{ display_currency.symbol }}" + applicablePrice.toFixed(2).replace(/\.00$/, '');
         if (wholesaleLabel) wholesaleLabel.classList.remove("d-none");
         if (wholesaleBadge) wholesaleBadge.classList.remove("d-none");
         if (retailContainer) retailContainer.classList.remove("d-none");
       } else {
         const retailValEl = document.getElementById("pdp-retail-price-val");
         if (retailValEl) applicablePrice = parseFloat(retailValEl.value);
-        if (priceDisplay) priceDisplay.textContent = "{{ display_currency.symbol }}" + applicablePrice.toFixed(2);
+        if (priceDisplay) priceDisplay.textContent = "{{ display_currency.symbol }}" + applicablePrice.toFixed(2).replace(/\.00$/, '');
         if (wholesaleLabel) wholesaleLabel.classList.add("d-none");
         if (wholesaleBadge) wholesaleBadge.classList.add("d-none");
         if (retailContainer) retailContainer.classList.add("d-none");
