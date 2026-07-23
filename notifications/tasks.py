@@ -58,8 +58,6 @@ def dispatch_order_status_notification(
     body = status_messages.get(new_status, f"Your order status changed from {old_status} to {new_status}.")
     body += "\n\nBest regards,\nThe Joymed Team"
 
-    create_notification(user=user, title=title, body=body)
-
     if profile.notify_via_email and user.email:
         send_email(email=user.email, subject=title, message=body)
 
@@ -104,8 +102,6 @@ def dispatch_order_confirmation_notification(*, order_id: int) -> None:
         f"Best regards,\n"
         f"The Joymed Team"
     )
-
-    create_notification(user=user, title=title, body=body)
 
     if profile.notify_via_email and user.email:
         send_email(email=user.email, subject=title, message=body)
