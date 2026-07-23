@@ -1592,12 +1592,6 @@ input[type=range].volume-slider::-moz-range-thumb {
   flex: 1 1 auto;
 }
 
-/* Keep WhatsApp clear of sticky CTA on PDP */
-body.jm-pdp-sticky-open .jm-wa-float {
-  left: 14px;
-  right: auto;
-  bottom: calc(132px + env(safe-area-inset-bottom, 0px));
-}
 
 .jm-pdp-specs {
   border: 1px solid var(--jm-border-light, #e8eef4);
