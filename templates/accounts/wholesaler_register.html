@@ -56,7 +56,7 @@
 
           <div class="mb-3">
             <label class="form-label" for="id_gst">{% trans "GST Number" %} <span class="text-muted fw-normal">({% trans "optional" %})</span></label>
-            <input type="text" name="gst" id="id_gst" class="form-control" maxlength="50" value="{{ form.gst.value|default:'' }}" placeholder="{% trans 'GST Number (optional)' %}">
+            <input type="text" name="gst" id="id_gst" class="form-control" maxlength="50" value="{{ form.gst.value|default:'' }}">
             {% if form.gst.errors %}
             <div class="text-danger small mt-1">{% for error in form.gst.errors %}{{ error }}{% endfor %}</div>
             {% endif %}
