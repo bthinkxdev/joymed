@@ -45,6 +45,9 @@ def storefront(request: HttpRequest) -> dict[str, Any]:
         countries[0] if countries else None,
     )
     wishlist_product_ids = get_wishlist_product_ids(request=request)
+    
+    from cms.models import Page
+
     return {
         "site_settings": get_site_settings(),
         "category_tree": get_category_tree(),
@@ -60,4 +63,5 @@ def storefront(request: HttpRequest) -> dict[str, Any]:
         "session_country": session_country,
         "active_country": active_country,
         "shell_only": request.META.get("HTTP_X_SHELL_RERENDER") == "true",
+        "cms_pages": Page.objects.filter(is_published=True),
     }

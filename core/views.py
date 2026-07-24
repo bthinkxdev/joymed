@@ -163,6 +163,21 @@ def blog_view(request: HttpRequest) -> HttpResponse:
     return render(request, "core/blog.html", context)
 
 
+@require_GET
+def page_view(request: HttpRequest, slug: str) -> HttpResponse:
+    """Render a dynamic storefront CMS page."""
+    from cms.models import Page
+    page = get_object_or_404(Page, slug=slug, is_published=True)
+    
+    context = seo_context(
+        request=request,
+        title=f"{page.title} | JOYMED HEALTHCARE",
+        description=page.meta_description or page.title,
+    )
+    context["page"] = page
+    return render(request, "core/page.html", context)
+
+
 @require_POST
 def set_currency_view(request: HttpRequest) -> HttpResponse:
     """Persist currency code to session."""

@@ -18,4 +18,5 @@ urlpatterns = [
     path("contact-us/submit/", views.submit_inquiry_view, name="submit-inquiry"),
     path("faq/", views.faq_view, name="faq"),
     path("blog/", views.blog_view, name="blog"),
+    path("p/<slug:slug>/", views.page_view, name="page"),
 ]
