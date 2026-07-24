@@ -140,6 +140,10 @@ def _render_product_form(request, product, mode):
         "product": product,
         "cancel_url": reverse("dashboard:product-list"),
     }
+    
+    from catalog.models import ProductVariant
+    context["existing_variant_types"] = ProductVariant.objects.exclude(variant_type="").values_list("variant_type", flat=True).distinct()
+    
     return render(request, "dashboard/catalog/product_form.html", context)
 
 

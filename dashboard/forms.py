@@ -129,6 +129,13 @@ class ProductVariantForm(forms.ModelForm):
     class Meta:
         model = ProductVariant
         fields = ["variant_type", "name", "price_delta", "sku_suffix", "stock_quantity"]
+        widgets = {
+            "variant_type": forms.TextInput(attrs={
+                "list": "variant-type-list",
+                "class": "form-control",
+                "placeholder": "e.g. Size, Packaging, Color"
+            }),
+        }
         error_messages = {
             "variant_type": {"required": "Variant type is required."},
             "name": {"required": "Name is required."},
@@ -136,6 +143,19 @@ class ProductVariantForm(forms.ModelForm):
             "sku_suffix": {"required": "SKU suffix is required."},
             "stock_quantity": {"required": "Stock quantity is required."},
         }
+
+    def has_changed(self):
+        """Ignore empty extra forms even if fields have model defaults (like stock_quantity=0)."""
+        changed = super().has_changed()
+        if changed:
+            #if every field in the POST data is empty, it's an untouched extra form.
+            for name in self.fields:
+                prefixed_name = self.add_prefix(name)
+                val = self.data.get(prefixed_name)
+                if val:  #any non-empty string means user interacted
+                    return True
+            return False
+        return changed
 
 ProductVariantFormSet = forms.inlineformset_factory(
     Product,
