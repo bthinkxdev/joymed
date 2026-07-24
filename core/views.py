@@ -143,6 +143,10 @@ def faq_view(request: HttpRequest) -> HttpResponse:
         title=_("FAQ | JOYMED HEALTHCARE"),
         description=_("Frequently asked questions about ordering, delivery, and payments at JOYMED HEALTHCARE."),
     )
+    
+    from cms.models import FAQItem
+    context["faqs"] = FAQItem.objects.filter(is_published=True)
+    
     return render(request, "core/faq.html", context)
 
 
