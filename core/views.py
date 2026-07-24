@@ -150,6 +150,19 @@ def faq_view(request: HttpRequest) -> HttpResponse:
     return render(request, "core/faq.html", context)
 
 
+@require_GET
+def blog_view(request: HttpRequest) -> HttpResponse:
+    """Render the storefront blog page."""
+    context = seo_context(
+        request=request,
+        title=_("Blog | JOYMED HEALTHCARE"),
+        description=_("Read our latest news and medical articles."),
+    )
+    from cms.models import BlogPost
+    context["blogs"] = BlogPost.objects.filter(is_published=True)
+    return render(request, "core/blog.html", context)
+
+
 @require_POST
 def set_currency_view(request: HttpRequest) -> HttpResponse:
     """Persist currency code to session."""
