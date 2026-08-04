@@ -475,9 +475,11 @@ class SiteSettingsForm(forms.ModelForm):
             "default_shipping_charge",
             "razorpay_key_id",
             "razorpay_key_secret",
+            "vendor_upi_id",
         ]
         labels = {
             "vendor_email": "Email",
+            "vendor_upi_id": "Merchant UPI ID",
         }
 
 

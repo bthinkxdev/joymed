@@ -99,6 +99,7 @@ SECTION_CONFIG_FORMS: dict[str, type[BaseSectionConfigForm]] = {
     HomepageSectionType.SHOP_BY_CATEGORY: EmptyConfigForm,
     HomepageSectionType.FEATURED_PRODUCTS: EmptyConfigForm,
     HomepageSectionType.NEW_ARRIVALS: EmptyConfigForm,
+    HomepageSectionType.RENTAL: BannerConfigForm,
     HomepageSectionType.BEST_SELLERS: EmptyConfigForm,
     HomepageSectionType.FEATURED_BRANDS: EmptyConfigForm,
     HomepageSectionType.SUBSCRIPTION_BANNER: BannerConfigForm,

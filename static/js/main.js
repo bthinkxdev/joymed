@@ -2,7 +2,13 @@
   'use strict';
 
   var csrfMeta = document.querySelector('meta[name="csrf-token"]');
-  var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+  var csrfTokenFallback = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+  function getCsrfToken() {
+    var match = document.cookie.match(/(?:^|; )csrftoken=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : csrfTokenFallback;
+  }
+
   var progressEl = document.getElementById('htmx-progress');
   var pageLoader = document.getElementById('jm-loader');
   var pendingGlobalProgress = 0;
@@ -74,8 +80,9 @@
   }
 
   document.body.addEventListener('htmx:configRequest', function (event) {
-    if (csrfToken) {
-      event.detail.headers['X-CSRFToken'] = csrfToken;
+    var token = getCsrfToken();
+    if (token) {
+      event.detail.headers['X-CSRFToken'] = token;
     }
   });
 

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "UPI Payment" %} | JOYMED HEALTHCARE{% endblock %}
+
+{% block content %}
+<div class="container page-container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-5 text-center">
+      <div class="card shadow-sm p-4 border-0 rounded-3">
+        <h3 class="fw-bold mb-2">{% trans "Pay via UPI" %}</h3>
+        <p class="text-muted mb-4">{% trans "Order Reference:" %} <strong>{{ order.order_number }}</strong></p>
+
+        <div class="bg-light p-3 rounded mb-4 text-start">
+          <div class="d-flex justify-content-between mb-2">
+            <span>{% trans "Pay to:" %}</span>
+            <span class="fw-semibold">{{ vendor_upi_id }}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>{% trans "Amount:" %}</span>
+            <span class="fw-bold fs-5 text-success">{{ order.currency.symbol }}{{ order.total_amount }}</span>
+          </div>
+        </div>
+
+        <div class="upi-qr-card mx-auto mb-4">
+          <img src="{{ qr_code_data_uri }}" alt="{% trans 'UPI payment QR code' %}" class="upi-qr-card__img">
+        </div>
+        <p class="text-muted small mb-4">{% trans "Scan this QR code with any UPI app to pay." %}</p>
+
+        <a href="{{ upi_uri }}" id="upi-pay-now-btn" class="btn btn-floward btn-lg w-100 py-3 mb-3">
+          {% trans "Pay Now" %}
+        </a>
+
+        <a href="{% url 'checkout:confirmation' order.pk %}" id="upi-complete-link" class="btn btn-link text-muted small d-block">
+          {% trans "I've completed the payment" %}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var payNowBtn = document.getElementById("upi-pay-now-btn");
+    var completeLink = document.getElementById("upi-complete-link");
+    if (payNowBtn && completeLink) {
+      payNowBtn.addEventListener("click", function () {
+        setTimeout(function () {
+          completeLink.textContent = "{% trans 'Place Order' %}";
+          completeLink.classList.remove("btn-link", "text-muted", "small");
+          completeLink.classList.add("btn", "btn-floward", "btn-lg", "w-100", "py-3", "upi-place-order-btn");
+        }, 5000);
+      });
+    }
+  });
+</script>
+{% endblock %}

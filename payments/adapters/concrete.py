@@ -187,6 +187,45 @@ class CashOnDeliveryAdapter(PaymentGatewayAdapter):
         return PaymentCaptureResult(success=True, transaction_id=f"cod_refund_{transaction_id}")
 
 
+class UPIQRAdapter(PaymentGatewayAdapter):
+    """
+    Direct merchant UPI QR/deep-link payment — no gateway, no verification.
+
+    The customer scans the vendor's UPI QR (or taps a UPI app deep link) and
+    pays the vendor directly; the admin reconciles payment manually, same as COD.
+    """
+
+    key = "upi"
+    display_name = "UPI / QR Code"
+    is_async = False
+
+    def create_payment_intent(
+        self,
+        *,
+        amount: Decimal,
+        currency: str,
+        metadata: dict[str, Any],
+    ) -> PaymentIntentResult:
+        intent_id = f"upi_pi_{uuid.uuid4().hex[:16]}"
+        return PaymentIntentResult(
+            intent_id=intent_id,
+            metadata={"amount": str(amount), "currency": currency, **metadata},
+        )
+
+    def verify_webhook(self, *, payload: bytes, signature: str) -> dict[str, Any]:
+        raise NotImplementedError("Direct UPI payments do not use webhooks.")
+
+    def capture(self, *, intent_id: str) -> PaymentCaptureResult:
+        return PaymentCaptureResult(
+            success=True,
+            transaction_id=f"upi_tx_{intent_id}",
+            metadata={"gateway": self.key},
+        )
+
+    def refund(self, *, transaction_id: str, amount: Decimal) -> PaymentCaptureResult:
+        return PaymentCaptureResult(success=True, transaction_id=f"upi_refund_{transaction_id}")
+
+
 def _get_razorpay_credentials() -> tuple[str, str]:
     try:
         from core.models import SiteSettings

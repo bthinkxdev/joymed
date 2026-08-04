@@ -12,6 +12,7 @@
         hx-post="{% url 'checkout:place-order' %}" hx-target="#checkout-result" hx-swap="innerHTML">
         {% csrf_token %}
         <input type="hidden" name="idempotency_key" value="{{ checkout_session.pk }}-{{ summary.grand_total }}-{{ summary.lines|length }}-{{ request.user.pk|default:'guest' }}">
+        <input type="hidden" name="buy_now_item_id" value="{{ checkout_session.buy_now_item_id|default:'' }}">
 
         <div class="checkout-step">
           <h2>{% trans "Delivery Address" %}</h2>

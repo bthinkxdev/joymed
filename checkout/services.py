@@ -27,22 +27,33 @@ def create_checkout_session(
     cart: Cart,
     customer_profile: Optional[CustomerProfile] = None,
     session_key: str = "",
+    buy_now_item_id: Optional[int] = None,
 ) -> CheckoutSession:
     """
     Start or return the draft checkout session for a cart.
 
-    Query guarantee: 0–1 SELECT + 0–1 INSERT.
+    ``buy_now_item_id`` scopes the session to a single cart line ("Buy Now"
+    from the product page) instead of the whole cart. It always overwrites
+    the session's stored value to match the caller's current intent — so
+    visiting the plain checkout page after a Buy Now click correctly clears
+    the scoping back to the full cart.
+
+    Query guarantee: 0–1 SELECT + 0–1 INSERT/UPDATE.
     """
     existing = CheckoutSession.objects.filter(
         cart=cart,
         status=CheckoutSessionStatus.DRAFT,
     ).first()
     if existing:
+        if existing.buy_now_item_id != buy_now_item_id:
+            existing.buy_now_item_id = buy_now_item_id
+            existing.save(update_fields=["buy_now_item", "updated_at"])
         return existing
     return CheckoutSession.objects.create(
         cart=cart,
         customer_profile=customer_profile,
         session_key=session_key,
+        buy_now_item_id=buy_now_item_id,
     )
 
 
@@ -116,7 +127,8 @@ def place_order(
     if session.status != CheckoutSessionStatus.DRAFT:
         raise CheckoutSessionError("Checkout session is not in draft status.")
 
-    summary = get_cart_summary(cart=session.cart)
+    only_item_ids = [session.buy_now_item_id] if session.buy_now_item_id else None
+    summary = get_cart_summary(cart=session.cart, only_item_ids=only_item_ids)
     if not summary.lines:
         raise CheckoutSessionError("Cart is empty.")
 

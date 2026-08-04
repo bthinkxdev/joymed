@@ -1,0 +1,23 @@
+{% load i18n %}
+{% if section_context.banner.image_url %}
+<section class="jm-section">
+  <div class="container">
+    <a href="{% if section_context.banner.link_url %}{{ section_context.banner.link_url }}{% else %}{% url 'catalog:rental-list' %}{% endif %}" class="jm-promo-banner">
+      <img src="{{ section_context.banner.image_url }}" alt="{{ section_context.title }}" width="1200" height="320" loading="lazy">
+    </a>
+  </div>
+</section>
+{% else %}
+<section class="jm-section">
+  <div class="container">
+    <aside class="jm-wholesale jm-wholesale--wide">
+      <div class="jm-wholesale__inner">
+        <p class="jm-wholesale__eyebrow">{% trans "Flexible Equipment Rental" %}</p>
+        <h3 class="jm-wholesale__title">{% if section_context.title %}{{ section_context.title }}{% else %}{% trans "Rent Medical Equipment" %}{% endif %}</h3>
+        <p class="jm-wholesale__text">{% if section_context.banner.subtitle %}{{ section_context.banner.subtitle }}{% else %}{% trans "Affordable short & long-term rentals for hospitals, clinics & home care." %}{% endif %}</p>
+        <a href="{% url 'catalog:rental-list' %}" class="btn btn-floward">{% trans "Browse Rentals" %}</a>
+      </div>
+    </aside>
+  </div>
+</section>
+{% endif %}

@@ -53,6 +53,15 @@ class CheckoutSession(TimeStampedModel):
         verbose_name="Delivery address",
     )
     delivery_date = models.DateField(null=True, blank=True, verbose_name="Delivery date")
+    buy_now_item = models.ForeignKey(
+        "cart.CartItem",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="buy_now_checkout_sessions",
+        verbose_name="Buy Now item",
+        help_text="When set, checkout is scoped to this single cart line instead of the whole cart.",
+    )
 
     idempotency_key = models.CharField(
         max_length=64,

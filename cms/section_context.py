@@ -39,6 +39,7 @@ def build_section_context(
         "shop_by_category": _shop_by_category,
         "featured_products": _featured,
         "new_arrivals": _new_arrivals,
+        "rental": _banner,
         "best_sellers": _best_sellers,
         "featured_brands": _featured_brands,
         "corporate_gifts_banner": _empty,

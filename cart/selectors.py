@@ -139,9 +139,13 @@ def get_wishlist_product_ids(*, request: HttpRequest) -> set[int]:
     return set(_wishlist_items_qs(request=request).values_list("product_id", flat=True))
 
 
-def get_cart_summary(*, cart: Cart) -> CartSummary:
+def get_cart_summary(*, cart: Cart, only_item_ids: Optional[list[int]] = None) -> CartSummary:
     """
     Return a fully computed cart summary for drawer, checkout, and payment.
+
+    ``only_item_ids``, when given, scopes the summary to those specific cart
+    lines only — used by the single-product "Buy Now" checkout flow so it
+    charges just the clicked item instead of the customer's whole cart.
 
     Query guarantee:
       1) cart items SELECT with select_related(product, variant, category, brand)
@@ -152,8 +156,12 @@ def get_cart_summary(*, cart: Cart) -> CartSummary:
     Cross-app boundary: gift snapshot hydration is delegated exclusively to
     ``gifting.selectors.get_gift_customization_snapshot``.
     """
+    items_qs = CartItem.objects.filter(cart=cart)
+    if only_item_ids is not None:
+        items_qs = items_qs.filter(pk__in=only_item_ids)
+
     items = list(
-        CartItem.objects.filter(cart=cart)
+        items_qs
         .select_related(
             "product",
             "product__category",

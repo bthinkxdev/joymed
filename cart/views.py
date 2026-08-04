@@ -144,12 +144,13 @@ def cart_add_view(request: HttpRequest) -> HttpResponse:
 
     if buy_now:
         from django.urls import reverse
-        checkout_url = reverse("checkout:checkout")
+        from urllib.parse import urlencode
+        checkout_url = reverse("checkout:checkout") + "?" + urlencode({"buy_now_item": new_item.pk})
         if request.headers.get("HX-Request"):
             response = HttpResponse(status=204)
             response["HX-Redirect"] = checkout_url
             return response
-        return redirect("checkout:checkout")
+        return redirect(checkout_url)
 
     return _cart_drawer_response(
         request,

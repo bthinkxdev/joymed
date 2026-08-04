@@ -35,7 +35,10 @@ def confirm_payment_success(*, payment_transaction: PaymentTransaction) -> Payme
         if order.cart:
             cart = order.cart
             from cart.models import CartItem
-            CartItem.objects.filter(cart=cart).delete()
+            if session and session.buy_now_item_id:
+                CartItem.objects.filter(cart=cart, pk=session.buy_now_item_id).delete()
+            else:
+                CartItem.objects.filter(cart=cart).delete()
 
         #send order placement confirmation email
         from notifications.tasks import dispatch_order_confirmation_notification
@@ -104,8 +107,10 @@ def process_payment(
 
     if capture.success:
         confirm_payment_success(payment_transaction=payment_tx)
-        #COD checkouts are successful, but the payment itself should remain Pending until the admin manually collects the cash and marks it as Success.
-        if gateway_key == "cod":
+        #COD and direct UPI checkouts are successful, but the payment itself should remain
+        #Pending until the admin manually reconciles it (collects cash / checks bank statement)
+        #and marks it as Success.
+        if gateway_key in ("cod", "upi"):
             payment_tx.status = PaymentStatus.PENDING
             payment_tx.save(update_fields=["status", "updated_at"])
     else:

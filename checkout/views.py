@@ -23,7 +23,14 @@ from payments.services import process_payment
 def checkout_view(request: HttpRequest) -> HttpResponse:
     """Multi-step checkout page with gift Order Preview partial."""
     cart = get_or_create_cart(request=request)
-    summary = get_cart_summary(cart=cart)
+
+    buy_now_item_id = None
+    buy_now_item_raw = request.GET.get("buy_now_item")
+    if buy_now_item_raw:
+        from cart.models import CartItem
+        buy_now_item_id = CartItem.objects.filter(pk=buy_now_item_raw, cart=cart).values_list("pk", flat=True).first()
+
+    summary = get_cart_summary(cart=cart, only_item_ids=[buy_now_item_id] if buy_now_item_id else None)
     if not summary.lines:
         return redirect("catalog:plp")
 
@@ -37,6 +44,7 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
         cart=cart,
         customer_profile=profile,
         session_key=request.session.session_key or "",
+        buy_now_item_id=buy_now_item_id,
     )
 
 
@@ -74,10 +82,15 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
 
     from payments.adapters.concrete import _get_razorpay_credentials
     razorpay_key, razorpay_secret = _get_razorpay_credentials()
-    
+
+    from core.services import get_site_settings
+    vendor_upi_id = get_site_settings().vendor_upi_id.strip()
+
     available_gateways = {}
     for key, adapter in PAYMENT_GATEWAYS.items():
         if key.startswith("razorpay") and (not razorpay_key or not razorpay_secret):
+            continue
+        if key == "upi" and not vendor_upi_id:
             continue
         available_gateways[key] = adapter
 
@@ -120,14 +133,25 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
     if cart is None:
         raise Http404("Cart not found.")
 
+    buy_now_item_id = None
+    buy_now_item_raw = request.POST.get("buy_now_item_id")
+    if buy_now_item_raw:
+        from cart.models import CartItem
+        buy_now_item_id = CartItem.objects.filter(pk=buy_now_item_raw, cart=cart).values_list("pk", flat=True).first()
+
     if request.user.is_authenticated:
         from accounts.services import ensure_customer_profile_for_user
         profile = ensure_customer_profile_for_user(user=request.user)
     else:
         profile = None
 
-    session = create_checkout_session(cart=cart, customer_profile=profile, session_key=request.session.session_key or "")
-    
+    session = create_checkout_session(
+        cart=cart,
+        customer_profile=profile,
+        session_key=request.session.session_key or "",
+        buy_now_item_id=buy_now_item_id,
+    )
+
     address = None
     address_form = CheckoutAddressForm(request.POST)
     if address_form.is_valid() and address_form.cleaned_data.get("address_id") and profile:
@@ -263,6 +287,14 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
             return response
         return redirect(pay_url)
 
+    if gateway_key == "upi":
+        pay_url = reverse("checkout:upi-pay", kwargs={"order_id": order.pk})
+        if request.headers.get("HX-Request"):
+            response = HttpResponse()
+            response["HX-Redirect"] = pay_url
+            return response
+        return redirect(pay_url)
+
     confirmation_url = reverse("checkout:confirmation", kwargs={"order_id": order.pk})
     if request.headers.get("HX-Request"):
         response = HttpResponse()
@@ -282,6 +314,58 @@ def checkout_confirmation_view(request: HttpRequest, order_id: int) -> HttpRespo
         "checkout/confirmation_page.html",
         {
             "order": order,
+        },
+    )
+
+
+@require_GET
+def upi_pay_view(request: HttpRequest, order_id: int) -> HttpResponse:
+    """Render the direct merchant UPI payment page (QR code + app deep link)."""
+    import base64
+    import io
+    from urllib.parse import quote
+
+    import qrcode
+    from django.shortcuts import get_object_or_404
+
+    from core.services import get_site_settings
+    from orders.models import Order
+
+    order = get_object_or_404(Order, pk=order_id)
+    site_settings = get_site_settings()
+    vendor_upi_id = site_settings.vendor_upi_id.strip()
+    if not vendor_upi_id:
+        raise Http404("UPI payments are not configured.")
+
+    payee_name = site_settings.site_name or "JOYMED HEALTHCARE"
+    amount = str(order.total_amount)
+    note = f"Order {order.order_number}"
+
+    upi_uri = (
+        "upi://pay?"
+        f"pa={quote(vendor_upi_id)}"
+        f"&pn={quote(payee_name)}"
+        f"&am={quote(amount)}"
+        "&cu=INR"
+        f"&tn={quote(note)}"
+    )
+
+    qr = qrcode.QRCode(border=2, box_size=8)
+    qr.add_data(upi_uri)
+    qr.make(fit=True)
+    qr_image = qr.make_image(fill_color="black", back_color="white")
+    buffer = io.BytesIO()
+    qr_image.save(buffer, format="PNG")
+    qr_code_data_uri = "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode("ascii")
+
+    return render(
+        request,
+        "checkout/upi_pay.html",
+        {
+            "order": order,
+            "vendor_upi_id": vendor_upi_id,
+            "upi_uri": upi_uri,
+            "qr_code_data_uri": qr_code_data_uri,
         },
     )
 

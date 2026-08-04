@@ -243,6 +243,12 @@ class SiteSettings(TimeStampedModel):
         verbose_name="Razorpay Key Secret",
         help_text="Razorpay Key Secret / Test Key Secret for payment signature verification.",
     )
+    vendor_upi_id = models.CharField(
+        max_length=120,
+        blank=True,
+        verbose_name="Vendor UPI ID",
+        help_text="UPI ID (e.g. yourname@okbank) used to generate the checkout payment QR code.",
+    )
 
     class Meta:
         verbose_name = "Site settings"

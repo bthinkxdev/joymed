@@ -16,6 +16,7 @@ class HomepageSectionType(models.TextChoices):
     SHOP_BY_CATEGORY = "shop_by_category", "Shop by Category"
     FEATURED_PRODUCTS = "featured_products", "Featured Products"
     NEW_ARRIVALS = "new_arrivals", "New Arrivals"
+    RENTAL = "rental", "Rental"
     BEST_SELLERS = "best_sellers", "Best Sellers"
     FEATURED_BRANDS = "featured_brands", "Featured Brands"
     SUBSCRIPTION_BANNER = "subscription_banner", "Subscription Banner"
