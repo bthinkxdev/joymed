@@ -61,19 +61,19 @@
                 {% for wform in wholesale_tiers %}
                 <tr>
                   <td class="d-none">{{ wform.id }}</td>
-                  <td>
+                  <td data-label="Min Quantity">
                     {{ wform.min_quantity }}
                     {% if wform.min_quantity.errors %}<div class="text-danger small mt-1">{{ wform.min_quantity.errors|join:", " }}</div>{% endif %}
                   </td>
-                  <td>
+                  <td data-label="Max Quantity">
                     {{ wform.max_quantity }}
                     {% if wform.max_quantity.errors %}<div class="text-danger small mt-1">{{ wform.max_quantity.errors|join:", " }}</div>{% endif %}
                   </td>
-                  <td>
+                  <td data-label="Price Per Unit">
                     {{ wform.price }}
                     {% if wform.price.errors %}<div class="text-danger small mt-1">{{ wform.price.errors|join:", " }}</div>{% endif %}
                   </td>
-                  <td class="text-center">
+                  <td class="text-center" data-label="Remove">
                     {% if wform.instance.pk %}
                     <label class="form-check d-inline-flex m-0" title="Delete on save">{{ wform.DELETE }}</label>
                     {% else %}
@@ -135,27 +135,27 @@
                 {% for vform in variants %}
                 <tr>
                   <td class="d-none">{{ vform.id }}</td>
-                  <td>
+                  <td data-label="Type">
                     {{ vform.variant_type }}
                     {% if vform.variant_type.errors %}<div class="text-danger small mt-1">{{ vform.variant_type.errors|join:", " }}</div>{% endif %}
                   </td>
-                  <td>
+                  <td data-label="Name">
                     {{ vform.name }}
                     {% if vform.name.errors %}<div class="text-danger small mt-1">{{ vform.name.errors|join:", " }}</div>{% endif %}
                   </td>
-                  <td>
+                  <td data-label="Price delta">
                     {{ vform.price_delta }}
                     {% if vform.price_delta.errors %}<div class="text-danger small mt-1">{{ vform.price_delta.errors|join:", " }}</div>{% endif %}
                   </td>
-                  <td>
+                  <td data-label="SKU suffix">
                     {{ vform.sku_suffix }}
                     {% if vform.sku_suffix.errors %}<div class="text-danger small mt-1">{{ vform.sku_suffix.errors|join:", " }}</div>{% endif %}
                   </td>
-                  <td>
+                  <td data-label="Stock">
                     {{ vform.stock_quantity }}
                     {% if vform.stock_quantity.errors %}<div class="text-danger small mt-1">{{ vform.stock_quantity.errors|join:", " }}</div>{% endif %}
                   </td>
-                  <td class="text-center">
+                  <td class="text-center" data-label="Remove">
                     {% if vform.instance.pk %}
                     <label class="form-check d-inline-flex m-0" title="Delete on save">{{ vform.DELETE }}</label>
                     {% else %}
@@ -214,28 +214,28 @@
                 {% for iform in images %}
                 <tr>
                   <td class="d-none">{{ iform.id }}</td>
-                  <td>
+                  <td data-label="Preview">
                     {% if iform.instance.pk and iform.instance.image %}<img src="{{ iform.instance.image.url }}"
                       class="thumb" data-img-preview alt="">
                     {% else %}<img src="" class="thumb d-none" data-img-preview alt="">{% endif %}
                   </td>
-                  <td>
+                  <td data-label="Image file">
                     {{ iform.image }}
                     {% if iform.image.errors %}<div class="text-danger small mt-1">{{ iform.image.errors|join:", " }}</div>{% endif %}
                   </td>
-                  <td>
+                  <td data-label="Alt text">
                     {{ iform.alt_text }}
                     {% if iform.alt_text.errors %}<div class="text-danger small mt-1">{{ iform.alt_text.errors|join:", " }}</div>{% endif %}
                   </td>
-                  <td>
+                  <td data-label="Order">
                     {{ iform.display_order }}
                     {% if iform.display_order.errors %}<div class="text-danger small mt-1">{{ iform.display_order.errors|join:", " }}</div>{% endif %}
                   </td>
-                  <td class="text-center">
+                  <td class="text-center" data-label="Primary">
                     {{ iform.is_primary }}
                     {% if iform.is_primary.errors %}<div class="text-danger small mt-1">{{ iform.is_primary.errors|join:", " }}</div>{% endif %}
                   </td>
-                  <td class="text-center">
+                  <td class="text-center" data-label="Remove">
                     {% if iform.instance.pk %}
                     <label class="form-check d-inline-flex m-0" title="Delete on save">{{ iform.DELETE }}</label>
                     {% else %}
@@ -292,25 +292,25 @@
                     {{ sform.id }}
                     {% if sform.instance.pk %}{{ sform.DELETE }}{% endif %}
                   </td>
-                  <td>
+                  <td data-label="Name">
                     {{ sform.name }}
                     {% if sform.name.errors %}
                     <div class="text-danger small mt-1">{{ sform.name.errors|join:", " }}</div>
                     {% endif %}
                   </td>
-                  <td>
+                  <td data-label="Value">
                     {{ sform.value }}
                     {% if sform.value.errors %}
                     <div class="text-danger small mt-1">{{ sform.value.errors|join:", " }}</div>
                     {% endif %}
                   </td>
-                  <td>
+                  <td data-label="Order">
                     {{ sform.display_order }}
                     {% if sform.display_order.errors %}
                     <div class="text-danger small mt-1">{{ sform.display_order.errors|join:", " }}</div>
                     {% endif %}
                   </td>
-                  <td class="text-center">
+                  <td class="text-center" data-label="Remove">
                     <button type="button" class="btn btn-icon btn-sm btn-light text-danger" data-row-remove
                       title="Remove Specification">
                       <i class="ti ti-trash"></i>
@@ -370,13 +370,13 @@
                     {{ dform.id }}
                     {% if dform.instance.pk %}{{ dform.DELETE }}{% endif %}
                   </td>
-                  <td>
+                  <td data-label="Title">
                     {{ dform.title }}
                     {% if dform.title.errors %}
                     <div class="text-danger small mt-1">{{ dform.title.errors|join:", " }}</div>
                     {% endif %}
                   </td>
-                  <td>
+                  <td data-label="File">
                     {% if dform.instance.pk and dform.instance.document_file %}
                     <div class="d-flex align-items-center mb-1 py-1" data-existing-file-container>
                       <span class="small fw-semibold text-dark text-truncate" style="max-width: 250px;" data-file-label>
@@ -399,13 +399,13 @@
                     <div class="text-danger small mt-1">{{ dform.document_file.errors|join:", " }}</div>
                     {% endif %}
                   </td>
-                  <td>
+                  <td data-label="Order">
                     {{ dform.display_order }}
                     {% if dform.display_order.errors %}
                     <div class="text-danger small mt-1">{{ dform.display_order.errors|join:", " }}</div>
                     {% endif %}
                   </td>
-                  <td class="text-center" data-view-container>
+                  <td class="text-center" data-view-container data-label="View">
                     {% if dform.instance.pk and dform.instance.document_file %}
                     <a href="{{ dform.instance.document_file.url }}" target="_blank"
                       class="btn btn-icon btn-sm btn-light text-info" data-view-btn title="View Document"><i
@@ -414,7 +414,7 @@
                     <span class="text-muted small" data-view-placeholder>-</span>
                     {% endif %}
                   </td>
-                  <td class="text-center">
+                  <td class="text-center" data-label="Remove">
                     <button type="button" class="btn btn-icon btn-sm btn-light text-danger" data-row-remove
                       title="Remove Document">
                       <i class="ti ti-trash"></i>

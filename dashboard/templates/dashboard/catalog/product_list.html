@@ -64,7 +64,7 @@
       <tbody>
         {% for obj in objects %}
         <tr>
-          <td>
+          <td data-label="Product">
             <div class="d-flex align-items-center gap-3">
               {% with img=obj|primary_image %}
               {% if img %}<img src="{{ img }}" class="thumb" alt="">{% else %}<span class="thumb thumb-fallback">{{ obj.name|first|upper }}</span>{% endif %}
@@ -79,10 +79,10 @@
               </div>
             </div>
           </td>
-          <td><span class="text-secondary">{{ obj.sku }}</span></td>
-          <td>{% if obj.category_id %}<span class="pill pill-gray">{{ obj.category.name }}</span>{% else %}<span class="text-secondary">—</span>{% endif %}</td>
-          <td class="text-end fw-semibold">{{ currency_symbol }}{{ obj.base_price|floatformat:2 }}</td>
-          <td>
+          <td data-label="SKU"><span class="text-secondary">{{ obj.sku }}</span></td>
+          <td data-label="Category">{% if obj.category_id %}<span class="pill pill-gray">{{ obj.category.name }}</span>{% else %}<span class="text-secondary">—</span>{% endif %}</td>
+          <td class="text-end fw-semibold" data-label="Price">{{ currency_symbol }}{{ obj.base_price|floatformat:2 }}</td>
+          <td data-label="Stock">
             {% if obj.stock_quantity == 0 %}
               <span class="pill pill-red">Out of stock</span>
             {% elif obj.stock_quantity <= obj.low_stock_threshold %}
@@ -91,10 +91,10 @@
               <span class="pill pill-green">{{ obj.stock_quantity }} in stock</span>
             {% endif %}
           </td>
-          <td>
+          <td data-label="Status">
             {% if obj.is_active %}<span class="pill pill-green">Active</span>{% else %}<span class="pill pill-gray">Inactive</span>{% endif %}
           </td>
-          <td class="text-end">
+          <td class="text-end" data-label="Actions">
             <div class="d-inline-flex gap-1">
               <a href="{% url 'dashboard:product-update' obj.pk %}" class="btn btn-icon btn-sm btn-light" title="Edit"><i class="ti ti-edit"></i></a>
               <a href="{% url 'dashboard:product-delete' obj.pk %}" class="btn btn-icon btn-sm btn-light text-danger" title="Delete"><i class="ti ti-trash"></i></a>

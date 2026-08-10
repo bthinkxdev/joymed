@@ -22,11 +22,11 @@
           <tbody>
             {% for item in items %}
             <tr>
-              <td>{{ item.product.name }}</td>
-              <td>{{ item.variant.name|default:"—" }}</td>
-              <td>{{ item.quantity }}</td>
-              <td>{{ item.unit_price|floatformat:2 }}</td>
-              <td>{{ item.quantity|floatformat:0 }} × {{ item.unit_price|floatformat:2 }}</td>
+              <td data-label="Product">{{ item.product.name }}</td>
+              <td data-label="Variant">{{ item.variant.name|default:"—" }}</td>
+              <td data-label="Qty">{{ item.quantity }}</td>
+              <td data-label="Unit price">{{ item.unit_price|floatformat:2 }}</td>
+              <td data-label="Line total">{{ item.quantity|floatformat:0 }} × {{ item.unit_price|floatformat:2 }}</td>
             </tr>
             {% empty %}
             <tr><td colspan="5" class="text-center text-secondary py-4">No items.</td></tr>
@@ -66,10 +66,10 @@
           <tbody>
             {% for pay in payments %}
             <tr>
-              <td>{{ pay.gateway_key }}</td>
-              <td>{{ pay.amount|floatformat:2 }} {{ pay.currency.code }}</td>
-              <td><span class="badge bg-secondary-subtle text-secondary">{{ pay.get_status_display }}</span></td>
-              <td class="small text-muted">{{ pay.external_transaction_id|default:"—" }}</td>
+              <td data-label="Gateway">{{ pay.gateway_key }}</td>
+              <td data-label="Amount">{{ pay.amount|floatformat:2 }} {{ pay.currency.code }}</td>
+              <td data-label="Status"><span class="badge bg-secondary-subtle text-secondary">{{ pay.get_status_display }}</span></td>
+              <td class="small text-muted" data-label="Reference">{{ pay.external_transaction_id|default:"—" }}</td>
             </tr>
             {% empty %}
             <tr><td colspan="4" class="text-center text-secondary py-4">No payment records.</td></tr>
