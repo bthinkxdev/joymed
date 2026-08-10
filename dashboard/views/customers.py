@@ -22,35 +22,22 @@ class CustomerListView(DashboardListView):
     select_related = ["user", "user__wholesaler_profile"]
     can_create = False
     can_delete = False
-    template_name = "dashboard/customers/list.html"
     columns = [
         {"label": "Name", "name": "user.get_full_name"},
         {"label": "Email", "name": "user.email"},
         {"label": "Phone", "name": "get_phone"},
-        {"label": "Type", "name": "get_customer_type_label"},
         {"label": "Verified", "name": "phone_verified", "type": "bool"},
     ]
 
     def get_queryset(self):
         qs = super().get_queryset()
-        active_tab = self.request.GET.get("tab", "all").strip().lower()
-        if active_tab == "retail":
-            from django.db.models import Q
-            qs = qs.filter(
-                Q(user__wholesaler_profile__isnull=True) |
-                ~Q(user__wholesaler_profile__approval_status="approved")
-            )
-        elif active_tab == "wholesale":
-            qs = qs.filter(
-                user__wholesaler_profile__isnull=False,
-                user__wholesaler_profile__approval_status="approved"
-            )
+        from django.db.models import Q
+        # Exclude approved wholesalers, since they have a separate list
+        qs = qs.filter(
+            Q(user__wholesaler_profile__isnull=True) |
+            ~Q(user__wholesaler_profile__approval_status="approved")
+        )
         return qs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["active_tab"] = self.request.GET.get("tab", "all").strip().lower()
-        return context
 
 
 class CustomerUpdateView(DashboardUpdateView):
