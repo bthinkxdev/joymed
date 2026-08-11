@@ -920,3 +920,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 })();
+
+/*newsletter AJAX submission*/
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('jm-newsletter-form');
+  const messageDiv = document.getElementById('jm-newsletter-message');
+  
+  if (form && messageDiv) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      
+      const formData = new FormData(form);
+      const url = form.getAttribute('action');
+      const submitBtn = form.querySelector('button[type="submit"]');
+      
+      submitBtn.disabled = true;
+      messageDiv.style.display = 'none';
+      messageDiv.className = 'mb-3';
+      
+      fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        messageDiv.style.display = 'block';
+        if (data.success) {
+          messageDiv.classList.add('text-success');
+          messageDiv.textContent = data.message;
+          form.reset();
+        } else {
+          messageDiv.classList.add('text-danger');
+          if (data.errors && data.errors.email) {
+            messageDiv.textContent = data.errors.email[0];
+          } else {
+            messageDiv.textContent = 'Invalid email address.';
+          }
+        }
+      })
+      .catch(error => {
+        messageDiv.style.display = 'block';
+        messageDiv.classList.add('text-danger');
+        messageDiv.textContent = 'An error occurred. Please try again.';
+      })
+      .finally(() => {
+        submitBtn.disabled = false;
+      });
+    });
+  }
+});

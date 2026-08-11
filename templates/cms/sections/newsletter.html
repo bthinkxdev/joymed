@@ -6,8 +6,9 @@
         <h2 class="section-title">{% if section_context.title %}{{ section_context.title }}{% else %}{% trans "Stay Informed" %}{% endif %}</h2>
         <p class="section-subtitle mb-0">{% trans "Product updates, clinical tips, and exclusive institutional offers — no spam." %}</p>
       </div>
-      <form class="jm-newsletter__form" method="post" action="{% url 'marketing:newsletter-subscribe' %}">
+      <form class="jm-newsletter__form" method="post" action="{% url 'marketing:newsletter-subscribe' %}" id="jm-newsletter-form">
         {% csrf_token %}
+        <div id="jm-newsletter-message" class="mb-3" style="display: none; font-size: 0.875rem; text-align: left;"></div>
         <label class="visually-hidden" for="jm-newsletter-email">{% trans "Email" %}</label>
         <input id="jm-newsletter-email" type="email" name="email" class="form-control" placeholder="{{ section_context.placeholder|default:'Email address' }}" required aria-label="{% trans 'Email' %}">
         <button type="submit" class="btn btn-floward">{% trans "Subscribe" %}</button>
