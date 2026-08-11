@@ -94,7 +94,7 @@ class HeroSlide(TimeStampedModel):
         upload_to="cms/hero/images/",
         blank=True,
         verbose_name="Photo",
-        help_text="Photo slide. Ignored when a video is uploaded.",
+        help_text="Banner images should have the same resolution. Image is ignored when a video is uploaded.",
     )
     video = models.FileField(
         upload_to="cms/hero/videos/",

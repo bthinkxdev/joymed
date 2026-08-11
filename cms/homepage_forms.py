@@ -68,7 +68,10 @@ class MarketingFeaturesConfigForm(BaseSectionConfigForm):
 
 
 class BannerConfigForm(BaseSectionConfigForm):
-    image_url = forms.URLField(required=False)
+    image_url = forms.URLField(
+        required=False,
+        help_text="All banners should have the same resolution."
+    )
     link_url = forms.URLField(required=False)
     subtitle = forms.CharField(max_length=200, required=False)
 

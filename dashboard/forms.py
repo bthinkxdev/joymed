@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from django import forms
+from django.core.files.images import get_image_dimensions
 from django.utils.text import slugify
 
 from accounts.models import CustomerProfile, Wholesaler
@@ -366,6 +367,44 @@ class HeroSlideForm(forms.ModelForm):
     class Meta:
         model = HeroSlide
         fields = ["title", "image", "video", "poster", "display_order", "is_active"]
+
+    def clean_image(self):
+        image = self.cleaned_data.get("image")
+        if image:
+            from django.core.files.images import get_image_dimensions
+            width, height = get_image_dimensions(image)
+            
+            aspect_ratio = width / height
+            if not (1.95 <= aspect_ratio <= 2.05):
+                raise forms.ValidationError(
+                    f"Banner image must have approximately a 2:1 aspect ratio. "
+                    f"Uploaded image is {width}x{height}."
+                )
+            
+            if width < 1000:
+                raise forms.ValidationError(
+                    f"Banner image must be at least 1000px wide for good quality. Uploaded image is {width}px wide."
+                )
+                
+        return image
+
+    def clean_poster(self):
+        poster = self.cleaned_data.get("poster")
+        if poster:
+            from django.core.files.images import get_image_dimensions
+            width, height = get_image_dimensions(poster)
+            
+            if width != height * 2:
+                raise forms.ValidationError(
+                    f"Poster image must have exactly a 2:1 aspect ratio. Uploaded image is {width}x{height}."
+                )
+            
+            if width < 1200:
+                raise forms.ValidationError(
+                    f"Poster image must be at least 1200px wide. Uploaded image is {width}px wide."
+                )
+                
+        return poster
 
 
 class BlogPostForm(SlugAutoMixin):
