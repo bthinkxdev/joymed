@@ -4598,6 +4598,25 @@ body.mobile-search-open .jm-wa-float {
   pointer-events: none;
 }
 
+.jm-product-card__badges {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.jm-product-card__badges .product-badge {
+  position: relative;
+  top: auto;
+  left: auto;
+  z-index: auto;
+}
+
 .jm-product-card__hover {
   position: absolute;
   top: 10px;

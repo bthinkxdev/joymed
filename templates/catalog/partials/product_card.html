@@ -24,15 +24,31 @@
       {% endwith %}
     </a>
 
-    {% if product.is_flash_sale %}
-    <span class="product-badge product-badge--flash">{% if product.flash_discount_percentage %}-{{ product.flash_discount_percentage|floatformat:0 }}%{% else %}{% trans "Sale" %}{% endif %}</span>
-    {% elif product.is_featured %}
-    <span class="product-badge product-badge--same-day">{% trans "Featured" %}</span>
-    {% elif product.is_bestseller %}
-    <span class="product-badge product-badge--express">{% trans "Bestseller" %}</span>
-    {% elif product.is_new_arrival %}
-    <span class="product-badge product-badge--new">{% trans "New" %}</span>
-    {% endif %}
+    <div class="jm-product-card__badges">
+      {% if product.is_flash_sale %}
+      <span class="product-badge product-badge--flash">{% if product.flash_discount_percentage %}-{{ product.flash_discount_percentage|floatformat:0 }}%{% else %}{% trans "Sale" %}{% endif %}</span>
+      {% endif %}
+
+      {% if force_badge == 'featured' %}
+      <span class="product-badge product-badge--same-day">{% trans "Featured" %}</span>
+      {% elif force_badge == 'bestseller' %}
+      <span class="product-badge product-badge--express">{% trans "Bestseller" %}</span>
+      {% elif force_badge == 'new' %}
+      <span class="product-badge product-badge--new">{% trans "New" %}</span>
+      {% endif %}
+      {% comment %}
+      Default automatic badge logic commented out to keep PLP clean
+      {% if not force_badge %}
+        {% if product.is_featured %}
+        <span class="product-badge product-badge--same-day">{% trans "Featured" %}</span>
+        {% elif product.is_bestseller %}
+        <span class="product-badge product-badge--express">{% trans "Bestseller" %}</span>
+        {% elif product.is_new_arrival %}
+        <span class="product-badge product-badge--new">{% trans "New" %}</span>
+        {% endif %}
+      {% endif %}
+      {% endcomment %}
+    </div>
 
     <div class="jm-product-card__hover">
       <button type="button" class="jm-product-card__icon-btn" data-jm-quick-view aria-label="{% trans 'Quick View' %}" title="{% trans 'Quick View' %}">
