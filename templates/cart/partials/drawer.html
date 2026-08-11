@@ -34,8 +34,10 @@
       {% endif %}
       {% if line.gift_snapshot %}<div class="small text-floward mb-1">{% trans "Gift customized" %}</div>{% endif %}
       
-      {% if line.quantity >= line.product.stock_quantity %}
-      <div class="small text-danger mb-1 mt-1">{% trans "Only" %} {{ line.product.stock_quantity }} {% trans "items available in stock." %}</div>
+      {% if line.has_insufficient_stock %}
+      <div class="small text-danger mb-1 mt-1">
+        {% blocktrans with max_stock=line.max_stock %}Only {{ max_stock }} items available in stock.{% endblocktrans %}
+      </div>
       {% elif error_item_id == line.item.pk %}
       <div class="small text-danger mb-1 mt-1">{{ error }}</div>
       {% endif %}
@@ -54,7 +56,7 @@
           {% csrf_token %}
           <input type="hidden" name="cart_item_id" value="{{ line.item.pk }}">
           <input type="hidden" name="delta" value="1">
-          <button class="qty-stepper__btn" type="submit" aria-label="{% trans 'Increase quantity' %}" {% if line.quantity >= line.product.stock_quantity %}disabled{% endif %} style="padding: 2px 8px; font-size: 14px; border: none; background: transparent;">&plus;</button>
+          <button class="qty-stepper__btn" type="submit" aria-label="{% trans 'Increase quantity' %}" {% if line.quantity >= line.max_stock %}disabled{% endif %} style="padding: 2px 8px; font-size: 14px; border: none; background: transparent;">&plus;</button>
         </form>
       </div>
     </div>
@@ -73,7 +75,11 @@
   <div class="cart-summary-row"><span>{% trans "Delivery" %}</span><span>{{ display_currency.symbol }}{{ summary.delivery_charge }}</span></div>
   <div class="cart-summary-row cart-summary-total"><span>{% trans "Total" %}</span><span class="text-floward">{{ display_currency.symbol }}{{ summary.grand_total }}</span></div>
   <a href="{% url 'cart:page' %}" class="btn btn-outline-floward w-100 py-2 mt-2">{% trans "View Cart" %}</a>
+  {% if summary.has_insufficient_stock %}
+  <button class="btn btn-secondary w-100 py-2 mt-2" disabled>{% trans "Please update your cart" %}</button>
+  {% else %}
   <a href="{% url 'checkout:checkout' %}" class="btn btn-floward w-100 py-2 mt-2">{% trans "Checkout" %}</a>
+  {% endif %}
 </div>
 {% else %}
 <div class="text-center py-4">

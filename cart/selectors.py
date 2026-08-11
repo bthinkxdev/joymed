@@ -58,6 +58,8 @@ class CartSummaryLine:
     quantity: int
     unit_price_at_add: Decimal
     line_subtotal: Decimal
+    has_insufficient_stock: bool = False
+    max_stock: int = 0
 
 
 @dataclass
@@ -72,6 +74,7 @@ class CartSummary:
     delivery_charge: Decimal = Decimal("0.00")
     grand_total: Decimal = Decimal("0.00")
     item_count: int = 0
+    has_insufficient_stock: bool = False
 
 
 def get_cart_by_id(*, cart_id: int) -> Optional[Cart]:
@@ -181,6 +184,7 @@ def get_cart_summary(*, cart: Cart, only_item_ids: Optional[list[int]] = None) -
     lines: list[CartSummaryLine] = []
     subtotal = Decimal("0.00")
     item_count = 0
+    has_insufficient_stock = False
 
     for item in items:
         unit_price = item.unit_price_at_add
@@ -188,6 +192,12 @@ def get_cart_summary(*, cart: Cart, only_item_ids: Optional[list[int]] = None) -
         line_subtotal = unit_price * item.quantity
         subtotal += line_subtotal
         item_count += item.quantity
+        
+        max_stock = item.variant.stock_quantity if item.variant else item.product.stock_quantity
+        line_has_insufficient_stock = item.quantity > max_stock
+        if line_has_insufficient_stock:
+            has_insufficient_stock = True
+
         lines.append(
             CartSummaryLine(
                 item=item,
@@ -196,6 +206,8 @@ def get_cart_summary(*, cart: Cart, only_item_ids: Optional[list[int]] = None) -
                 quantity=item.quantity,
                 unit_price_at_add=unit_price,
                 line_subtotal=line_subtotal,
+                has_insufficient_stock=line_has_insufficient_stock,
+                max_stock=max_stock,
             )
         )
 
@@ -235,4 +247,5 @@ def get_cart_summary(*, cart: Cart, only_item_ids: Optional[list[int]] = None) -
         delivery_charge=delivery_charge,
         grand_total=grand_total,
         item_count=item_count,
+        has_insufficient_stock=has_insufficient_stock,
     )

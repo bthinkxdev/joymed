@@ -146,7 +146,10 @@ def adjust_cart_item_quantity(
 
     max_stock = item.variant.stock_quantity if item.variant else item.product.stock_quantity
     if new_quantity > max_stock:
-        raise InsufficientStockError(f"Only {max_stock} items available in stock.")
+        if delta > 0:
+            raise InsufficientStockError(f"Only {max_stock} items available in stock.")
+        else:
+            new_quantity = max_stock
 
     user = (
         cart.customer_profile.user

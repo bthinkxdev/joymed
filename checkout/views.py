@@ -99,6 +99,7 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
         wholesaler_address = request.user.wholesaler_profile.address
 
     from marketing.selectors import has_any_active_coupons
+    
     return render(
         request,
         "checkout/checkout.html",
@@ -264,11 +265,20 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
             delivery_date=delivery_form.cleaned_data.get("delivery_date"),
         )
 
-    order = place_order(
-        checkout_session_id=session.pk,
-        idempotency_key=form.cleaned_data["idempotency_key"],
-        customer_profile=profile,
-    )
+    from catalog.exceptions import InsufficientStockError
+    try:
+        order = place_order(
+            checkout_session_id=session.pk,
+            idempotency_key=form.cleaned_data["idempotency_key"],
+            customer_profile=profile,
+        )
+    except InsufficientStockError as e:
+        return render(
+            request,
+            "checkout/partials/errors.html",
+            {"errors": {"__all__": [str(e)]}},
+            status=200,
+        )
 
     payment_data = {}
 
