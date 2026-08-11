@@ -1,11 +1,11 @@
 {% load i18n %}
 <form class="plp-filters card p-3" method="get" action="{{ request.path }}" hx-get="{{ request.path }}"
   hx-target="#product-grid" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#product-grid"
-  hx-trigger="submit, change from:select[name=sort]">
+  hx-trigger="submit">
   <h2 class="h6">{% trans "Filters" %}</h2>
   <div class="mb-3">
     <label class="form-label small">{% trans "Category" %}</label>
-    <select name="category" class="form-select form-select-sm" onchange="const sub = this.form.querySelector('select[name=subcategory]'); if(sub) sub.value=''; this.form.action='{% url 'catalog:plp' %}'; this.form.submit();">
+    <select name="category" class="form-select form-select-sm" onchange="const sub = this.form.querySelector('select[name=subcategory]'); if(sub) sub.value=''; this.form.action='{% url 'catalog:plp' %}';">
       <option value="">{% trans "All" %}</option>
       {% for cat in categories %}
       <option value="{{ cat.pk }}" {% if filters.category_id == cat.pk or filters.parent_category_id == cat.pk or active_category.pk == cat.pk or active_category.parent_id == cat.pk %}selected{% endif %}>{{ cat.name }}</option>
@@ -16,7 +16,7 @@
   {% if subcategories %}
   <div class="mb-3">
     <label class="form-label small">{% trans "Subcategory" %}</label>
-    <select name="subcategory" class="form-select form-select-sm" onchange="this.form.submit();">
+    <select name="subcategory" class="form-select form-select-sm">
       <option value="">{% trans "All Subcategories" %}</option>
       {% for sub in subcategories %}
       <option value="{{ sub.pk }}" {% if filters.subcategory_id == sub.pk %}selected{% endif %}>{{ sub.name }}</option>
