@@ -25,7 +25,7 @@ from catalog.selectors import get_product_for_cart_add
 from marketing.exceptions import InvalidCouponError
 
 
-def _cart_drawer_response(request: HttpRequest, *, error: str | None = None, hx_triggers: dict | None = None) -> HttpResponse:
+def _cart_drawer_response(request: HttpRequest, *, error: str | None = None, error_item_id: int | None = None, hx_triggers: dict | None = None) -> HttpResponse:
     """Render cart drawer partial; optionally attach HTMX trigger headers."""
     cart = get_cart_for_request(request=request)
     summary = get_cart_summary(cart=cart) if cart else None
@@ -38,6 +38,7 @@ def _cart_drawer_response(request: HttpRequest, *, error: str | None = None, hx_
             "cart_count": summary.item_count if summary else 0,
             "has_active_coupons": has_any_active_coupons(),
             "error": error,
+            "error_item_id": error_item_id,
         },
     )
     if hx_triggers:
@@ -52,7 +53,7 @@ def cart_drawer_view(request: HttpRequest) -> HttpResponse:
 
 
 def _cart_page_response(
-    request: HttpRequest, *, error: str | None = None, hx_triggers: dict | None = None
+    request: HttpRequest, *, error: str | None = None, error_item_id: int | None = None, hx_triggers: dict | None = None
 ) -> HttpResponse:
     """Render the standalone cart page's swappable body; optionally attach HTMX triggers."""
     cart = get_cart_for_request(request=request)
@@ -65,6 +66,7 @@ def _cart_page_response(
             "summary": summary,
             "cart_count": summary.item_count if summary else 0,
             "error": error,
+            "error_item_id": error_item_id,
             "has_active_coupons": has_any_active_coupons(),
         },
     )
@@ -231,8 +233,8 @@ def cart_quantity_view(request: HttpRequest) -> HttpResponse:
         return _cart_page_response(request, error=_("That item is no longer in your cart."))
     except InsufficientStockError as exc:
         if is_drawer:
-            return _cart_drawer_response(request, error=str(exc))
-        return _cart_page_response(request, error=str(exc))
+            return _cart_drawer_response(request, error=str(exc), error_item_id=form.cleaned_data["cart_item_id"])
+        return _cart_page_response(request, error=str(exc), error_item_id=form.cleaned_data["cart_item_id"])
 
     triggers = {"cartUpdated": None}
     if product_id and updated_item is None:

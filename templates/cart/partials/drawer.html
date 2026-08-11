@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load static %}
 {% if summary and summary.lines %}
-{% if error %}
+{% if error and not error_item_id %}
 <div class="alert alert-danger py-2 small m-3 mb-0" role="alert">{{ error }}</div>
 {% endif %}
 <div class="cart-drawer-scroll">
@@ -34,6 +34,12 @@
       {% endif %}
       {% if line.gift_snapshot %}<div class="small text-floward mb-1">{% trans "Gift customized" %}</div>{% endif %}
       
+      {% if line.quantity >= line.product.stock_quantity %}
+      <div class="small text-danger mb-1 mt-1">{% trans "Only" %} {{ line.product.stock_quantity }} {% trans "items available in stock." %}</div>
+      {% elif error_item_id == line.item.pk %}
+      <div class="small text-danger mb-1 mt-1">{{ error }}</div>
+      {% endif %}
+
       <div class="qty-stepper d-flex align-items-center border rounded-pill overflow-hidden mt-2" style="width: fit-content;">
         <form method="post" action="{% url 'cart:quantity' %}" hx-post="{% url 'cart:quantity' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
           {% csrf_token %}
@@ -48,7 +54,7 @@
           {% csrf_token %}
           <input type="hidden" name="cart_item_id" value="{{ line.item.pk }}">
           <input type="hidden" name="delta" value="1">
-          <button class="qty-stepper__btn" type="submit" aria-label="{% trans 'Increase quantity' %}" style="padding: 2px 8px; font-size: 14px; border: none; background: transparent;">&plus;</button>
+          <button class="qty-stepper__btn" type="submit" aria-label="{% trans 'Increase quantity' %}" {% if line.quantity >= line.product.stock_quantity %}disabled{% endif %} style="padding: 2px 8px; font-size: 14px; border: none; background: transparent;">&plus;</button>
         </form>
       </div>
     </div>

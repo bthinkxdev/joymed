@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load static %}
 <div id="cart-page-body">
-{% if error %}
+{% if error and not error_item_id %}
 <div class="alert alert-danger py-2 small mb-3" role="alert">{{ error }}</div>
 {% endif %}
 
@@ -32,6 +32,12 @@
             {% endif %}
             {% if line.gift_snapshot %}<div class="small text-floward mb-1">{% trans "Gift customized" %}</div>{% endif %}
 
+            {% if line.quantity >= line.product.stock_quantity %}
+            <div class="small text-danger mb-1 mt-1">{% trans "Only" %} {{ line.product.stock_quantity }} {% trans "items available in stock." %}</div>
+            {% elif error_item_id == line.item.pk %}
+            <div class="small text-danger mb-1 mt-1">{{ error }}</div>
+            {% endif %}
+
             <div class="d-flex align-items-center justify-content-between mt-2">
               <div class="qty-stepper d-flex align-items-center border rounded-pill overflow-hidden" style="width: fit-content;">
                 <form method="post" action="{% url 'cart:quantity' %}" hx-post="{% url 'cart:quantity' %}" hx-target="#cart-page-body" hx-swap="outerHTML">
@@ -47,7 +53,7 @@
                   {% csrf_token %}
                   <input type="hidden" name="cart_item_id" value="{{ line.item.pk }}">
                   <input type="hidden" name="delta" value="1">
-                  <button class="qty-stepper__btn" type="submit" aria-label="{% trans 'Increase quantity' %}">&plus;</button>
+                  <button class="qty-stepper__btn" type="submit" aria-label="{% trans 'Increase quantity' %}" {% if line.quantity >= line.product.stock_quantity %}disabled{% endif %}>&plus;</button>
                 </form>
               </div>
 
