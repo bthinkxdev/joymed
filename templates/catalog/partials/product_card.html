@@ -8,7 +8,8 @@
          data-product-badge="{% if product.is_featured %}{% trans 'Featured' %}{% elif product.is_bestseller %}{% trans 'Bestseller' %}{% elif product.is_new_arrival %}{% trans 'New' %}{% endif %}"
          {% with img=product.primary_images.0 %}
          data-product-image="{% if img and img.image %}{{ img.image.url }}{% else %}{% static 'img/product-placeholder.svg' %}{% endif %}"
-         {% endwith %}>
+         {% endwith %}
+         data-in-cart="{% if cart_product_ids and product.pk in cart_product_ids %}true{% else %}false{% endif %}">
   {# Media: only the image sits inside .ratio so Bootstrap does not stretch badge/actions into a full-bleed blocker. #}
   <div class="jm-product-card__media">
     <a href="{% url 'catalog:pdp' slug=product.slug %}" class="jm-product-card__img-link ratio ratio-1x1" tabindex="-1" aria-hidden="true">
@@ -113,12 +114,12 @@
 
     <a class="stretched-link jm-product-card__stretch" href="{% url 'catalog:pdp' slug=product.slug %}" aria-label="{% blocktrans with name=product.name %}View {{ name }}{% endblocktrans %}"></a>
 
-    {% if cart_product_ids and product.pk in cart_product_ids %}
-    <a href="{% url 'cart:page' %}" class="btn btn-outline-floward jm-product-card__atc" style="background-color: transparent; border: 1px solid var(--jm-navy); color: var(--jm-navy); position: relative; z-index: 2;">
-      <span>{% trans "View Cart" %}</span>
-    </a>
-    {% else %}
-    <form class="jm-product-card__cart" method="post" action="{% url 'cart:add' %}"
+    <div class="jm-product-card__cart jm-dynamic-view-cart {% if not cart_product_ids or product.pk not in cart_product_ids %}d-none{% endif %}">
+      <a href="{% url 'cart:page' %}" class="btn btn-outline-floward jm-product-card__atc" style="background-color: transparent; border: 1px solid var(--jm-navy); color: var(--jm-navy); position: relative; z-index: 2;">
+        <span>{% trans "View Cart" %}</span>
+      </a>
+    </div>
+    <form class="jm-product-card__cart {% if cart_product_ids and product.pk in cart_product_ids %}d-none{% endif %}" method="post" action="{% url 'cart:add' %}"
           hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
       {% csrf_token %}
       <input type="hidden" name="product_id" value="{{ product.pk }}">
@@ -128,6 +129,5 @@
         <span>{% if product.is_in_stock %}{% trans "Add to Cart" %}{% else %}{% trans "Unavailable" %}{% endif %}</span>
       </button>
     </form>
-    {% endif %}
   </div>
 </article>

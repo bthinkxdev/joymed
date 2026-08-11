@@ -100,7 +100,7 @@
         hx-get="{{ request.path }}"
         hx-select="#purchase-actions" 
         hx-swap="outerHTML"
-        hx-trigger="pageshow from:window, cartItemAdded from:body, cartUpdated from:body">
+        hx-trigger="cartItemAdded from:body, cartItemRemoved from:body, cartUpdated from:body">
 
         <div id="pdp-add-to-cart-group"
           class="jm-pdp-buybox__row {% if is_in_cart and price_data.is_wholesaler != 'true' %}d-none{% endif %}">

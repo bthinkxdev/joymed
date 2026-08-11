@@ -93,11 +93,16 @@ def cart_page_view(request: HttpRequest) -> HttpResponse:
 @require_GET
 def cart_count_view(request: HttpRequest) -> HttpResponse:
     """HTMX partial for the header cart badge — lightweight COUNT only."""
-    return render(
+    from cart.selectors import get_cart_product_ids
+    import json
+    response = render(
         request,
         "cart/partials/count_badge.html",
         {"count": get_cart_count(request=request)},
     )
+    product_ids = list(get_cart_product_ids(request=request))
+    response["HX-Trigger"] = json.dumps({"cartStateSynced": {"product_ids": product_ids}})
+    return response
 
 
 @require_GET
@@ -162,18 +167,36 @@ def cart_add_view(request: HttpRequest) -> HttpResponse:
 def cart_remove_view(request: HttpRequest) -> HttpResponse:
     """Remove a cart line and return drawer partial."""
     cart = get_cart_for_request(request=request)
+    product_id = None
     if cart:
-        remove_cart_item(cart=cart, cart_item_id=int(request.POST.get("cart_item_id", 0)))
-    return _cart_drawer_response(request, hx_triggers={"cartUpdated": None})
+        cart_item_id = int(request.POST.get("cart_item_id", 0))
+        item = cart.items.filter(pk=cart_item_id).first()
+        if item:
+            product_id = item.product.pk
+        remove_cart_item(cart=cart, cart_item_id=cart_item_id)
+        
+    triggers = {"cartUpdated": None}
+    if product_id:
+        triggers["cartItemRemoved"] = {"product_id": product_id}
+    return _cart_drawer_response(request, hx_triggers=triggers)
 
 
 @require_POST
 def cart_page_remove_view(request: HttpRequest) -> HttpResponse:
     """Remove a cart line from the standalone cart page and return its body partial."""
     cart = get_cart_for_request(request=request)
+    product_id = None
     if cart:
-        remove_cart_item(cart=cart, cart_item_id=int(request.POST.get("cart_item_id", 0)))
-    return _cart_page_response(request, hx_triggers={"cartUpdated": None})
+        cart_item_id = int(request.POST.get("cart_item_id", 0))
+        item = cart.items.filter(pk=cart_item_id).first()
+        if item:
+            product_id = item.product.pk
+        remove_cart_item(cart=cart, cart_item_id=cart_item_id)
+        
+    triggers = {"cartUpdated": None}
+    if product_id:
+        triggers["cartItemRemoved"] = {"product_id": product_id}
+    return _cart_page_response(request, hx_triggers=triggers)
 
 
 @require_POST
@@ -191,8 +214,13 @@ def cart_quantity_view(request: HttpRequest) -> HttpResponse:
     if cart is None:
         raise Http404("Cart not found.")
 
+    product_id = None
+    item = cart.items.filter(pk=form.cleaned_data["cart_item_id"]).first()
+    if item:
+        product_id = item.product.pk
+
     try:
-        adjust_cart_item_quantity(
+        updated_item = adjust_cart_item_quantity(
             cart=cart,
             cart_item_id=form.cleaned_data["cart_item_id"],
             delta=form.cleaned_data["delta"],
@@ -206,9 +234,13 @@ def cart_quantity_view(request: HttpRequest) -> HttpResponse:
             return _cart_drawer_response(request, error=str(exc))
         return _cart_page_response(request, error=str(exc))
 
+    triggers = {"cartUpdated": None}
+    if product_id and updated_item is None:
+        triggers["cartItemRemoved"] = {"product_id": product_id}
+
     if is_drawer:
-        return _cart_drawer_response(request, hx_triggers={"cartUpdated": None})
-    return _cart_page_response(request, hx_triggers={"cartUpdated": None})
+        return _cart_drawer_response(request, hx_triggers=triggers)
+    return _cart_page_response(request, hx_triggers=triggers)
 
 
 @require_POST

@@ -348,6 +348,7 @@
           <p class="jm-qv__stock" id="jm-qv-stock"></p>
           <div class="jm-qv__actions">
             <a id="jm-qv-pdp" href="#" class="btn btn-floward">{% trans "View Details" %}</a>
+            <a id="jm-qv-view-cart" href="{% url 'cart:page' %}" class="btn btn-outline-floward d-none" data-bs-dismiss="modal">{% trans "View Cart" %}</a>
             <form id="jm-qv-cart" method="post" action="{% url 'cart:add' %}" 
                   hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
               {% csrf_token %}
