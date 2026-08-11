@@ -3863,7 +3863,11 @@ body.mobile-search-open .jm-search-nudge__tip {
   color: #fff;
   text-decoration: none;
   box-shadow: 0 8px 22px rgba(18, 140, 126, 0.4);
-  transition: transform var(--jm-transition), box-shadow var(--jm-transition);
+  transition: transform 0.25s ease-in-out, opacity 0.25s ease-in-out, bottom 0.25s ease-in-out;
+}
+
+body.jm-pdp-sticky-open .jm-wa-float {
+  bottom: calc(126px + env(safe-area-inset-bottom, 0px));
 }
 
 .jm-wa-float:hover,
@@ -4810,6 +4814,10 @@ body.mobile-search-open .jm-wa-float {
   width: 100%;
   display: block;
   padding-top: 0.45rem;
+}
+
+.jm-product-card__atc.d-none {
+  display: none !important;
 }
 
 .jm-product-card__atc {

@@ -9,6 +9,7 @@
          {% with img=product.primary_images.0 %}
          data-product-image="{% if img and img.image %}{{ img.image.url }}{% else %}{% static 'img/product-placeholder.svg' %}{% endif %}"
          {% endwith %}
+         data-product-variants="{{ product.quick_view_variants_json }}"
          data-in-cart="{% if cart_product_ids and product.pk in cart_product_ids %}true{% else %}false{% endif %}">
   {# Media: only the image sits inside .ratio so Bootstrap does not stretch badge/actions into a full-bleed blocker. #}
   <div class="jm-product-card__media">
@@ -119,15 +120,9 @@
         <span>{% trans "View Cart" %}</span>
       </a>
     </div>
-    <form class="jm-product-card__cart {% if cart_product_ids and product.pk in cart_product_ids %}d-none{% endif %}" method="post" action="{% url 'cart:add' %}"
-          hx-post="{% url 'cart:add' %}" hx-target="#cart-drawer-body" hx-swap="innerHTML">
-      {% csrf_token %}
-      <input type="hidden" name="product_id" value="{{ product.pk }}">
-      <input type="hidden" name="quantity" value="1">
-      <button type="submit" class="jm-product-card__atc" {% if not product.is_in_stock %}disabled{% endif %}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-        <span>{% if product.is_in_stock %}{% trans "Add to Cart" %}{% else %}{% trans "Unavailable" %}{% endif %}</span>
-      </button>
-    </form>
+    <button type="button" class="jm-product-card__cart jm-product-card__atc {% if cart_product_ids and product.pk in cart_product_ids %}d-none{% endif %}" data-jm-add-to-cart {% if not product.is_in_stock %}disabled{% endif %} style="position: relative; z-index: 2;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span>{% if product.is_in_stock %}{% trans "Add to Cart" %}{% else %}{% trans "Unavailable" %}{% endif %}</span>
+    </button>
   </div>
 </article>

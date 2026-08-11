@@ -335,7 +335,7 @@ def get_product_detail(*, slug: str) -> Optional[Product]:
         .prefetch_related(
             Prefetch(
                 "variants",
-                queryset=ProductVariant.objects.order_by("variant_type", "name"),
+                queryset=ProductVariant.objects.order_by("id"),
                 to_attr="variant_list",
             ),
             Prefetch(

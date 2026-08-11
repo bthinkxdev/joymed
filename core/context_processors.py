@@ -47,12 +47,14 @@ def storefront(request: HttpRequest) -> dict[str, Any]:
     wishlist_product_ids = get_wishlist_product_ids(request=request)
     
     from cms.models import Page
+    from cart.selectors import get_cart_item_keys
 
     return {
         "site_settings": get_site_settings(),
         "category_tree": get_category_tree(),
         "cart_count": get_cart_count(request=request),
         "cart_product_ids": get_cart_product_ids(request=request),
+        "cart_item_keys": get_cart_item_keys(request=request),
         "wishlist_count": get_wishlist_count(request=request),
         "wishlist_product_ids": wishlist_product_ids,
         "default_currency": default_currency,

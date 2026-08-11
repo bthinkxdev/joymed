@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -190,6 +191,18 @@ class Product(TimeStampedModel):
     )
 
     @property
+    def quick_view_variants_json(self):
+        variant_list = []
+        for v in self.variants.all().order_by("id"):
+            variant_list.append({
+                "id": v.id,
+                "name": v.name,
+                "stock": v.stock_quantity,
+                "price": float(self.base_price + v.price_delta)
+            })
+        return json.dumps(variant_list)
+
+    @property
     def total_stock(self):
         variants = self.variants.all()
         if variants:
@@ -221,7 +234,7 @@ class Product(TimeStampedModel):
     @property
     def is_in_stock(self) -> bool:
         """True when aggregate product stock is available."""
-        return self.stock_quantity > 0
+        return self.total_stock > 0
 
     @property
     def price(self):

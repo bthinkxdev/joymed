@@ -46,6 +46,22 @@
           if (elRetailVal && data.retail_price) {
             elRetailVal.value = data.retail_price;
           }
+
+          if (data.is_in_cart !== undefined) {
+            var addGroup = document.getElementById('pdp-add-to-cart-group');
+            var viewGroup = document.getElementById('pdp-view-cart-group');
+            var buyBtn = document.querySelector('#buy-form button[type="submit"]');
+
+            if (data.is_in_cart) {
+              if (addGroup && data.is_wholesaler !== 'true') addGroup.classList.add('d-none');
+              if (viewGroup && data.is_wholesaler !== 'true') viewGroup.classList.remove('d-none');
+              if (buyBtn && data.is_wholesaler === 'true') buyBtn.innerText = 'Update Cart';
+            } else {
+              if (addGroup) addGroup.classList.remove('d-none');
+              if (viewGroup) viewGroup.classList.add('d-none');
+              if (buyBtn && data.is_wholesaler === 'true') buyBtn.innerText = 'Add to Cart';
+            }
+          }
         });
     });
 

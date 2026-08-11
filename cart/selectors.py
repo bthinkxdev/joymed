@@ -109,11 +109,53 @@ def get_cart_count(*, request: HttpRequest) -> int:
 
 
 def get_cart_product_ids(*, request: HttpRequest) -> set[int]:
-    """Return a set of product IDs currently in the persistent cart."""
+    """Return a set of product IDs where ALL variants are in the cart, or it has no variants."""
     cart = get_cart_for_request(request=request)
     if not cart:
         return set()
-    return set(CartItem.objects.filter(cart=cart).values_list("product_id", flat=True))
+        
+    from django.db.models import Count
+    from catalog.models import ProductVariant
+    from cart.models import CartItem
+    
+    product_ids_in_cart = set(CartItem.objects.filter(cart=cart).values_list("product_id", flat=True))
+    if not product_ids_in_cart:
+        return set()
+        
+    completed = set()
+    
+    cart_items = CartItem.objects.filter(cart=cart, variant__isnull=False).values("product_id").annotate(variant_count=Count("variant", distinct=True))
+    cart_variant_counts = {item["product_id"]: item["variant_count"] for item in cart_items}
+    
+    product_variants = ProductVariant.objects.filter(product_id__in=product_ids_in_cart, stock_quantity__gt=0).values("product_id").annotate(total_variants=Count("id"))
+    total_variant_counts = {item["product_id"]: item["total_variants"] for item in product_variants}
+    
+    for pid in product_ids_in_cart:
+        total = total_variant_counts.get(pid, 0)
+        if total == 0:
+            completed.add(pid)
+        else:
+            in_cart = cart_variant_counts.get(pid, 0)
+            if in_cart >= total:
+                completed.add(pid)
+                
+    return completed
+
+
+def get_cart_item_keys(*, request: HttpRequest) -> set[str]:
+    """Return a set of item keys in format 'pid_vid' or 'pid' for cart items."""
+    cart = get_cart_for_request(request=request)
+    if not cart:
+        return set()
+    from cart.models import CartItem
+    qs = CartItem.objects.filter(cart=cart).values_list("product_id", "variant_id")
+    keys = set()
+    for pid, vid in qs:
+        if vid:
+            keys.add(f"{pid}_{vid}")
+        else:
+            keys.add(str(pid))
+    return keys
 
 
 def _wishlist_items_qs(*, request: HttpRequest):

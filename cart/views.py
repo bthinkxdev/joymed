@@ -161,7 +161,7 @@ def cart_add_view(request: HttpRequest) -> HttpResponse:
 
     return _cart_drawer_response(
         request,
-        hx_triggers={"cartItemAdded": {"product_id": product.pk}},
+        hx_triggers={"cartItemAdded": {"product_id": product.pk, "variant_id": variant.pk if variant else None}},
     )
 
 
@@ -170,16 +170,18 @@ def cart_remove_view(request: HttpRequest) -> HttpResponse:
     """Remove a cart line and return drawer partial."""
     cart = get_cart_for_request(request=request)
     product_id = None
+    variant_id = None
     if cart:
         cart_item_id = int(request.POST.get("cart_item_id", 0))
         item = cart.items.filter(pk=cart_item_id).first()
         if item:
             product_id = item.product.pk
+            variant_id = item.variant.pk if item.variant else None
         remove_cart_item(cart=cart, cart_item_id=cart_item_id)
         
     triggers = {"cartUpdated": None}
     if product_id:
-        triggers["cartItemRemoved"] = {"product_id": product_id}
+        triggers["cartItemRemoved"] = {"product_id": product_id, "variant_id": variant_id}
     return _cart_drawer_response(request, hx_triggers=triggers)
 
 
@@ -188,16 +190,18 @@ def cart_page_remove_view(request: HttpRequest) -> HttpResponse:
     """Remove a cart line from the standalone cart page and return its body partial."""
     cart = get_cart_for_request(request=request)
     product_id = None
+    variant_id = None
     if cart:
         cart_item_id = int(request.POST.get("cart_item_id", 0))
         item = cart.items.filter(pk=cart_item_id).first()
         if item:
             product_id = item.product.pk
+            variant_id = item.variant.pk if item.variant else None
         remove_cart_item(cart=cart, cart_item_id=cart_item_id)
         
     triggers = {"cartUpdated": None}
     if product_id:
-        triggers["cartItemRemoved"] = {"product_id": product_id}
+        triggers["cartItemRemoved"] = {"product_id": product_id, "variant_id": variant_id}
     return _cart_page_response(request, hx_triggers=triggers)
 
 
