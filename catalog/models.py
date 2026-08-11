@@ -189,6 +189,14 @@ class Product(TimeStampedModel):
         help_text="Triggers low-stock alerts when stock falls at or below this value.",
     )
 
+    @property
+    def total_stock(self):
+        variants = self.variants.all()
+        if variants:
+            return sum(variant.stock_quantity for variant in variants)
+        return self.stock_quantity
+
+
     class Meta:
         verbose_name = "Product"
         verbose_name_plural = "Products"
@@ -269,6 +277,10 @@ class ProductVariant(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.product.sku}-{self.sku_suffix}"
+
+    @property
+    def total_price(self):
+        return self.product.base_price + self.price_delta
 
 
 class ProductWholesaleTier(TimeStampedModel):

@@ -99,7 +99,18 @@
         </div>
       </div>
 
-      <div class="card mb-3" data-formset="variants">
+      <div class="card mb-3">
+        <div class="card-body py-3">
+          <div class="d-flex justify-content-between align-items-center m-0">
+            <label class="fw-semibold mb-0" for="has_variants_toggle" style="cursor: pointer;">This product has variants (size, packaging, etc.)</label>
+            <div class="form-check form-switch m-0 p-0" style="min-height: auto;">
+              <input class="form-check-input fs-4 mt-0 m-0" type="checkbox" id="has_variants_toggle" name="has_variants_toggle" style="float: none; margin-left: 0;" {% if request.POST %}{% if 'has_variants_toggle' in request.POST %}checked{% endif %}{% elif form.instance.pk and form.instance.variants.all %}checked{% endif %}>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3" data-formset="variants" id="variants-card">
         <div class="card-header panel-header">
           <div>
             <h3 class="panel-title">Variants</h3>
@@ -488,7 +499,9 @@
             <h3 class="panel-title">Inventory</h3>
           </div>
           <div class="card-body">
-            {% include "dashboard/partials/_field.html" with field=form.stock_quantity %}
+            <div id="base-stock-group">
+              {% include "dashboard/partials/_field.html" with field=form.stock_quantity %}
+            </div>
             {% include "dashboard/partials/_field.html" with field=form.low_stock_threshold %}
           </div>
         </div>
@@ -517,6 +530,22 @@
             if (isRentalInput) {
               isRentalInput.addEventListener("change", updateRentalVisibility);
               updateRentalVisibility();
+            }
+
+            const hasVariantsToggle = document.getElementById("has_variants_toggle");
+            const variantsCard = document.getElementById("variants-card");
+            const baseStockGroup = document.getElementById("base-stock-group");
+
+            function updateVariantVisibility() {
+              if (hasVariantsToggle) {
+                const hasVariants = hasVariantsToggle.checked;
+                if (variantsCard) variantsCard.style.display = hasVariants ? "block" : "none";
+                if (baseStockGroup) baseStockGroup.style.display = hasVariants ? "none" : "block";
+              }
+            }
+            if (hasVariantsToggle) {
+              hasVariantsToggle.addEventListener("change", updateVariantVisibility);
+              updateVariantVisibility();
             }
           });
         </script>

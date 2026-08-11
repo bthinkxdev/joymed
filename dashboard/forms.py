@@ -80,6 +80,20 @@ class ProductForm(SlugAutoMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["slug"].required = False
+        self.fields["stock_quantity"].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        has_variants = self.data.get("has_variants_toggle") == "on"
+
+        if not has_variants:
+            if cleaned_data.get("stock_quantity") is None:
+                self.add_error("stock_quantity", "Stock quantity is required.")
+        else:
+            if cleaned_data.get("stock_quantity") is None:
+                cleaned_data["stock_quantity"] = 0
+
+        return cleaned_data
 
     def clean_wholesale_rate(self):
         rate = self.cleaned_data.get("wholesale_rate")

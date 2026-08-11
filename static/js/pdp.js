@@ -48,6 +48,10 @@
           }
         });
     });
+
+    if (variantSelect.value) {
+      variantSelect.dispatchEvent(new Event('change'));
+    }
   }
 
   var citySelect = document.getElementById('delivery-city');

@@ -70,10 +70,9 @@
                   class="form-select jm-pdp-select"
                   data-price-url="{% url 'catalog:variant-price' product_id=product.pk %}"
                   data-currency-symbol="{{ display_currency.symbol }}">
-            <option value="">{% trans "Standard" %}</option>
             {% for v in product.variant_list %}
             <option value="{{ v.pk }}" data-price-delta="{{ v.price_delta|default:0 }}">
-              {{ v.name }}{% if v.price_delta %} (+{% money_label v.price_delta display_currency %}){% endif %}
+              {{ v.name }} - {% money_label v.total_price display_currency %}
             </option>
             {% endfor %}
           </select>

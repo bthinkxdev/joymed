@@ -83,12 +83,12 @@
           <td data-label="Category">{% if obj.category_id %}<span class="pill pill-gray">{{ obj.category.name }}</span>{% else %}<span class="text-secondary">—</span>{% endif %}</td>
           <td class="text-end fw-semibold" data-label="Price">{{ currency_symbol }}{{ obj.base_price|floatformat:2 }}</td>
           <td data-label="Stock">
-            {% if obj.stock_quantity == 0 %}
+            {% if obj.total_stock == 0 %}
               <span class="pill pill-red">Out of stock</span>
-            {% elif obj.stock_quantity <= obj.low_stock_threshold %}
-              <span class="pill pill-amber">{{ obj.stock_quantity }} left</span>
+            {% elif obj.total_stock <= obj.low_stock_threshold %}
+              <span class="pill pill-amber">{{ obj.total_stock }} left</span>
             {% else %}
-              <span class="pill pill-green">{{ obj.stock_quantity }} in stock</span>
+              <span class="pill pill-green">{{ obj.total_stock }} in stock</span>
             {% endif %}
           </td>
           <td data-label="Status">
