@@ -25,3 +25,4 @@ flake8-bugbear>=24.2.6
 django-debug-toolbar>=4.4.0
 locust>=2.29.0
 sentry-sdk>=2.19.0
+qrcode[pil]
