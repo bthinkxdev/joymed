@@ -6460,3 +6460,10 @@ body.mobile-search-open .jm-wa-float {
 .volume-slider::-moz-range-track {
   background: linear-gradient(to right, var(--jm-burgundy, #9C274C) 0%, var(--jm-burgundy, #9C274C) var(--slider-fill, 0%), #dee2e6 var(--slider-fill, 0%), #dee2e6 100%);
 }
+
+/* prevent zoom on ios mobile for form inputs */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
