@@ -37,12 +37,14 @@
             {% for address in addresses %}
             <div class="form-check mb-2">
               <input class="form-check-input" type="radio" name="address_id" value="{{ address.pk }}"
-                id="addr-{{ address.pk }}" {% if forloop.first %}checked{% endif %}>
+                id="addr-{{ address.pk }}" {% if forloop.first %}checked{% endif %}
+                hx-post="{% url 'checkout:update-delivery-city' %}" hx-trigger="change" hx-target="#checkout-order-summary-container" hx-swap="outerHTML" hx-select="#checkout-order-summary-container">
               <label class="form-check-label small" for="addr-{{ address.pk }}">{{ address.line1 }}, {{ address.city.name }}</label>
             </div>
             {% endfor %}
             <div class="form-check mb-2">
-              <input class="form-check-input" type="radio" name="address_id" value="new" id="addr-new">
+              <input class="form-check-input" type="radio" name="address_id" value="new" id="addr-new"
+                hx-post="{% url 'checkout:update-delivery-city' %}" hx-trigger="change" hx-target="#checkout-order-summary-container" hx-swap="outerHTML" hx-select="#checkout-order-summary-container">
               <label class="form-check-label small fw-bold" for="addr-new">{% trans "Add New Address" %}</label>
             </div>
           </div>
@@ -80,7 +82,8 @@
             </div>
             <div class="mb-3">
               <label class="form-label small">{% trans "City" %} <span class="text-danger">*</span></label>
-              <select name="guest_city_id" class="form-select form-select-sm">
+              <select name="guest_city_id" class="form-select form-select-sm"
+                hx-post="{% url 'checkout:update-delivery-city' %}" hx-trigger="change" hx-target="#checkout-order-summary-container" hx-swap="outerHTML" hx-select="#checkout-order-summary-container">
                 <option value="">{% trans "Select City" %}</option>
                 {% for city in active_cities %}
                 <option value="{{ city.pk }}" {% if checkout_session.address.city_id == city.pk %}selected{% endif %}>{{ city.name }}</option>

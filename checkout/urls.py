@@ -10,6 +10,7 @@ app_name = "checkout"
 
 urlpatterns = [
     path("", views.checkout_view, name="checkout"),
+    path("update-delivery-city/", views.checkout_update_city_view, name="update-delivery-city"),
     path("place-order/", views.checkout_place_order_view, name="place-order"),
     path("coupon/apply/", views.checkout_coupon_apply_view, name="coupon-apply"),
     path("coupon/remove/", views.checkout_coupon_remove_view, name="coupon-remove"),

@@ -37,9 +37,7 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
             "variant_id": request.GET.get("buy_now_variant_id")
         }
 
-    summary = get_cart_summary(cart=cart, buy_now_data=buy_now_data)
-    if not summary.lines:
-        return redirect("cms:homepage")
+
 
     if request.user.is_authenticated:
         from accounts.services import ensure_customer_profile_for_user
@@ -65,18 +63,33 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
         elif hasattr(request.user, "wholesaler_profile"):
             from delivery.models import City
             from accounts.services import create_address
-            first_city = City.objects.filter(is_active=True).first()
-            if first_city:
+            wholesaler_addr = request.user.wholesaler_profile.address
+            matched_city = None
+            if wholesaler_addr:
+                for city in City.objects.filter(is_active=True):
+                    if city.name.lower() in wholesaler_addr.lower():
+                        matched_city = city
+                        break
+            
+            if matched_city:
                 dashboard_address = create_address(
                     customer_profile=profile,
                     label="Registered Address",
-                    line1=request.user.wholesaler_profile.address[:255],
+                    line1=wholesaler_addr[:255],
                     line2="",
-                    city_id=first_city.pk,
+                    city_id=matched_city.pk,
                     is_default=True
                 )
                 addresses = [dashboard_address]
             
+    if not request.headers.get("HX-Request") and not cart.destination_city_id and addresses and addresses[0].city_id:
+        from cart.services import recalculate_delivery_charge
+        recalculate_delivery_charge(cart=cart, destination_city=addresses[0].city)
+
+    summary = get_cart_summary(cart=cart, buy_now_data=buy_now_data)
+    if not summary.lines:
+        return redirect("cms:homepage")
+    
     from delivery.models import City
     active_cities = City.objects.filter(is_active=True)
 
@@ -124,6 +137,56 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
             "buy_now_data": buy_now_data,
         },
     )
+
+
+@require_http_methods(["POST"])
+def checkout_update_city_view(request: HttpRequest) -> HttpResponse:
+    """Update cart destination city via HTMX and redirect back to checkout to re-render summary."""
+    cart = get_cart_for_request(request=request)
+    if not cart:
+        return HttpResponse(status=400)
+
+    address_id_str = request.POST.get("address_id", "")
+    guest_city_id_str = request.POST.get("guest_city_id", "")
+
+    city_id = None
+    if address_id_str and address_id_str != "new":
+        from accounts.models import Address
+        address = Address.objects.filter(pk=int(address_id_str)).first()
+        if address:
+            city_id = address.city_id
+    elif guest_city_id_str:
+        try:
+            city_id = int(guest_city_id_str)
+        except ValueError:
+            pass
+
+    if city_id:
+        from delivery.models import City
+        from cart.services import recalculate_delivery_charge
+        city = City.objects.filter(pk=city_id).first()
+        if city:
+            recalculate_delivery_charge(cart=cart, destination_city=city)
+    else:
+        # if they selected "new" but didn't pick a city, or cleared the city, reset it
+        cart.destination_city = None
+        cart.delivery_charge = 0
+        cart.save(update_fields=["destination_city", "delivery_charge", "updated_at"])
+
+    url = reverse("checkout:checkout")
+    buy_now_product_id = request.POST.get("buy_now_product_id")
+    if buy_now_product_id:
+        from urllib.parse import urlencode
+        params = {
+            "buy_now_product_id": buy_now_product_id,
+            "buy_now_quantity": request.POST.get("buy_now_quantity", "1"),
+        }
+        buy_now_variant_id = request.POST.get("buy_now_variant_id")
+        if buy_now_variant_id:
+            params["buy_now_variant_id"] = buy_now_variant_id
+        url += "?" + urlencode(params)
+
+    return redirect(url)
 
 
 @require_http_methods(["POST"])
