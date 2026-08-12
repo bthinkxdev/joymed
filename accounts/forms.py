@@ -236,6 +236,14 @@ class EmailOTPRequestForm(forms.Form):
         widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "you@example.com"}),
     )
 
+    def clean_name(self):
+        name = self.cleaned_data.get("name")
+        if name:
+            import re
+            if not re.search(r'[a-zA-Z]', name):
+                raise forms.ValidationError("Name cannot contain only numbers and symbols.")
+        return name
+
     def clean_email(self):
         email = self.cleaned_data.get("email")
         if email:
