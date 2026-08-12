@@ -84,6 +84,7 @@ def place_order(
     checkout_session_id: int,
     idempotency_key: str,
     customer_profile: Optional[CustomerProfile] = None,
+    buy_now_data: Optional[dict] = None,
 ) -> Order:
     """
     Atomically place an order from a checkout session.
@@ -128,7 +129,7 @@ def place_order(
         raise CheckoutSessionError("Checkout session is not in draft status.")
 
     only_item_ids = [session.buy_now_item_id] if session.buy_now_item_id else None
-    summary = get_cart_summary(cart=session.cart, only_item_ids=only_item_ids)
+    summary = get_cart_summary(cart=session.cart, only_item_ids=only_item_ids, buy_now_data=buy_now_data)
     if not summary.lines:
         raise CheckoutSessionError("Cart is empty.")
 

@@ -184,74 +184,109 @@ def get_wishlist_product_ids(*, request: HttpRequest) -> set[int]:
     return set(_wishlist_items_qs(request=request).values_list("product_id", flat=True))
 
 
-def get_cart_summary(*, cart: Cart, only_item_ids: Optional[list[int]] = None) -> CartSummary:
+def get_cart_summary(*, cart: Cart, only_item_ids: Optional[list[int]] = None, buy_now_data: Optional[dict] = None) -> CartSummary:
     """
     Return a fully computed cart summary for drawer, checkout, and payment.
 
     ``only_item_ids``, when given, scopes the summary to those specific cart
-    lines only — used by the single-product "Buy Now" checkout flow so it
-    charges just the clicked item instead of the customer's whole cart.
-
-    Query guarantee:
-      1) cart items SELECT with select_related(product, variant, category, brand)
-      2) one gifting.get_gift_customization_snapshot call per customized line
-         (each is a constant 1 SELECT + prefetches inside gifting — no cart ORM
-         into gifting tables)
-
-    Cross-app boundary: gift snapshot hydration is delegated exclusively to
-    ``gifting.selectors.get_gift_customization_snapshot``.
+    lines only.
+    ``buy_now_data``, when given, skips the DB and generates an in-memory
+    CartSummaryLine for the "Buy Now" flow.
     """
-    items_qs = CartItem.objects.filter(cart=cart)
-    if only_item_ids is not None:
-        items_qs = items_qs.filter(pk__in=only_item_ids)
-
-    items = list(
-        items_qs
-        .select_related(
-            "product",
-            "product__category",
-            "product__brand",
-            "variant",
-        )
-        .prefetch_related(
-            Prefetch(
-                "product__images",
-                queryset=ProductImage.objects.filter(is_primary=True).order_by("display_order"),
-                to_attr="primary_images",
-            ),
-        )
-        .order_by("id")
-    )
-
     lines: list[CartSummaryLine] = []
     subtotal = Decimal("0.00")
     item_count = 0
     has_insufficient_stock = False
 
-    for item in items:
-        unit_price = item.unit_price_at_add
+    if buy_now_data:
+        from catalog.models import Product, ProductVariant
+        product_id = buy_now_data.get("product_id")
+        variant_id = buy_now_data.get("variant_id")
+        quantity = int(buy_now_data.get("quantity", 1))
 
-        line_subtotal = unit_price * item.quantity
-        subtotal += line_subtotal
-        item_count += item.quantity
-        
-        max_stock = item.variant.stock_quantity if item.variant else item.product.stock_quantity
-        line_has_insufficient_stock = item.quantity > max_stock
-        if line_has_insufficient_stock:
-            has_insufficient_stock = True
-
-        lines.append(
-            CartSummaryLine(
-                item=item,
-                product=item.product,
-                variant=item.variant,
-                quantity=item.quantity,
-                unit_price_at_add=unit_price,
-                line_subtotal=line_subtotal,
-                has_insufficient_stock=line_has_insufficient_stock,
-                max_stock=max_stock,
+        product = Product.objects.filter(pk=product_id).prefetch_related(
+            Prefetch(
+                "images",
+                queryset=ProductImage.objects.filter(is_primary=True).order_by("display_order"),
+                to_attr="primary_images",
             )
+        ).first()
+        
+        if product:
+            variant = ProductVariant.objects.filter(pk=variant_id).first() if variant_id else None
+            user = cart.customer_profile.user if (cart.customer_profile and cart.customer_profile.user_id) else None
+            
+            from cart.services import _resolve_unit_price
+            unit_price = _resolve_unit_price(product=product, variant=variant, user=user, quantity=quantity)
+            line_subtotal = unit_price * quantity
+            
+            subtotal += line_subtotal
+            item_count += quantity
+            
+            max_stock = variant.stock_quantity if variant else product.stock_quantity
+            line_has_insufficient_stock = quantity > max_stock
+            if line_has_insufficient_stock:
+                has_insufficient_stock = True
+                
+            lines.append(
+                CartSummaryLine(
+                    item=None,  # type: ignore
+                    product=product,
+                    variant=variant,
+                    quantity=quantity,
+                    unit_price_at_add=unit_price,
+                    line_subtotal=line_subtotal,
+                    has_insufficient_stock=line_has_insufficient_stock,
+                    max_stock=max_stock,
+                )
+            )
+    else:
+        items_qs = CartItem.objects.filter(cart=cart)
+        if only_item_ids is not None:
+            items_qs = items_qs.filter(pk__in=only_item_ids)
+    
+        items = list(
+            items_qs
+            .select_related(
+                "product",
+                "product__category",
+                "product__brand",
+                "variant",
+            )
+            .prefetch_related(
+                Prefetch(
+                    "product__images",
+                    queryset=ProductImage.objects.filter(is_primary=True).order_by("display_order"),
+                    to_attr="primary_images",
+                ),
+            )
+            .order_by("id")
         )
+    
+        for item in items:
+            unit_price = item.unit_price_at_add
+    
+            line_subtotal = unit_price * item.quantity
+            subtotal += line_subtotal
+            item_count += item.quantity
+            
+            max_stock = item.variant.stock_quantity if item.variant else item.product.stock_quantity
+            line_has_insufficient_stock = item.quantity > max_stock
+            if line_has_insufficient_stock:
+                has_insufficient_stock = True
+    
+            lines.append(
+                CartSummaryLine(
+                    item=item,
+                    product=item.product,
+                    variant=item.variant,
+                    quantity=item.quantity,
+                    unit_price_at_add=unit_price,
+                    line_subtotal=line_subtotal,
+                    has_insufficient_stock=line_has_insufficient_stock,
+                    max_stock=max_stock,
+                )
+            )
 
     delivery_charge = cart.delivery_charge
     if cart.destination_city_id and delivery_charge == Decimal("0.00"):

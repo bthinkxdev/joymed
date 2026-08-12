@@ -133,6 +133,24 @@ def cart_add_view(request: HttpRequest) -> HttpResponse:
 
     buy_now = request.POST.get("buy_now") == "true"
     
+    if buy_now:
+        from django.urls import reverse
+        from urllib.parse import urlencode
+        
+        params = {
+            "buy_now_product_id": product.pk,
+            "buy_now_quantity": quantity,
+        }
+        if variant:
+            params["buy_now_variant_id"] = variant.pk
+            
+        checkout_url = reverse("checkout:checkout") + "?" + urlencode(params)
+        if request.headers.get("HX-Request"):
+            response = HttpResponse(status=204)
+            response["HX-Redirect"] = checkout_url
+            return response
+        return redirect(checkout_url)
+        
     try:
         new_item = add_to_cart(
             cart=cart,
@@ -144,20 +162,9 @@ def cart_add_view(request: HttpRequest) -> HttpResponse:
     except InsufficientStockError as exc:
         from django.contrib import messages
         messages.error(request, str(exc))
-        if request.headers.get("HX-Request") and not buy_now:
-            return _cart_drawer_response(request, error=str(exc))
-        # If buy_now or not htmx, redirect back to referer
-        return redirect(request.META.get("HTTP_REFERER", "/"))
-
-    if buy_now:
-        from django.urls import reverse
-        from urllib.parse import urlencode
-        checkout_url = reverse("checkout:checkout") + "?" + urlencode({"buy_now_item": new_item.pk})
         if request.headers.get("HX-Request"):
-            response = HttpResponse(status=204)
-            response["HX-Redirect"] = checkout_url
-            return response
-        return redirect(checkout_url)
+            return _cart_drawer_response(request, error=str(exc))
+        return redirect(request.META.get("HTTP_REFERER", "/"))
 
     return _cart_drawer_response(
         request,

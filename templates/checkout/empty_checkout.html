@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Checkout" %} | JOYMED HEALTHCARE{% endblock %}
+
+{% block content %}
+<div class="container page-container checkout-page jm-page">
+  <div id="checkout-main-container" class="col-12 text-center py-5">
+    <h2 class="mb-3">{% trans "Your cart is empty" %}</h2>
+    <p class="text-muted mb-4">{% trans "You have no items in your cart to checkout." %}</p>
+    <a href="{% url 'catalog:plp' %}" class="btn btn-floward mt-3">{% trans "Continue Shopping" %}</a>
+  </div>
+</div>
+{% endblock %}

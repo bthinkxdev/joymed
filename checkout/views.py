@@ -24,15 +24,21 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
     """Multi-step checkout page with gift Order Preview partial."""
     cart = get_or_create_cart(request=request)
 
-    buy_now_item_id = None
-    buy_now_item_raw = request.GET.get("buy_now_item")
-    if buy_now_item_raw:
-        from cart.models import CartItem
-        buy_now_item_id = CartItem.objects.filter(pk=buy_now_item_raw, cart=cart).values_list("pk", flat=True).first()
+    buy_now_product_id = request.GET.get("buy_now_product_id")
+    buy_now_data = None
+    is_buy_now = False
+    
+    if buy_now_product_id:
+        is_buy_now = True
+        buy_now_data = {
+            "product_id": buy_now_product_id,
+            "quantity": request.GET.get("buy_now_quantity", 1),
+            "variant_id": request.GET.get("buy_now_variant_id")
+        }
 
-    summary = get_cart_summary(cart=cart, only_item_ids=[buy_now_item_id] if buy_now_item_id else None)
+    summary = get_cart_summary(cart=cart, buy_now_data=buy_now_data)
     if not summary.lines:
-        return redirect("catalog:plp")
+        return render(request, "checkout/empty_checkout.html")
 
     if request.user.is_authenticated:
         from accounts.services import ensure_customer_profile_for_user
@@ -44,7 +50,6 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
         cart=cart,
         customer_profile=profile,
         session_key=request.session.session_key or "",
-        buy_now_item_id=buy_now_item_id,
     )
 
 
@@ -114,6 +119,8 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
             "selected_gateway_key": selected_gateway_key,
             "wholesaler_address": wholesaler_address,
             "has_active_coupons": has_any_active_coupons(),
+            "is_buy_now": is_buy_now,
+            "buy_now_data": buy_now_data,
         },
     )
 
@@ -134,11 +141,15 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
     if cart is None:
         raise Http404("Cart not found.")
 
-    buy_now_item_id = None
-    buy_now_item_raw = request.POST.get("buy_now_item_id")
-    if buy_now_item_raw:
-        from cart.models import CartItem
-        buy_now_item_id = CartItem.objects.filter(pk=buy_now_item_raw, cart=cart).values_list("pk", flat=True).first()
+    buy_now_product_id = request.POST.get("buy_now_product_id")
+    buy_now_data = None
+    
+    if buy_now_product_id:
+        buy_now_data = {
+            "product_id": buy_now_product_id,
+            "quantity": request.POST.get("buy_now_quantity", 1),
+            "variant_id": request.POST.get("buy_now_variant_id")
+        }
 
     if request.user.is_authenticated:
         from accounts.services import ensure_customer_profile_for_user
@@ -150,7 +161,6 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
         cart=cart,
         customer_profile=profile,
         session_key=request.session.session_key or "",
-        buy_now_item_id=buy_now_item_id,
     )
 
     address = None
@@ -271,6 +281,7 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
             checkout_session_id=session.pk,
             idempotency_key=form.cleaned_data["idempotency_key"],
             customer_profile=profile,
+            buy_now_data=buy_now_data,
         )
     except InsufficientStockError as e:
         return render(
