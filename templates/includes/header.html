@@ -28,7 +28,9 @@
           6282906721
         </a>
         {% endif %}
+        {% if not user.is_authenticated or not user.wholesaler_profile %}
         <a class="jm-topbar__cta" href="{% url 'accounts:wholesaler-register' %}">{% trans "Wholesale Enquiry" %}</a>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -258,9 +260,7 @@
             href="{% url 'core:contact-us' %}">{% trans "Contact Us" %}</a></li>
       </ul>
 
-      {% if user.is_authenticated and user.wholesaler_profile %}
-      <a href="{% url 'accounts:dashboard' %}" class="jm-nav__wholesale">{% trans "Wholesale Enquiry" %}</a>
-      {% else %}
+      {% if not user.is_authenticated or not user.wholesaler_profile %}
       <a href="{% url 'accounts:wholesaler-register' %}" class="jm-nav__wholesale">{% trans "Wholesale Enquiry" %}</a>
       {% endif %}
     </div>

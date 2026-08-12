@@ -34,7 +34,9 @@
         <h6>{% trans "Company" %}</h6>
         <a href="{% url 'core:about-us' %}">{% trans "About Us" %}</a>
         <a href="{% url 'core:contact-us' %}">{% trans "Contact Us" %}</a>
+        {% if not user.is_authenticated or not user.wholesaler_profile %}
         <a href="{% url 'accounts:wholesaler-register' %}">{% trans "Wholesale Enquiry" %}</a>
+        {% endif %}
         <a href="{% url 'core:faq' %}">{% trans "FAQ" %}</a>
         <a href="{% url 'core:blog' %}">{% trans "Blog" %}</a>
       </div>
