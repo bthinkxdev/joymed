@@ -8,6 +8,7 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from django.views.decorators.cache import never_cache
 
 from accounts.selectors import get_address_by_id, get_saved_addresses
 from cart.selectors import get_cart_for_request, get_cart_summary
@@ -21,6 +22,7 @@ from payments.services import process_payment
 
 
 @require_GET
+@never_cache
 def checkout_view(request: HttpRequest) -> HttpResponse:
     """Multi-step checkout page with gift Order Preview partial."""
     cart = get_or_create_cart(request=request)
@@ -39,7 +41,7 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
 
     summary = get_cart_summary(cart=cart, buy_now_data=buy_now_data)
     if not summary.lines:
-        return render(request, "checkout/empty_checkout.html")
+        return redirect("cms:homepage")
 
     if request.user.is_authenticated:
         from accounts.services import ensure_customer_profile_for_user
