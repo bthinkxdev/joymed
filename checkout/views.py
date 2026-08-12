@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
@@ -183,11 +184,28 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
             guest_city_id = request.POST.get("guest_city_id", "").strip()
 
             errors = {}
-            if not guest_name: errors["guest_name"] = ["Name is required."]
-            if not guest_email: errors["guest_email"] = ["Email is required."]
-            if not guest_phone: errors["guest_phone"] = ["Phone is required."]
-            if not guest_address_line1: errors["guest_address_line1"] = ["Address Line 1 is required."]
-            if not guest_city_id: errors["guest_city_id"] = ["City is required."]
+            if not guest_name: 
+                errors["guest_name"] = ["Name is required."]
+            elif not re.search(r'[A-Za-z]', guest_name):
+                errors["guest_name"] = ["Name must contain alphabetic characters."]
+                
+            if not guest_email: 
+                errors["guest_email"] = ["Email is required."]
+            elif not re.match(r'^[^@]+@[^@]+\.[^@]+$', guest_email):
+                errors["guest_email"] = ["Enter a valid email address."]
+                
+            if not guest_phone: 
+                errors["guest_phone"] = ["Phone is required."]
+            elif not re.match(r'^\d{10}$', guest_phone):
+                errors["guest_phone"] = ["Enter a valid 10-digit phone number."]
+                
+            if not guest_address_line1: 
+                errors["guest_address_line1"] = ["Address Line 1 is required."]
+            elif not re.search(r'[A-Za-z]', guest_address_line1):
+                errors["guest_address_line1"] = ["Address must contain alphabetic characters."]
+                
+            if not guest_city_id: 
+                errors["guest_city_id"] = ["City is required."]
 
             if errors:
                 return render(
@@ -235,8 +253,13 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
             guest_city_id = request.POST.get("guest_city_id", "").strip()
 
             errors = {}
-            if not guest_address_line1: errors["guest_address_line1"] = ["Address Line 1 is required."]
-            if not guest_city_id: errors["guest_city_id"] = ["City is required."]
+            if not guest_address_line1: 
+                errors["guest_address_line1"] = ["Address Line 1 is required."]
+            elif not re.search(r'[A-Za-z]', guest_address_line1):
+                errors["guest_address_line1"] = ["Address must contain alphabetic characters."]
+                
+            if not guest_city_id: 
+                errors["guest_city_id"] = ["City is required."]
 
             if errors:
                 return render(
