@@ -7,6 +7,7 @@ import json
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST
 
 from cart.exceptions import CartItemNotFoundError, InsufficientStockError
@@ -93,6 +94,7 @@ def cart_page_view(request: HttpRequest) -> HttpResponse:
 
 
 @require_GET
+@never_cache
 def cart_count_view(request: HttpRequest) -> HttpResponse:
     """HTMX partial for the header cart badge — lightweight COUNT only."""
     from cart.selectors import get_cart_product_ids
@@ -108,6 +110,7 @@ def cart_count_view(request: HttpRequest) -> HttpResponse:
 
 
 @require_GET
+@never_cache
 def wishlist_count_view(request: HttpRequest) -> HttpResponse:
     """HTMX partial for wishlist badges — lightweight COUNT only."""
     return render(

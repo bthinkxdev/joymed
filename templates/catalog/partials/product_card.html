@@ -72,7 +72,7 @@
     </div>
   </div>
 
-  <div class="card-body jm-product-card__body">
+  <div class="card-body jm-product-card__body d-flex flex-column">
     <div class="jm-product-card__meta">
       {% if product.average_rating %}
       <span class="jm-product-card__rating" aria-label="{% trans 'Rating' %} {{ product.average_rating|floatformat:1 }}">
@@ -91,7 +91,7 @@
 
     <h3 class="card-title">{{ product.name }}</h3>
 
-    <div class="jm-product-card__pricing">
+    <div class="jm-product-card__pricing mt-auto">
     {% if user.is_authenticated and user.wholesaler_profile.approval_status == 'approved' and product.wholesale_rate %}
     <p class="product-price text-success fw-semibold mb-0">
       {% money_label product.wholesale_rate display_currency %}

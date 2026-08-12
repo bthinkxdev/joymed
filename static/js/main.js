@@ -1642,3 +1642,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
+
+// handle wishlist remove from DOM on wishlist page
+document.body.addEventListener('wishlistUpdated', function(event) {
+  var data = event.detail;
+  if (data && data.added === false) {
+    var card = document.querySelector('.wishlist-card article[data-product-id="' + data.product_id + '"]');
+    if (card) {
+      var gridItem = card.closest('.product-grid-item');
+      if (gridItem) {
+        var container = gridItem.closest('.product-grid-inner');
+        gridItem.remove();
+        if (container && container.children.length === 0) {
+          container.outerHTML = '<div class="card border-0 p-4 text-center mx-auto" style="max-width: 500px;"><p class="mb-3 text-muted">Your wishlist is empty.</p><a href="/" class="btn btn-floward">Choose Products</a></div>';
+        }
+      }
+    }
+  }
+});

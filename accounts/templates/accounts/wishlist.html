@@ -11,7 +11,7 @@
   <div class="row product-grid-inner g-3">
     {% for item in items %}
     <div class="col-6 col-md-3 product-grid-item">
-      <div class="wishlist-card">
+      <div class="wishlist-card h-100 mx-auto w-100" style="max-width: 280px;">
         {% include "catalog/partials/product_card.html" with product=item.product %}
         <!-- <form method="post" action="{% url 'accounts:wishlist-remove' %}" class="wishlist-card__actions">
           {% csrf_token %}
