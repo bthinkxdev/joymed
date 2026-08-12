@@ -576,6 +576,7 @@ def get_variant_price(
     #calculate retail price first
     retail_price = product.base_price
     resolved_variant_id = None
+    variant = None
     if variant_id:
         variant = ProductVariant.objects.filter(pk=variant_id, product=product).first()
         if variant:
@@ -625,6 +626,7 @@ def get_variant_price(
         "is_flash_sale": str(sale["is_flash_sale"] if not is_tier_active else False).lower(),
         "is_wholesaler": str(is_wholesaler).lower(),
         "is_tier_active": str(is_tier_active).lower() if is_wholesaler else "false",
+        "stock_quantity": str(variant.stock_quantity) if resolved_variant_id and variant else str(product.stock_quantity),
     }
     if not is_tier_active and sale["is_flash_sale"]:
         result["original_price"] = str(sale["original_price"])

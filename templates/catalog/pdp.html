@@ -42,9 +42,10 @@
             {% trans "Wholesale" %}
           </span>
         </p>
-        <p class="jm-pdp-buybox__stock {% if product.is_in_stock %}is-in{% else %}is-out{% endif %}">
+        <p id="pdp-stock-container" class="jm-pdp-buybox__stock {% if product.is_in_stock %}is-in{% else %}is-out{% endif %}"
+           data-in-stock="{% trans 'In stock' %}" data-out-stock="{% trans 'Out of stock' %}">
           {% if product.is_in_stock %}
-          {% trans "In stock" %}{% if product.stock_quantity %} · {{ product.stock_quantity }}{% endif %}
+          {% trans "In stock" %}<span id="pdp-stock-quantity">{% if product.stock_quantity %} &middot; {{ product.stock_quantity }}{% endif %}</span>
           {% else %}
           {% trans "Out of stock" %}
           {% endif %}

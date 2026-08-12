@@ -62,6 +62,21 @@
               if (buyBtn && data.is_wholesaler === 'true') buyBtn.innerText = 'Add to Cart';
             }
           }
+
+          var stockContainer = document.getElementById('pdp-stock-container');
+          if (stockContainer && data.stock_quantity !== undefined) {
+            var qtyInt = parseInt(data.stock_quantity, 10);
+            var inStockText = stockContainer.getAttribute('data-in-stock') || 'In stock';
+            var outStockText = stockContainer.getAttribute('data-out-stock') || 'Out of stock';
+            
+            if (qtyInt > 0) {
+              stockContainer.className = 'jm-pdp-buybox__stock is-in';
+              stockContainer.innerHTML = inStockText + ' <span id="pdp-stock-quantity">&middot; ' + qtyInt + '</span>';
+            } else {
+              stockContainer.className = 'jm-pdp-buybox__stock is-out';
+              stockContainer.innerHTML = outStockText;
+            }
+          }
         });
     });
 
