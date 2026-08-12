@@ -81,7 +81,7 @@
           <div class="text-center mt-3">
             <div id="countdown-wrapper" class="small text-muted py-2 d-flex align-items-center justify-content-center gap-2">
               <span class="spinner-grow spinner-grow-sm text-floward-accent" role="status" style="width: 8px; height: 8px; animation-duration: 1.5s;"></span>
-              <span>{% trans "Resend code in" %} <strong id="timer-display" class="text-floward">05:00</strong></span>
+              <span>{% trans "Resend code in" %} <strong id="timer-display" class="text-floward">01:00</strong></span>
             </div>
             <a href="javascript:void(0);" id="resend-btn" class="btn btn-link btn-resend-link small fw-bold text-decoration-none d-none">
               {% trans "Resend Code" %}
@@ -235,7 +235,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    var duration = 300; 
+    var duration = 60; 
     var display = document.querySelector('#timer-display');
     var countdownWrapper = document.querySelector('#countdown-wrapper');
     var resendBtn = document.querySelector('#resend-btn');

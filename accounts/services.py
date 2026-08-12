@@ -134,6 +134,24 @@ def request_otp(*, phone: str, purpose: str) -> OTPRequest:
     normalized_phone = _normalize_phone(phone)
     _check_otp_rate_limit(phone=normalized_phone)
     _increment_otp_rate_limit(phone=normalized_phone)
+    
+    existing_otp = (
+        OTPRequest.objects.filter(
+            phone=normalized_phone,
+            purpose=purpose,
+            is_used=False,
+            expires_at__gt=timezone.now(),
+        )
+        .order_by("-created_at")
+        .first()
+    )
+    
+    if existing_otp:
+        cache_key = f"accounts:phone_otp_code:{existing_otp.id}"
+        otp_code = cache.get(cache_key)
+        if otp_code:
+            send_otp_sms.delay(phone=normalized_phone, otp_code=otp_code)
+            return existing_otp
 
     otp_code = _generate_otp_code()
     expires_at = timezone.now() + timedelta(seconds=settings.ACCOUNTS_OTP_EXPIRY_SECONDS)
@@ -144,6 +162,8 @@ def request_otp(*, phone: str, purpose: str) -> OTPRequest:
         purpose=purpose,
         expires_at=expires_at,
     )
+    
+    cache.set(f"accounts:phone_otp_code:{otp_request.id}", otp_code, timeout=settings.ACCOUNTS_OTP_EXPIRY_SECONDS)
 
     send_otp_sms.delay(phone=normalized_phone, otp_code=otp_code)
     return otp_request
@@ -570,6 +590,28 @@ def request_email_otp(*, email: str, purpose: str) -> EmailOTPRequest:
     except ValueError:
         cache.set(rate_limit_key, 1, timeout=OTP_RATE_LIMIT_WINDOW)
 
+    existing_otp = (
+        EmailOTPRequest.objects.filter(
+            email=normalized_email,
+            purpose=purpose,
+            is_used=False,
+            expires_at__gt=timezone.now(),
+        )
+        .order_by("-created_at")
+        .first()
+    )
+    
+    if existing_otp:
+        cache_key = f"accounts:email_otp_code:{existing_otp.id}"
+        otp_code = cache.get(cache_key)
+        if otp_code:
+            send_email(
+                email=normalized_email,
+                subject="Your Joymed Verification Code",
+                message=f"Your verification code is: {otp_code}. It is valid for 5 minutes.",
+            )
+            return existing_otp
+
     otp_code = _generate_email_otp_code()
     expires_at = timezone.now() + timedelta(seconds=settings.ACCOUNTS_OTP_EXPIRY_SECONDS)
 
@@ -579,6 +621,8 @@ def request_email_otp(*, email: str, purpose: str) -> EmailOTPRequest:
         purpose=purpose,
         expires_at=expires_at,
     )
+    
+    cache.set(f"accounts:email_otp_code:{otp_request.id}", otp_code, timeout=settings.ACCOUNTS_OTP_EXPIRY_SECONDS)
 
     send_email(
         email=normalized_email,
