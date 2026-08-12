@@ -57,6 +57,7 @@
 
       <form class="jm-search d-none d-lg-flex" action="{% url 'catalog:plp' %}" method="get" role="search">
         <div class="dropdown jm-search__cat">
+          {% with current_cat_id=request.GET.category current_cat_slug=request.resolver_match.kwargs.category_slug %}
           <button type="button" 
                   class="jm-search__cat-btn dropdown-toggle" 
                   id="jm-search-category-btn"
@@ -65,23 +66,35 @@
                   aria-expanded="false" 
                   aria-haspopup="listbox"
             aria-label="{% trans 'All Categories' %}">
-            <span class="jm-search__cat-label">{% trans "All Categories" %}</span>
+            <span class="jm-search__cat-label">
+              {% spaceless %}
+              {% if current_cat_id %}
+                {% for cat in category_tree %}{% if current_cat_id|stringformat:'s' == cat.pk|stringformat:'s' %}{{ cat.name }}{% endif %}{% endfor %}
+              {% elif current_cat_slug %}
+                {% for cat in category_tree %}{% if current_cat_slug == cat.slug %}{{ cat.name }}{% endif %}{% endfor %}
+              {% else %}
+                {% trans "All Categories" %}
+              {% endif %}
+              {% endspaceless %}
+            </span>
           </button>
           <ul class="dropdown-menu jm-search__cat-menu" role="listbox" aria-labelledby="jm-search-category-btn">
             <li>
-              <button type="button" class="dropdown-item is-active" role="option" data-jm-search-cat value="" aria-selected="true">
+              <button type="button" class="dropdown-item {% if not current_cat_id and not current_cat_slug %}is-active{% endif %}" role="option" data-jm-search-cat value="" data-slug="" aria-selected="{% if not current_cat_id and not current_cat_slug %}true{% else %}false{% endif %}">
                 {% trans "All Categories" %}
               </button>
             </li>
             {% for cat in category_tree %}
             <li>
-              <button type="button" class="dropdown-item" role="option" data-jm-search-cat value="{{ cat.pk }}" aria-selected="false">
+              <button type="button" class="dropdown-item {% if current_cat_id|stringformat:'s' == cat.pk|stringformat:'s' or current_cat_slug == cat.slug %}is-active{% endif %}" role="option" data-jm-search-cat value="{{ cat.pk }}" data-slug="{{ cat.slug }}" aria-selected="{% if current_cat_id|stringformat:'s' == cat.pk|stringformat:'s' or current_cat_slug == cat.slug %}true{% else %}false{% endif %}">
                 {{ cat.name }}
               </button>
             </li>
             {% endfor %}
           </ul>
-          <input type="hidden" name="category" id="jm-search-category" value="">
+          <input type="hidden" name="category" id="jm-search-category" value="{% if current_cat_id %}{{ current_cat_id }}{% else %}{% for cat in category_tree %}{% if current_cat_slug == cat.slug %}{{ cat.pk }}{% endif %}{% endfor %}{% endif %}">
+          <input type="hidden" id="jm-search-category-slug" value="{% if current_cat_slug %}{{ current_cat_slug }}{% else %}{% for cat in category_tree %}{% if current_cat_id|stringformat:'s' == cat.pk|stringformat:'s' %}{{ cat.slug }}{% endif %}{% endfor %}{% endif %}">
+          {% endwith %}
         </div>
         <div class="jm-search__field">
           <input type="search" 

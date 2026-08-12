@@ -1359,6 +1359,7 @@ document.addEventListener('DOMContentLoaded', () => {
     root.dataset.jmCatReady = '1';
 
     var hidden = document.getElementById('jm-search-category');
+    var hiddenSlug = document.getElementById('jm-search-category-slug');
     var label = root.querySelector('.jm-search__cat-label');
     var items = root.querySelectorAll('[data-jm-search-cat]');
     var toggle = root.querySelector('[data-bs-toggle="dropdown"]');
@@ -1367,8 +1368,10 @@ document.addEventListener('DOMContentLoaded', () => {
       item.addEventListener('click', function (event) {
         event.preventDefault();
         var value = item.getAttribute('value') || '';
+        var slug = item.getAttribute('data-slug') || '';
         var text = (item.textContent || '').trim();
         if (hidden) hidden.value = value;
+        if (hiddenSlug) hiddenSlug.value = slug;
         if (label) label.textContent = text;
         items.forEach(function (el) {
           var active = el === item;
@@ -1382,6 +1385,32 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var searchForm = document.querySelector('.jm-search');
+    if (searchForm) {
+      searchForm.addEventListener('submit', function(e) {
+        var qInput = searchForm.querySelector('input[name="q"]');
+        var catInput = document.getElementById('jm-search-category');
+        var slugInput = document.getElementById('jm-search-category-slug');
+        
+        var q = qInput ? qInput.value.trim() : '';
+        var cat = catInput ? catInput.value : '';
+        var slug = slugInput ? slugInput.value : '';
+        
+        if (!q) {
+          e.preventDefault();
+          if (cat && slug) {
+            window.location.href = '/shop/category/' + slug + '/';
+          } else {
+            if (window.location.pathname !== '/' && window.location.pathname !== '/shop/') {
+              window.location.href = '/shop/';
+            }
+          }
+        }
+      });
+    }
+  });
 
   document.addEventListener('click', function (event) {
     var qvBtn = event.target.closest('[data-jm-quick-view]');
