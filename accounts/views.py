@@ -881,6 +881,15 @@ def email_otp_request_view(request: HttpRequest) -> HttpResponse:
 
     email = form.cleaned_data["email"]
     name = form.cleaned_data["name"]
+
+    #block wholesalers from using OTP login
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    user = User.objects.filter(email=email.strip().lower()).first()
+    if user and hasattr(user, "wholesaler_profile"):
+        form.add_error("email", "Wholesale accounts must login with their password on the wholesale login page.")
+        return render(request, "accounts/email_otp_request.html", {"form": form, "next": next_url}, status=400)
+
     try:
         request_email_otp(email=email, purpose=OTPPurpose.LOGIN)
     except Exception as exc:
@@ -979,7 +988,13 @@ def email_otp_verify_view(request: HttpRequest) -> HttpResponse:
         user = User.objects.filter(email=email).first()
 
         if user and hasattr(user, "wholesaler_profile"):
-            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+            form.add_error(None, "Wholesale accounts must login with their password on the wholesale login page.")
+            return render(
+                request,
+                "accounts/email_otp_verify.html",
+                {"form": form, "email": email, "purpose": purpose, "next": next_url},
+                status=400
+            )
         else:
             name = request.session.pop("pending_customer_name", "")
             profile = login_or_create_customer_by_email(email=email, name=name)
