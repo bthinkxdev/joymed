@@ -25,7 +25,12 @@ def order_list(request: HttpRequest) -> HttpResponse:
         qs = qs.filter(order_status=status)
     query = request.GET.get("q", "").strip()
     if query:
-        qs = qs.filter(order_number__icontains=query)
+        from django.db.models import Q
+        qs = qs.filter(
+            Q(order_number__icontains=query) |
+            Q(customer_profile__phone__icontains=query) |
+            Q(customer_profile__user__wholesaler_profile__phone_number__icontains=query)
+        )
 
     paginator = Paginator(qs, 25)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -82,8 +87,24 @@ def order_transition(request: HttpRequest, pk: int) -> HttpResponse:
     note = request.POST.get("note", "")
     try:
         transition_order_status(
-            order=order, new_status=new_status, actor=request.user, note=note, force=True
+            order=order, new_status=new_status, actor=request.user, note=note
         )
+        
+        from payments.models import PaymentStatus
+        tx = order.payment_transactions.last()
+        if tx:
+            if new_status == OrderStatus.DELIVERED and tx.status == PaymentStatus.PENDING:
+                tx.status = PaymentStatus.SUCCESS
+                tx.save(update_fields=["status", "updated_at"])
+            elif new_status == OrderStatus.CANCELLED and tx.status == PaymentStatus.PENDING:
+                if hasattr(PaymentStatus, 'CANCELLED'):
+                    tx.status = PaymentStatus.CANCELLED
+                    tx.save(update_fields=["status", "updated_at"])
+            elif new_status == OrderStatus.REFUNDED and tx.status in (PaymentStatus.SUCCESS, PaymentStatus.PENDING):
+                if hasattr(PaymentStatus, 'REFUNDED'):
+                    tx.status = PaymentStatus.REFUNDED
+                    tx.save(update_fields=["status", "updated_at"])
+                    
         messages.success(
             request, f"Order moved to {dict(OrderStatus.choices).get(new_status, new_status)}."
         )

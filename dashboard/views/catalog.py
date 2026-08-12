@@ -43,6 +43,8 @@ class ProductListView(DashboardListView):
             qs = qs.filter(stock_quantity__lte=F("low_stock_threshold"))
         elif status == "out":
             qs = qs.filter(stock_quantity=0)
+        elif status == "top":
+            qs = qs.filter(is_bestseller=True)
         category = self.request.GET.get("category", "")
         if category.isdigit():
             qs = qs.filter(category_id=int(category))

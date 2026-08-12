@@ -12,12 +12,18 @@ from orders.exceptions import InvalidOrderStatusTransitionError
 from orders.models import Order, OrderStatus, OrderStatusHistory
 from orders.signals import order_status_changed
 
+_EARLY_STATES = {
+    OrderStatus.RECEIVED,
+    OrderStatus.PREPARING,
+    OrderStatus.READY,
+    OrderStatus.OUT_FOR_DELIVERY,
+}
+
 ALLOWED_STATUS_TRANSITIONS: dict[str, set[str]] = {
-    OrderStatus.RECEIVED: {OrderStatus.PREPARING, OrderStatus.CANCELLED},
-    OrderStatus.PREPARING: {OrderStatus.PACKAGING, OrderStatus.CANCELLED},
-    OrderStatus.PACKAGING: {OrderStatus.READY, OrderStatus.CANCELLED},
-    OrderStatus.READY: {OrderStatus.OUT_FOR_DELIVERY, OrderStatus.CANCELLED},
-    OrderStatus.OUT_FOR_DELIVERY: {OrderStatus.DELIVERED, OrderStatus.CANCELLED},
+    OrderStatus.RECEIVED: _EARLY_STATES | {OrderStatus.DELIVERED, OrderStatus.CANCELLED},
+    OrderStatus.PREPARING: _EARLY_STATES | {OrderStatus.DELIVERED, OrderStatus.CANCELLED},
+    OrderStatus.READY: _EARLY_STATES | {OrderStatus.DELIVERED, OrderStatus.CANCELLED},
+    OrderStatus.OUT_FOR_DELIVERY: _EARLY_STATES | {OrderStatus.DELIVERED, OrderStatus.CANCELLED},
     OrderStatus.DELIVERED: {OrderStatus.REFUNDED},
     OrderStatus.CANCELLED: set(),
     OrderStatus.REFUNDED: set(),

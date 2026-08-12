@@ -108,9 +108,12 @@ def get_admin_dashboard_summary() -> dict[str, Any]:
     yesterday = today - timedelta(days=1)
 
     yesterday_report = DailySalesReport.objects.filter(report_date=yesterday).first()
-    low_stock_count = InventorySnapshot.objects.filter(
-        report_date=yesterday,
-        is_low_stock=True,
+    from catalog.models import Product
+    from django.db.models import F
+
+    low_stock_count = Product.objects.filter(
+        is_active=True,
+        stock_quantity__lte=F("low_stock_threshold"),
     ).count()
 
     today_orders = Order.objects.filter(created_at__date=today).exclude(

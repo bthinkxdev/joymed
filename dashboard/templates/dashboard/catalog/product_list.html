@@ -15,9 +15,12 @@
     <form method="get" class="row g-2 align-items-center">
       <div class="col-12 col-md">
         <div class="input-group">
-          <span class="input-group-text bg-transparent border-end-0"><i class="ti ti-search text-secondary"></i></span>
-          <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0 ps-0"
+          <input type="text" name="q" value="{{ search_query }}" class="form-control"
                  placeholder="Search by name or SKU..." />
+          {% if search_query %}
+          <a href="?{% if category_filter %}category={{ category_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="btn btn-outline-secondary" title="Clear"><i class="ti ti-x"></i></a>
+          {% endif %}
+          <button type="submit" class="btn btn-outline-secondary"><i class="ti ti-search"></i></button>
         </div>
       </div>
       <div class="col-6 col-md-auto">
@@ -35,12 +38,12 @@
           <option value="inactive" {% if status_filter == "inactive" %}selected{% endif %}>Inactive</option>
           <option value="low" {% if status_filter == "low" %}selected{% endif %}>Low stock</option>
           <option value="out" {% if status_filter == "out" %}selected{% endif %}>Out of stock</option>
+          <option value="top" {% if status_filter == "top" %}selected{% endif %}>Top selling</option>
         </select>
       </div>
       <div class="col-12 col-md-auto d-grid d-md-block">
-        <button type="submit" class="btn btn-outline-secondary">Filter</button>
         {% if search_query or status_filter or category_filter %}
-        <a href="{% url 'dashboard:product-list' %}" class="btn btn-link text-secondary">Clear</a>
+        <a href="{% url 'dashboard:product-list' %}" class="btn btn-link text-secondary text-decoration-none">Clear Filters</a>
         {% endif %}
       </div>
     </form>

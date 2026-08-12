@@ -13,7 +13,6 @@ class OrderStatus(models.TextChoices):
 
     RECEIVED = "received", "Placed"
     PREPARING = "preparing", "Preparing"
-    PACKAGING = "packaging", "Packaging"
     READY = "ready", "Ready"
     OUT_FOR_DELIVERY = "out_for_delivery", "Out for delivery"
     DELIVERED = "delivered", "Delivered"

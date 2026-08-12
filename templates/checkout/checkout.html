@@ -194,7 +194,17 @@
           <button type="submit" class="btn btn-dark btn-sm px-3">{% trans "Apply" %}</button>
         </form>
         {% endif %}
-        <div class="d-flex justify-content-between fw-semibold mt-3 pt-2 border-top">
+        <div class="d-flex justify-content-between small fw-semibold mt-3 pt-2 border-top">
+          <span class="text-muted">{% trans "Subtotal" %}</span>
+          <span class="text-floward">{{ display_currency.symbol }}{{ summary.subtotal }}</span>
+        </div>
+        {% if summary.delivery_charge > 0 %}
+        <div class="d-flex justify-content-between small fw-semibold mt-1">
+          <span class="text-muted">{% trans "Delivery Charge" %}</span>
+          <span class="text-floward">+{{ display_currency.symbol }}{{ summary.delivery_charge }}</span>
+        </div>
+        {% endif %}
+        <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top" style="font-size: 1.1rem;">
           <span>{% trans "Total" %}</span>
           <span class="text-floward">{{ display_currency.symbol }}{{ summary.grand_total }}</span>
         </div>

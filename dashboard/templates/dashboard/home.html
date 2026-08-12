@@ -134,7 +134,7 @@
     <div class="card h-100">
       <div class="card-header panel-header">
         <h4 class="panel-title">Top Selling Products</h4>
-        <a href="{% url 'dashboard:product-list' %}" class="panel-link">View all</a>
+        <a href="{% url 'dashboard:product-list' %}?status=top" class="panel-link">View all</a>
       </div>
       <div class="card-body p-0">
         {% for p in top_products %}
@@ -142,9 +142,15 @@
           {% if p.image %}<img src="{{ p.image }}" class="thumb" alt="">{% else %}<span class="thumb thumb-fallback">{{ p.name|first|upper }}</span>{% endif %}
           <div class="list-main">
             <p class="list-title">{{ p.name }}</p>
+            {% if p.revenue or p.units %}
             <p class="list-meta">{{ currency_symbol }}{{ p.revenue|floatformat:0 }} · {{ p.units }} sold</p>
+            {% else %}
+            <p class="list-meta text-muted">Awaiting sales data</p>
+            {% endif %}
           </div>
+          {% if p.share %}
           <span class="share-badge">{{ p.share }}%</span>
+          {% endif %}
         </div>
         {% empty %}
         <p class="empty-state">No sales data yet</p>
@@ -157,7 +163,7 @@
     <div class="card h-100">
       <div class="card-header panel-header">
         <h4 class="panel-title">Low Stock Products</h4>
-        <a href="{% url 'dashboard:product-list' %}" class="panel-link">View all</a>
+        <a href="{% url 'dashboard:product-list' %}?status=low" class="panel-link">View all</a>
       </div>
       <div class="card-body p-0">
         {% for prod in low_stock %}

@@ -127,6 +127,10 @@ def place_order(
 
     if session.status != CheckoutSessionStatus.DRAFT:
         raise CheckoutSessionError("Checkout session is not in draft status.")
+        
+    if session.address_id and session.cart.destination_city_id != session.address.city_id:
+        session.cart.destination_city_id = session.address.city_id
+        session.cart.save(update_fields=["destination_city"])
 
     only_item_ids = [session.buy_now_item_id] if session.buy_now_item_id else None
     summary = get_cart_summary(cart=session.cart, only_item_ids=only_item_ids, buy_now_data=buy_now_data)

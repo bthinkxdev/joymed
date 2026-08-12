@@ -36,7 +36,6 @@ SEED_EMAIL_DOMAIN = "seed.floward.test"
 LINEAR_FLOW = [
     OrderStatus.RECEIVED,
     OrderStatus.PREPARING,
-    OrderStatus.PACKAGING,
     OrderStatus.READY,
     OrderStatus.OUT_FOR_DELIVERY,
     OrderStatus.DELIVERED,
@@ -275,7 +274,7 @@ class Command(BaseCommand):
             },
             {
                 "label": "Coupon FLAT50 (fixed) on larger order",
-                "status": OrderStatus.PACKAGING,
+                "status": OrderStatus.PREPARING,
                 "place": {
                     "profile": c[3],
                     "lines": [(p[8 % len(p)], None, 3), (p[9 % len(p)], None, 2)],

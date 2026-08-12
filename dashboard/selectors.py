@@ -69,7 +69,18 @@ def get_top_products(*, limit: int = 5) -> list[dict[str, Any]]:
         .first()
     )
     if not latest:
-        return []
+        bestsellers = Product.objects.filter(is_active=True, is_bestseller=True).select_related("category").prefetch_related("images")[:limit]
+        return [
+            {
+                "name": p.name,
+                "units": 0,
+                "revenue": 0.0,
+                "category": p.category.name if p.category_id else "",
+                "image": _primary_image_url(p),
+                "share": 0,
+            }
+            for p in bestsellers
+        ]
     rows = list(
         DailyProductPerformance.objects.filter(report_date=latest)
         .select_related("product", "product__category")
