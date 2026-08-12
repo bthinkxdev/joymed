@@ -218,8 +218,9 @@ class WholesalerRegistrationForm(forms.Form):
         email = self.cleaned_data["email"].strip().lower()
         from django.contrib.auth import get_user_model
         User = get_user_model()
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("A user with this email address already exists.")
+        user = User.objects.filter(email__iexact=email).first()
+        if user and hasattr(user, "wholesaler_profile"):
+            raise forms.ValidationError("You are already registered as a wholesaler with this email.")
         return email
 
 

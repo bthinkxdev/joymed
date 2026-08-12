@@ -679,21 +679,25 @@ def register_wholesaler(
     referrer_page: str,
 ) -> Wholesaler:
     """Atomically create a User and Wholesaler profile, and send a notification email."""
-    if UserModel.objects.filter(email=email).exists():
-        raise ValueError("Email is already registered.")
+    email = email.strip().lower()
+    user = UserModel.objects.filter(email__iexact=email).first()
 
-    name_parts = name.strip().split(" ", 1)
-    first_name = name_parts[0]
-    last_name = name_parts[1] if len(name_parts) > 1 else ""
+    if user:
+        if hasattr(user, "wholesaler_profile"):
+            raise ValueError("Email is already registered as a wholesaler.")
+    else:
+        name_parts = name.strip().split(" ", 1)
+        first_name = name_parts[0]
+        last_name = name_parts[1] if len(name_parts) > 1 else ""
 
-    user = UserModel.objects.create_user(
-        username=email,
-        email=email,
-        first_name=first_name,
-        last_name=last_name,
-    )
-    user.set_unusable_password()
-    user.save()
+        user = UserModel.objects.create_user(
+            username=email,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+        )
+        user.set_unusable_password()
+        user.save()
 
     wholesaler = Wholesaler.objects.create(
         user=user,

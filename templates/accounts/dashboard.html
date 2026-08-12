@@ -130,6 +130,13 @@
             {% trans "Your wholesaler application is currently under review by our team. Once approved, you will receive an email containing your generated password, after which you can access full wholesale rates and place orders." %}
           </p>
         </div>
+        {% elif wholesaler.approval_status == 'rejected' %}
+        <div class="alert alert-danger border-0 rounded-3 py-3 px-4 mb-0">
+          <h6 class="fw-bold mb-1 text-dark">{% trans "Application Rejected" %}</h6>
+          <p class="small mb-0 text-muted">
+            {% trans "Unfortunately, your wholesaler application has been rejected. If you have questions, please contact our support team." %}
+          </p>
+        </div>
         {% else %}
         <div class="alert alert-success border-0 rounded-3 py-3 px-4 mb-0">
           <h6 class="fw-bold mb-1">{% trans "Account Approved" %}</h6>

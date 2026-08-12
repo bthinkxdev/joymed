@@ -69,7 +69,7 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-floward-premium w-100 py-3 mb-3 d-flex align-items-center justify-content-center gap-2">
+            <button type="submit" id="verify-btn" class="btn btn-floward-premium w-100 py-3 mb-3 d-flex align-items-center justify-content-center gap-2" disabled>
               <span>{% trans "Verify & Proceed" %}</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="arrow-icon">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -367,6 +367,16 @@
       if (hiddenOtpInput) {
         hiddenOtpInput.value = fullCode;
       }
+      
+      var verifyBtn = document.getElementById('verify-btn');
+      if (verifyBtn) {
+        if (fullCode.length === 4) {
+          verifyBtn.disabled = false;
+        } else {
+          verifyBtn.disabled = true;
+        }
+      }
+      
       return fullCode;
     }
 
@@ -435,6 +445,7 @@
         }
       });
     });
+    updateHiddenInput();
   });
 </script>
 {% endblock %}
