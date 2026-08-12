@@ -177,46 +177,46 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
             update_checkout_session(checkout_session=session, address=address)
 
     if not address:
+        guest_name = request.POST.get("guest_name", "").strip()
+        guest_email = request.POST.get("guest_email", "").strip()
+        guest_phone = request.POST.get("guest_phone", "").strip()
+        guest_address_line1 = request.POST.get("guest_address_line1", "").strip()
+        guest_address_line2 = request.POST.get("guest_address_line2", "").strip()
+        guest_city_id = request.POST.get("guest_city_id", "").strip()
+
+        errors = {}
+        if not guest_name: 
+            errors["guest_name"] = ["Name is required."]
+        elif not re.search(r'[A-Za-z]', guest_name):
+            errors["guest_name"] = ["Name must contain alphabetic characters."]
+            
+        if not guest_email: 
+            errors["guest_email"] = ["Email is required."]
+        elif not re.match(r'^[^@]+@[^@]+\.[^@]+$', guest_email):
+            errors["guest_email"] = ["Enter a valid email address."]
+            
+        if not guest_phone: 
+            errors["guest_phone"] = ["Phone is required."]
+        elif not re.match(r'^\d{10}$', guest_phone):
+            errors["guest_phone"] = ["Enter a valid 10-digit phone number."]
+            
+        if not guest_address_line1: 
+            errors["guest_address_line1"] = ["Address Line 1 is required."]
+        elif not re.search(r'[A-Za-z]', guest_address_line1):
+            errors["guest_address_line1"] = ["Address must contain alphabetic characters."]
+            
+        if not guest_city_id: 
+            errors["guest_city_id"] = ["City is required."]
+
+        if errors:
+            return render(
+                request,
+                "checkout/partials/errors.html",
+                {"errors": errors},
+                status=200,
+            )
+
         if not request.user.is_authenticated:
-            guest_name = request.POST.get("guest_name", "").strip()
-            guest_email = request.POST.get("guest_email", "").strip()
-            guest_phone = request.POST.get("guest_phone", "").strip()
-            guest_address_line1 = request.POST.get("guest_address_line1", "").strip()
-            guest_address_line2 = request.POST.get("guest_address_line2", "").strip()
-            guest_city_id = request.POST.get("guest_city_id", "").strip()
-
-            errors = {}
-            if not guest_name: 
-                errors["guest_name"] = ["Name is required."]
-            elif not re.search(r'[A-Za-z]', guest_name):
-                errors["guest_name"] = ["Name must contain alphabetic characters."]
-                
-            if not guest_email: 
-                errors["guest_email"] = ["Email is required."]
-            elif not re.match(r'^[^@]+@[^@]+\.[^@]+$', guest_email):
-                errors["guest_email"] = ["Enter a valid email address."]
-                
-            if not guest_phone: 
-                errors["guest_phone"] = ["Phone is required."]
-            elif not re.match(r'^\d{10}$', guest_phone):
-                errors["guest_phone"] = ["Enter a valid 10-digit phone number."]
-                
-            if not guest_address_line1: 
-                errors["guest_address_line1"] = ["Address Line 1 is required."]
-            elif not re.search(r'[A-Za-z]', guest_address_line1):
-                errors["guest_address_line1"] = ["Address must contain alphabetic characters."]
-                
-            if not guest_city_id: 
-                errors["guest_city_id"] = ["City is required."]
-
-            if errors:
-                return render(
-                    request,
-                    "checkout/partials/errors.html",
-                    {"errors": errors},
-                    status=200,
-                )
-
             from accounts.services import login_or_create_customer_by_email
             from accounts.models import Address
 
@@ -250,28 +250,20 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
             session.customer_profile = profile
             session.save(update_fields=["customer_profile", "updated_at"])
         else:
-            guest_address_line1 = request.POST.get("guest_address_line1", "").strip()
-            guest_address_line2 = request.POST.get("guest_address_line2", "").strip()
-            guest_city_id = request.POST.get("guest_city_id", "").strip()
-
-            errors = {}
-            if not guest_address_line1: 
-                errors["guest_address_line1"] = ["Address Line 1 is required."]
-            elif not re.search(r'[A-Za-z]', guest_address_line1):
-                errors["guest_address_line1"] = ["Address must contain alphabetic characters."]
-                
-            if not guest_city_id: 
-                errors["guest_city_id"] = ["City is required."]
-
-            if errors:
-                return render(
-                    request,
-                    "checkout/partials/errors.html",
-                    {"errors": errors},
-                    status=200,
-                )
-
             from accounts.models import Address
+
+            profile_updated = False
+            if guest_phone and profile.phone != guest_phone:
+                profile.phone = guest_phone
+                profile_updated = True
+            
+            if profile_updated:
+                profile.save(update_fields=["phone", "updated_at"])
+                
+            if guest_name and profile.user.first_name != guest_name:
+                profile.user.first_name = guest_name
+                profile.user.save(update_fields=["first_name"])
+
             address = Address.objects.filter(
                 customer_profile=profile,
                 line1=guest_address_line1,

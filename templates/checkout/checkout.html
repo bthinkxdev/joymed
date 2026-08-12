@@ -38,27 +38,28 @@
             <div class="form-check mb-2">
               <input class="form-check-input" type="radio" name="address_id" value="{{ address.pk }}"
                 id="addr-{{ address.pk }}" {% if forloop.first %}checked{% endif %}>
-              <label class="form-check-label small" for="addr-{{ address.pk }}">{{ address.label }} — {{ address.line1 }}, {{ address.city.name }}</label>
+              <label class="form-check-label small" for="addr-{{ address.pk }}">{{ address.line1 }}, {{ address.city.name }}</label>
             </div>
             {% endfor %}
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="address_id" value="new" id="addr-new">
+              <label class="form-check-label small fw-bold" for="addr-new">{% trans "Add New Address" %}</label>
+            </div>
           </div>
-
-          <div class="text-center my-3"><span class="bg-white px-2 small text-muted">{% trans "— OR —" %}</span></div>
           {% endif %}
 
           <div id="new-address-form-fields" class="mt-2">
             <label class="form-label small fw-bold mb-3">{% trans "Enter Delivery Details:" %}</label>
 
-            {% if not request.user.is_authenticated %}
             <div class="row g-2 mb-3">
               <div class="col-md-6">
                 <label class="form-label small">{% trans "Full Name" %} <span class="text-danger">*</span></label>
-                <input type="text" name="guest_name" class="form-control form-control-sm" value="{{ checkout_session.customer_profile.user.first_name|default:'' }}">
+                <input type="text" name="guest_name" class="form-control form-control-sm" value="{% if checkout_session.customer_profile %}{{ checkout_session.customer_profile.user.first_name }}{% elif request.user.is_authenticated %}{{ request.user.first_name }}{% endif %}">
                 <div id="error-guest_name" class="text-danger small mt-1"></div>
               </div>
               <div class="col-md-6">
                 <label class="form-label small">{% trans "Email Address" %} <span class="text-danger">*</span></label>
-                <input type="email" name="guest_email" class="form-control form-control-sm" value="{{ checkout_session.customer_profile.user.email|default:'' }}">
+                <input type="email" name="guest_email" class="form-control form-control-sm" value="{% if checkout_session.customer_profile %}{{ checkout_session.customer_profile.user.email }}{% elif request.user.is_authenticated %}{{ request.user.email }}{% endif %}">
                 <div id="error-guest_email" class="text-danger small mt-1"></div>
               </div>
             </div>
@@ -67,7 +68,6 @@
               <input type="tel" name="guest_phone" class="form-control form-control-sm" value="{{ checkout_session.customer_profile.phone|default:'' }}">
               <div id="error-guest_phone" class="text-danger small mt-1"></div>
             </div>
-            {% endif %}
 
             <div class="mb-3">
               <label class="form-label small">{% trans "Address Line 1" %} <span class="text-danger">*</span></label>
@@ -243,6 +243,25 @@
       checkoutForm.addEventListener('htmx:sendError', function(event) {
         document.getElementById('order-processing-overlay').classList.add('d-none');
       });
+    }
+
+    var addressRadios = document.querySelectorAll('input[name="address_id"]');
+    var newAddressFields = document.getElementById('new-address-form-fields');
+    
+    function toggleNewAddressFields() {
+      var selected = document.querySelector('input[name="address_id"]:checked');
+      if (!selected || selected.value === 'new') {
+        newAddressFields.style.display = 'block';
+      } else {
+        newAddressFields.style.display = 'none';
+      }
+    }
+    
+    if (addressRadios.length > 0) {
+      addressRadios.forEach(function(radio) {
+        radio.addEventListener('change', toggleNewAddressFields);
+      });
+      toggleNewAddressFields();
     }
   });
 </script>
