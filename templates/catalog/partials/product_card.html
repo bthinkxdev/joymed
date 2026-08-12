@@ -26,7 +26,7 @@
       {% endwith %}
     </a>
 
-    <div class="jm-product-card__badges">
+    <div class="jm-product-card__badges" {% if swap_badges %}style="display: flex; flex-direction: column-reverse; justify-content: flex-end;"{% endif %}>
       {% if product.is_flash_sale %}
       <span class="product-badge product-badge--flash">{% if product.flash_discount_percentage %}-{{ product.flash_discount_percentage|floatformat:0 }}%{% else %}{% trans "Sale" %}{% endif %}</span>
       {% endif %}

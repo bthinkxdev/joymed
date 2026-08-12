@@ -109,28 +109,31 @@ def _decorate_homepage_rail_prices(rails: dict[str, list[Product]]) -> None:
     """Attach flash-sale display_price / flags onto homepage rail products."""
     from marketing.selectors import get_flash_sale_discounts_for_products
 
-    seen: dict[int, Product] = {}
+    product_prices = {}
     for products in rails.values():
         for product in products:
-            seen[product.pk] = product
-    if not seen:
+            product_prices[product.pk] = product.base_price
+
+    if not product_prices:
         return
 
     discounts = get_flash_sale_discounts_for_products(
-        product_prices={pid: p.base_price for pid, p in seen.items()},
+        product_prices=product_prices,
     )
-    for product in seen.values():
-        pct = discounts.get(product.pk)
-        if pct is None:
-            product.display_price = product.base_price
-            product.is_flash_sale = False
-            product.flash_discount_percentage = None
-            continue
-        discount = (product.base_price * pct / Decimal("100")).quantize(Decimal("0.01"))
-        product.display_price = product.base_price - discount
-        product.is_flash_sale = True
-        product.flash_discount_percentage = pct
-        product.original_price = product.base_price
+    
+    for products in rails.values():
+        for product in products:
+            pct = discounts.get(product.pk)
+            if pct is None:
+                product.display_price = product.base_price
+                product.is_flash_sale = False
+                product.flash_discount_percentage = None
+                continue
+            discount = (product.base_price * pct / Decimal("100")).quantize(Decimal("0.01"))
+            product.display_price = product.base_price - discount
+            product.is_flash_sale = True
+            product.flash_discount_percentage = pct
+            product.original_price = product.base_price
 
 
 def _apply_plp_filters(queryset: QuerySet[Product], filters: dict[str, Any]) -> QuerySet[Product]:
@@ -219,38 +222,33 @@ def get_plp_products(
         ):
             is_wholesaler = True
 
-    display_prices: dict[int, Decimal] = {}
-    if is_wholesaler:
-        for product in results:
-            if product.wholesale_rate:
-                display_prices[product.pk] = product.wholesale_rate
-                product.display_price = product.wholesale_rate
-                product.is_wholesale_price = True
-            else:
-                display_prices[product.pk] = product.base_price
-                product.display_price = product.base_price
-                product.is_wholesale_price = False
-    else:
-        from marketing.selectors import get_flash_sale_discounts_for_products
+    from marketing.selectors import get_flash_sale_discounts_for_products
+    flash_discounts = get_flash_sale_discounts_for_products(
+        product_prices={product.pk: product.base_price for product in results},
+    )
 
-        flash_discounts = get_flash_sale_discounts_for_products(
-            product_prices={product.pk: product.base_price for product in results},
-        )
-        for product in results:
-            discount_pct = flash_discounts.get(product.pk)
-            if discount_pct is None:
-                display_prices[product.pk] = product.base_price
-                product.is_flash_sale = False
-                product.flash_discount_percentage = None
-            else:
-                discount = (product.base_price * discount_pct / Decimal("100")).quantize(
-                    Decimal("0.01")
-                )
-                display_prices[product.pk] = product.base_price - discount
-                product.is_flash_sale = True
-                product.flash_discount_percentage = discount_pct
-                product.original_price = product.base_price
-            product.display_price = display_prices[product.pk]
+    display_prices: dict[int, Decimal] = {}
+    for product in results:
+        discount_pct = flash_discounts.get(product.pk)
+        if discount_pct is None:
+            flash_price = product.base_price
+            product.is_flash_sale = False
+            product.flash_discount_percentage = None
+        else:
+            discount = (product.base_price * discount_pct / Decimal("100")).quantize(Decimal("0.01"))
+            flash_price = product.base_price - discount
+            product.is_flash_sale = True
+            product.flash_discount_percentage = discount_pct
+            product.original_price = product.base_price
+
+        if is_wholesaler and product.wholesale_rate:
+            display_prices[product.pk] = product.wholesale_rate
+            product.display_price = product.wholesale_rate
+            product.is_wholesale_price = True
+            product.is_flash_sale = False  # Wholesale overrides flash sale
+        else:
+            display_prices[product.pk] = flash_price
+            product.display_price = flash_price
             product.is_wholesale_price = False
 
     return {

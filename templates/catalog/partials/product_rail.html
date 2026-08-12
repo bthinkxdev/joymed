@@ -12,7 +12,7 @@
       <div class="product-rail-scroll jm-product-rail__track" role="list" data-rail-track>
         {% for product in products %}
         <div class="product-rail-item" role="listitem">
-          {% include "catalog/partials/product_card.html" with product=product force_badge=force_badge %}
+          {% include "catalog/partials/product_card.html" with product=product force_badge=force_badge swap_badges=swap_badges %}
         </div>
         {% empty %}
         <p class="text-muted small px-2">{% trans "No products available." %}</p>
