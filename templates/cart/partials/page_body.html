@@ -13,13 +13,15 @@
         {% for line in summary.lines %}
         <li class="cart-page-line d-flex gap-3 p-3{% if not forloop.last %} border-bottom{% endif %}">
           <div class="cart-line__img-wrap" style="width:80px;height:80px;">
-            {% with line.product.primary_images|first as primary_image %}
-            {% if primary_image %}
-            <img src="{{ primary_image.image.url }}" alt="{{ line.product.name }}" class="cart-line__img" loading="lazy">
-            {% else %}
-            <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ line.product.name }}" class="cart-line__img cart-line__img--placeholder">
-            {% endif %}
-            {% endwith %}
+            <a href="{% url 'catalog:pdp' slug=line.product.slug %}" class="d-block w-100 h-100">
+              {% with line.product.primary_images|first as primary_image %}
+              {% if primary_image %}
+              <img src="{{ primary_image.image.url }}" alt="{{ line.product.name }}" class="cart-line__img" loading="lazy">
+              {% else %}
+              <img src="{% static 'img/product-placeholder.svg' %}" alt="{{ line.product.name }}" class="cart-line__img cart-line__img--placeholder">
+              {% endif %}
+              {% endwith %}
+            </a>
           </div>
           <div class="flex-grow-1 min-w-0">
             <div class="d-flex justify-content-between align-items-start gap-2">
