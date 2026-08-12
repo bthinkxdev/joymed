@@ -335,7 +335,13 @@
       reinitPageScripts();
     }
     if (event.detail.target && event.detail.target.id === 'product-grid') {
-      event.detail.target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var toolbar = document.querySelector('.plp-toolbar') || event.detail.target;
+      var headerOffset = 170;
+      var elementPosition = toolbar.getBoundingClientRect().top + window.scrollY;
+      var offsetPosition = Math.max(0, elementPosition - headerOffset);
+      if (window.scrollY > offsetPosition) {
+        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+      }
       reinitPageScripts();
     }
   });
@@ -1542,6 +1548,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (height > 0) {
       document.documentElement.style.setProperty('--jm-header-sticky-offset', height + 'px');
     }
+    var plpToolbar = document.querySelector('.jm-plp-toolbar');
+    var toolbarHeight = 0;
+    if (plpToolbar && window.matchMedia('(min-width: 992px)').matches) {
+      toolbarHeight = Math.ceil(plpToolbar.getBoundingClientRect().height);
+    }
+    document.documentElement.style.setProperty('--jm-plp-toolbar-height', toolbarHeight + 'px');
   }
 
   function initTrustAutoSlide(root) {
