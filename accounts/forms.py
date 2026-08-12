@@ -236,6 +236,14 @@ class EmailOTPRequestForm(forms.Form):
         widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "you@example.com"}),
     )
 
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if email:
+            import re
+            if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", email):
+                raise forms.ValidationError("Enter a valid email address.")
+        return email
+
 
 class EmailOTPVerifyForm(forms.Form):
     """Form to verify an email OTP code."""

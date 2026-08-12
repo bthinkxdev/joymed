@@ -850,18 +850,26 @@ def email_otp_request_view(request: HttpRequest) -> HttpResponse:
     """Request a passwordless login OTP for General Customers."""
     next_url = request.GET.get("next") or request.POST.get("next", "")
     
+    def _is_safe_url(url: str) -> bool:
+        if not url: return False
+        from urllib.parse import urlparse
+        try:
+            parsed = urlparse(url)
+            return not any(path in parsed.path for path in ("/accounts/login/", "/accounts/verify-email-otp/", "/accounts/register/"))
+        except Exception:
+            return False
+
+    if next_url and not _is_safe_url(next_url):
+        next_url = ""
+
     #if no next_url is specified, look at the http referer
     if not next_url:
         referer = request.META.get("HTTP_REFERER", "")
-        if referer:
-            from urllib.parse import urlparse
-            try:
-                parsed_url = urlparse(referer)
-                #avoid redirecting back to login/registration pages themselves to prevent redirect loops
-                if not any(path in parsed_url.path for path in ("/accounts/login/", "/accounts/verify-email-otp/", "/accounts/register/")):
-                    next_url = referer
-            except Exception:
-                pass
+        if _is_safe_url(referer):
+            next_url = referer
+
+    if request.user.is_authenticated:
+        return redirect(next_url or "accounts:dashboard")
 
     if request.method == "GET":
         return render(request, "accounts/email_otp_request.html", {"form": EmailOTPRequestForm(), "next": next_url})
@@ -890,6 +898,9 @@ def email_otp_request_view(request: HttpRequest) -> HttpResponse:
 @require_http_methods(["GET", "POST"])
 def email_otp_verify_view(request: HttpRequest) -> HttpResponse:
     """Verify email 4-digit OTP for signup (Wholesaler) or login (Customer/Wholesaler)."""
+    if request.user.is_authenticated:
+        return redirect("accounts:dashboard")
+
     email = request.GET.get("email") or request.POST.get("email", "")
     purpose = request.GET.get("purpose") or request.POST.get("purpose", OTPPurpose.LOGIN)
     next_url = request.GET.get("next") or request.POST.get("next", "")
