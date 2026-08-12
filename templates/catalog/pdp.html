@@ -111,7 +111,7 @@
               </label>
               {% with tiers=product.wholesale_tiers.all %}
               <input type="range" class="form-range volume-slider" id="pdp-qty-slider" min="1"
-                max="{% if tiers %}{{ tiers.last.max_quantity }}{% else %}{{ product.stock_quantity|default:100 }}{% endif %}"
+                max="{{ product.stock_quantity|default:0 }}"
                 value="{{ cart_item.quantity|default:1 }}" oninput="updateWholesaleQuantity(this.value)">
               {% endwith %}
               <input type="hidden" id="pdp-qty" class="pdp-qty-input" value="{{ cart_item.quantity|default:1 }}">
@@ -122,7 +122,7 @@
                 onclick="let inp = document.getElementById('pdp-qty'); if(inp.value > 1) { inp.value = parseInt(inp.value) - 1; document.querySelectorAll('.pdp-qty-input').forEach(i => i.value = inp.value); }"
                 aria-label="{% trans 'Decrease quantity' %}">&minus;</button>
               <input type="number" id="pdp-qty" class="qty-stepper__value pdp-qty-input"
-                value="{{ cart_item.quantity|default:1 }}" min="1" readonly aria-label="{% trans 'Quantity' %}">
+                value="{{ cart_item.quantity|default:1 }}" min="1" max="{{ product.stock_quantity|default:0 }}" readonly aria-label="{% trans 'Quantity' %}">
               <button class="qty-stepper__btn" type="button" onclick="handlePdpQtyIncrease();"
                 aria-label="{% trans 'Increase quantity' %}">&plus;</button>
             </div>
@@ -482,7 +482,7 @@
   function handlePdpQtyIncrease() {
     let inp = document.getElementById('pdp-qty');
     let currentQty = parseInt(inp.value, 10) || 1;
-    let maxStock = parseInt("{{ product.stock_quantity|default:0 }}", 10);
+    let maxStock = parseInt(inp.getAttribute('max'), 10) || parseInt("{{ product.stock_quantity|default:0 }}", 10);
 
     if (maxStock > 0 && currentQty >= maxStock) {
       showPdpStockToast(maxStock);

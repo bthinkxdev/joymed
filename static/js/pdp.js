@@ -64,17 +64,44 @@
           }
 
           var stockContainer = document.getElementById('pdp-stock-container');
-          if (stockContainer && data.stock_quantity !== undefined) {
-            var qtyInt = parseInt(data.stock_quantity, 10);
-            var inStockText = stockContainer.getAttribute('data-in-stock') || 'In stock';
-            var outStockText = stockContainer.getAttribute('data-out-stock') || 'Out of stock';
+          if (data.stock_quantity !== undefined) {
+            var qtyInt = parseInt(data.stock_quantity, 10) || 0;
             
-            if (qtyInt > 0) {
-              stockContainer.className = 'jm-pdp-buybox__stock is-in';
-              stockContainer.innerHTML = inStockText + ' <span id="pdp-stock-quantity">&middot; ' + qtyInt + '</span>';
-            } else {
-              stockContainer.className = 'jm-pdp-buybox__stock is-out';
-              stockContainer.innerHTML = outStockText;
+            if (stockContainer) {
+              var inStockText = stockContainer.getAttribute('data-in-stock') || 'In stock';
+              var outStockText = stockContainer.getAttribute('data-out-stock') || 'Out of stock';
+              
+              if (qtyInt > 0) {
+                stockContainer.className = 'jm-pdp-buybox__stock is-in';
+                stockContainer.innerHTML = inStockText + ' <span id="pdp-stock-quantity">&middot; ' + qtyInt + '</span>';
+              } else {
+                stockContainer.className = 'jm-pdp-buybox__stock is-out';
+                stockContainer.innerHTML = outStockText;
+              }
+            }
+
+            // Update Wholesale Slider Limit
+            var slider = document.getElementById('pdp-qty-slider');
+            if (slider) {
+              var currentValue = parseInt(slider.value, 10);
+              slider.max = qtyInt;
+              if (currentValue > qtyInt) {
+                slider.value = qtyInt;
+              }
+              if (typeof updateWholesaleQuantity === 'function') {
+                updateWholesaleQuantity(slider.value);
+              }
+            }
+
+            // Update Retail Quantity Input Limit
+            var qtyInputEl = document.getElementById('pdp-qty');
+            if (qtyInputEl) {
+              var currentQtyVal = parseInt(qtyInputEl.value, 10);
+              qtyInputEl.setAttribute('max', qtyInt);
+              if (currentQtyVal > qtyInt) {
+                qtyInputEl.value = qtyInt;
+                document.querySelectorAll('.pdp-qty-input').forEach(function(i) { i.value = qtyInt; });
+              }
             }
           }
         });

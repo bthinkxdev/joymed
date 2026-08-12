@@ -306,7 +306,7 @@ class ProductWholesaleTier(TimeStampedModel):
         verbose_name="Product",
     )
     min_quantity = models.PositiveIntegerField(verbose_name="Min Quantity")
-    max_quantity = models.PositiveIntegerField(verbose_name="Max Quantity")
+    max_quantity = models.PositiveIntegerField(verbose_name="Max Quantity", null=True, blank=True)
     price = models.DecimalField(
         max_digits=12,
         decimal_places=2,
