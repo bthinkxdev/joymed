@@ -920,10 +920,4 @@ a {
   .table-responsive tfoot td::before {
     display: none;
   }
-  .table-responsive td.text-end {
-    justify-content: flex-end;
-  }
-  .table-responsive td.text-center {
-    justify-content: center;
-  }
 }

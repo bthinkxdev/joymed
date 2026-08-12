@@ -282,5 +282,26 @@
     initFormValidation();
     initCharts();
     initFormsets();
+
+    window.addEventListener("pageshow", function (event) {
+      if (event.persisted) {
+        window.location.reload();
+      }
+    });
+
+    var forms = document.querySelectorAll("form:not([data-no-loading])");
+    Array.prototype.forEach.call(forms, function (form) {
+      form.addEventListener("submit", function () {
+        var submitBtns = form.querySelectorAll('button[type="submit"]');
+        Array.prototype.forEach.call(submitBtns, function(btn) {
+          if (!btn.hasAttribute("data-original-html")) {
+            btn.setAttribute("data-original-html", btn.innerHTML);
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Please wait...';
+            btn.style.pointerEvents = 'none';
+            btn.classList.add('disabled');
+          }
+        });
+      });
+    });
   });
 })();
