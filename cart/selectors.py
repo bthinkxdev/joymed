@@ -263,9 +263,16 @@ def get_cart_summary(*, cart: Cart, only_item_ids: Optional[list[int]] = None, b
             .order_by("id")
         )
     
+        user = cart.customer_profile.user if (cart.customer_profile and cart.customer_profile.user_id) else None
+        from cart.services import _resolve_unit_price
+
         for item in items:
-            unit_price = item.unit_price_at_add
-    
+            unit_price = _resolve_unit_price(
+                product=item.product,
+                variant=item.variant,
+                user=user,
+                quantity=item.quantity,
+            )    
             line_subtotal = unit_price * item.quantity
             subtotal += line_subtotal
             item_count += item.quantity

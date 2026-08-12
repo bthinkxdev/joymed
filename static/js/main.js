@@ -84,6 +84,13 @@
     if (token) {
       event.detail.headers['X-CSRFToken'] = token;
     }
+    if (event.detail.verb === 'get') {
+      event.detail.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+      event.detail.headers['Pragma'] = 'no-cache';
+      event.detail.headers['Expires'] = '0';
+      var sep = event.detail.path.indexOf('?') !== -1 ? '&' : '?';
+      event.detail.path += sep + 't=' + new Date().getTime();
+    }
   });
 
   document.body.addEventListener('htmx:beforeRequest', function (event) {
@@ -115,6 +122,14 @@
   window.addEventListener('load', function () {
     window.setTimeout(hidePageLoader, 320);
   });
+
+  // Handle Back-Forward Cache (bfcache) to prevent stale data on Back navigation
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted) {
+      window.location.reload();
+    }
+  });
+
   // Fallback if load already fired or assets cached
   if (document.readyState === 'complete') {
     window.setTimeout(hidePageLoader, 320);
