@@ -8,6 +8,7 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from django.views.decorators.cache import never_cache
 
 from accounts.selectors import get_address_by_id, get_saved_addresses
 from cart.selectors import get_cart_for_request, get_cart_summary
@@ -21,8 +22,12 @@ from payments.services import process_payment
 
 
 @require_GET
+@never_cache
 def checkout_view(request: HttpRequest) -> HttpResponse:
     """Multi-step checkout page with gift Order Preview partial."""
+    if request.session.pop("just_completed_order", False):
+        return redirect("cms:homepage")
+
     cart = get_or_create_cart(request=request)
 
     buy_now_product_id = request.GET.get("buy_now_product_id")
@@ -403,6 +408,8 @@ def checkout_place_order_view(request: HttpRequest) -> HttpResponse:
 @require_GET
 def checkout_confirmation_view(request: HttpRequest, order_id: int) -> HttpResponse:
     """Separate order confirmation / success page."""
+    request.session["just_completed_order"] = True
+    
     from orders.models import Order
     from django.shortcuts import get_object_or_404
     order = get_object_or_404(Order, pk=order_id)
