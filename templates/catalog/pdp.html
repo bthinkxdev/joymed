@@ -208,12 +208,21 @@
             {% endif %}
           </div>
           {% else %}
-          <div class="jm-pdp-buybox__row">
+          <div id="sold-out-action" class="jm-pdp-buybox__row">
             <button type="button" class="btn btn-secondary w-100 jm-pdp-btn disabled" style="cursor: not-allowed;"
               disabled>
               {% trans "Sold out" %}
             </button>
           </div>
+          {% if product.is_rental and product.show_rental_storefront %}
+          <div id="rent-action" class="jm-pdp-buybox__row d-none">
+            <a href="https://wa.me/{{ whatsapp_number|default:'6282906721' }}?text=Hello%2C%20I%20am%20interested%20in%20renting%20the%20product%3A%20{{ product.name|urlencode }}%20(SKU%3A%20{{ product.sku|urlencode }})"
+              target="_blank" rel="noopener"
+              class="btn btn-floward w-100 jm-pdp-btn d-flex align-items-center justify-content-center gap-2">
+              {% trans "Enquire on WhatsApp" %}
+            </a>
+          </div>
+          {% endif %}
           {% endif %}
         </div>
       </div>
@@ -248,8 +257,7 @@
       <button type="submit" name="buy_now" value="true" class="btn btn-floward jm-pdp-sticky__btn">{% trans "Buy Now" %}</button>
     </form>
     {% else %}
-    <button type="button" class="btn btn-secondary w-100 jm-pdp-sticky__btn disabled" style="cursor: not-allowed;"
-      disabled>
+    <button id="sticky-sold-out-action" type="button" class="btn btn-secondary jm-pdp-sticky__btn disabled" disabled>
       {% trans "Sold out" %}
     </button>
     {% endif %}
@@ -371,12 +379,17 @@
       const stickyRentAction = document.getElementById("sticky-rent-action");
       const ctaRow = document.querySelector(".jm-pdp-buybox__cta-row");
 
+      const soldOutAction = document.getElementById("sold-out-action");
+      const stickySoldOutAction = document.getElementById("sticky-sold-out-action");
+
       if (rentBtn && rentBtn.checked) {
         if (buyForm) buyForm.classList.add("d-none");
         if (buyNowForm) buyNowForm.classList.add("d-none");
         if (ctaRow) ctaRow.classList.add("d-none");
+        if (soldOutAction) soldOutAction.classList.add("d-none");
         if (rentAction) rentAction.classList.remove("d-none");
         if (stickyActionsGroup) stickyActionsGroup.classList.add("d-none");
+        if (stickySoldOutAction) stickySoldOutAction.classList.add("d-none");
         if (stickyRentAction) stickyRentAction.classList.remove("d-none");
         if (priceDisplay && rentalPrice) {
           priceDisplay.innerHTML = "{{ display_currency.symbol }}" + rentalPrice + " / month";
@@ -388,8 +401,10 @@
         if (buyForm) buyForm.classList.remove("d-none");
         if (buyNowForm) buyNowForm.classList.remove("d-none");
         if (ctaRow) ctaRow.classList.remove("d-none");
+        if (soldOutAction) soldOutAction.classList.remove("d-none");
         if (rentAction) rentAction.classList.add("d-none");
         if (stickyActionsGroup) stickyActionsGroup.classList.remove("d-none");
+        if (stickySoldOutAction) stickySoldOutAction.classList.remove("d-none");
         if (stickyRentAction) stickyRentAction.classList.add("d-none");
         if (priceDisplay) priceDisplay.innerHTML = originalPriceHtml;
         if (stickyPriceDisplay) stickyPriceDisplay.innerHTML = originalStickyPriceHtml;
