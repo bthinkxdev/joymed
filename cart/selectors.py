@@ -60,6 +60,7 @@ class CartSummaryLine:
     line_subtotal: Decimal
     has_insufficient_stock: bool = False
     max_stock: int = 0
+    is_wholesale_applied: bool = False
 
 
 @dataclass
@@ -216,8 +217,15 @@ def get_cart_summary(*, cart: Cart, only_item_ids: Optional[list[int]] = None, b
             variant = ProductVariant.objects.filter(pk=variant_id).first() if variant_id else None
             user = cart.customer_profile.user if (cart.customer_profile and cart.customer_profile.user_id) else None
             
-            from cart.services import _resolve_unit_price
-            unit_price = _resolve_unit_price(product=product, variant=variant, user=user, quantity=quantity)
+            from catalog.selectors import get_variant_price
+            price_data = get_variant_price(
+                product_id=product.pk,
+                variant_id=variant.pk if variant else None,
+                user=user,
+                quantity=quantity,
+            )
+            unit_price = Decimal(price_data["price"])
+            is_wholesale_applied = price_data.get("is_tier_active") == "true"
             line_subtotal = unit_price * quantity
             
             subtotal += line_subtotal
@@ -238,6 +246,7 @@ def get_cart_summary(*, cart: Cart, only_item_ids: Optional[list[int]] = None, b
                     line_subtotal=line_subtotal,
                     has_insufficient_stock=line_has_insufficient_stock,
                     max_stock=max_stock,
+                    is_wholesale_applied=is_wholesale_applied,
                 )
             )
     else:
@@ -264,15 +273,18 @@ def get_cart_summary(*, cart: Cart, only_item_ids: Optional[list[int]] = None, b
         )
     
         user = cart.customer_profile.user if (cart.customer_profile and cart.customer_profile.user_id) else None
-        from cart.services import _resolve_unit_price
+        from catalog.selectors import get_variant_price
 
         for item in items:
-            unit_price = _resolve_unit_price(
-                product=item.product,
-                variant=item.variant,
+            price_data = get_variant_price(
+                product_id=item.product.pk,
+                variant_id=item.variant.pk if item.variant else None,
                 user=user,
                 quantity=item.quantity,
-            )    
+            )
+            unit_price = Decimal(price_data["price"])
+            is_wholesale_applied = price_data.get("is_tier_active") == "true"
+            
             line_subtotal = unit_price * item.quantity
             subtotal += line_subtotal
             item_count += item.quantity
@@ -292,6 +304,7 @@ def get_cart_summary(*, cart: Cart, only_item_ids: Optional[list[int]] = None, b
                     line_subtotal=line_subtotal,
                     has_insufficient_stock=line_has_insufficient_stock,
                     max_stock=max_stock,
+                    is_wholesale_applied=is_wholesale_applied,
                 )
             )
 

@@ -175,7 +175,7 @@ def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
     if variant_id and variant_id.isdigit():
         target_variant = product.variants.filter(pk=int(variant_id)).first()
     else:
-        target_variant = product.variants.first()
+        target_variant = product.variants.filter(stock_quantity__gt=0).first() or product.variants.first()
 
     cart_item = None
     if cart:

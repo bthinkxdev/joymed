@@ -38,7 +38,11 @@ def confirm_payment_success(*, payment_transaction: PaymentTransaction) -> Payme
             if session and session.buy_now_item_id:
                 CartItem.objects.filter(cart=cart, pk=session.buy_now_item_id).delete()
             else:
-                CartItem.objects.filter(cart=cart).delete()
+                for order_item in order.items.all():
+                    if order_item.variant:
+                        CartItem.objects.filter(cart=cart, product=order_item.product, variant=order_item.variant).delete()
+                    else:
+                        CartItem.objects.filter(cart=cart, product=order_item.product, variant__isnull=True).delete()
 
         #send order placement confirmation email
         from notifications.tasks import dispatch_order_confirmation_notification

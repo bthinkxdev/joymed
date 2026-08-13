@@ -26,7 +26,7 @@
       {% if line.variant %}
       <div class="cart-line__meta text-muted small mt-1 mb-1">{{ line.variant.name }}</div>
       {% endif %}
-      {% if user.is_authenticated and user.wholesaler_profile.approval_status == 'approved' %}
+      {% if line.is_wholesale_applied %}
       <div class="cart-line__meta text-success">
         {{ display_currency.symbol }}{{ line.unit_price_at_add }}
         <span class="badge bg-success ms-1" style="font-size: 0.55rem; font-weight: normal; vertical-align: middle;">{% trans "Wholesale" %}</span>

@@ -121,6 +121,7 @@
     </div>
     {% else %}
     <div class="col-md-8">
+      {% if wholesaler.approval_status != 'approved' %}
       <div class="card p-4 rounded-3 border-0 shadow-sm bg-white mb-4">
         <h2 class="h5 fw-bold text-dark mb-3">{% trans "Wholesale Dashboard" %}</h2>
         {% if wholesaler.approval_status == 'pending' %}
@@ -137,15 +138,9 @@
             {% trans "Unfortunately, your wholesaler application has been rejected. If you have questions, please contact our support team." %}
           </p>
         </div>
-        {% else %}
-        <div class="alert alert-success border-0 rounded-3 py-3 px-4 mb-0">
-          <h6 class="fw-bold mb-1">{% trans "Account Approved" %}</h6>
-          <p class="small mb-0 text-muted">
-            {% trans "Your wholesaler account is approved. You can now purchase items at wholesale prices." %}
-          </p>
-        </div>
         {% endif %}
       </div>
+      {% endif %}
 
       <div class="card p-3 mb-4">
         <h2 class="h6 mb-3">{% trans "Recent orders" %}</h2>
