@@ -56,10 +56,18 @@
               if (addGroup && data.is_wholesaler !== 'true') addGroup.classList.add('d-none');
               if (viewGroup && data.is_wholesaler !== 'true') viewGroup.classList.remove('d-none');
               if (buyBtn && data.is_wholesaler === 'true') buyBtn.innerText = 'Update Cart';
+              var stickyBuyForm = document.getElementById("sticky-buy-form");
+              var stickyViewCartBtn = document.getElementById("pdp-sticky-view-cart-btn");
+              if (stickyBuyForm && data.is_wholesaler !== 'true') stickyBuyForm.classList.add("d-none");
+              if (stickyViewCartBtn && data.is_wholesaler !== 'true') stickyViewCartBtn.classList.remove("d-none");
             } else {
               if (addGroup) addGroup.classList.remove('d-none');
               if (viewGroup) viewGroup.classList.add('d-none');
               if (buyBtn && data.is_wholesaler === 'true') buyBtn.innerText = 'Add to Cart';
+              var stickyBuyForm = document.getElementById("sticky-buy-form");
+              var stickyViewCartBtn = document.getElementById("pdp-sticky-view-cart-btn");
+              if (stickyBuyForm) stickyBuyForm.classList.remove("d-none");
+              if (stickyViewCartBtn) stickyViewCartBtn.classList.add("d-none");
             }
           }
 

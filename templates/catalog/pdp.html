@@ -133,7 +133,7 @@
               {% csrf_token %}
               <input type="hidden" name="product_id" value="{{ product.pk }}">
               <input type="hidden" name="quantity" class="pdp-qty-input" value="{{ cart_item.quantity|default:1 }}">
-              <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="">
+              <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="{{ selected_variant_id|default:'' }}">
               <button type="submit" class="btn btn-outline-floward w-100 jm-pdp-btn">
                 {% if is_in_cart and price_data.is_wholesaler == 'true' %}{% trans "Update Cart" %}{% else %}{% trans "Add to Cart" %}{% endif %}
               </button>
@@ -193,7 +193,7 @@
               {% csrf_token %}
               <input type="hidden" name="product_id" value="{{ product.pk }}">
               <input type="hidden" name="quantity" class="pdp-qty-input" value="{{ cart_item.quantity|default:1 }}">
-              <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="">
+              <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="{{ selected_variant_id|default:'' }}">
               <button type="submit" name="buy_now" value="true"
                 class="btn btn-floward w-100 jm-pdp-btn jm-pdp-btn--primary">
                 {% trans "Buy Now" %}
@@ -240,7 +240,7 @@
       {% csrf_token %}
       <input type="hidden" name="product_id" value="{{ product.pk }}">
       <input type="hidden" name="quantity" class="pdp-qty-input" value="{{ cart_item.quantity|default:1 }}">
-      <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="">
+      <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="{{ selected_variant_id|default:'' }}">
       <button type="submit" class="btn btn-outline-floward jm-pdp-sticky__btn">{% trans "Add" %}</button>
     </form>
 
@@ -253,7 +253,7 @@
       {% csrf_token %}
       <input type="hidden" name="product_id" value="{{ product.pk }}">
       <input type="hidden" name="quantity" class="pdp-qty-input" value="{{ cart_item.quantity|default:1 }}">
-      <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="">
+      <input type="hidden" name="variant_id" class="pdp-variant-id-input" value="{{ selected_variant_id|default:'' }}">
       <button type="submit" name="buy_now" value="true" class="btn btn-floward jm-pdp-sticky__btn">{% trans "Buy Now" %}</button>
     </form>
     {% else %}
