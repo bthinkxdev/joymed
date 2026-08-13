@@ -122,7 +122,7 @@
       <div id="checkout-result" class="mt-3"></div>
     </div>
 
-    <div class="col-lg-5" id="checkout-order-summary-container" hx-get="{% url 'checkout:checkout' %}" hx-select="#checkout-main-container" hx-target="#checkout-main-container" hx-trigger="cartUpdated from:body, cartItemAdded from:body" hx-swap="outerHTML">
+    <div class="col-lg-5" id="checkout-order-summary-container" hx-get="{% url 'checkout:checkout' %}{% if is_buy_now %}?buy_now_product_id={{ buy_now_data.product_id }}&buy_now_quantity={{ buy_now_data.quantity }}{% if buy_now_data.variant_id %}&buy_now_variant_id={{ buy_now_data.variant_id }}{% endif %}{% endif %}" hx-select="#checkout-main-container" hx-target="#checkout-main-container" hx-trigger="cartUpdated from:body, cartItemAdded from:body" hx-swap="outerHTML">
       <input type="hidden" form="checkout-form" name="idempotency_key" value="{{ checkout_session.pk }}-{{ summary.grand_total }}-{{ summary.lines|length }}-{{ request.user.pk|default:'guest' }}">
       <div class="checkout-step sticky-top" style="top: 100px;">
         <div class="d-flex justify-content-between align-items-center mb-3">

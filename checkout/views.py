@@ -87,8 +87,6 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
         recalculate_delivery_charge(cart=cart, destination_city=addresses[0].city)
 
     summary = get_cart_summary(cart=cart, buy_now_data=buy_now_data)
-    if not summary.lines:
-        return redirect("cms:homepage")
     
     from delivery.models import City
     active_cities = City.objects.filter(is_active=True)
