@@ -8,6 +8,7 @@ from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
@@ -70,6 +71,7 @@ def _parse_plp_filters(request: HttpRequest) -> dict:
 
 
 @require_GET
+@never_cache
 def plp_view(request: HttpRequest, category_slug: str | None = None) -> HttpResponse:
     """Product listing page with HTMX partial support for the product grid."""
     filters = _parse_plp_filters(request)

@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_GET
+from django.views.decorators.cache import never_cache
 
 from catalog.selectors import get_homepage_product_rails
 from cms.selectors import get_active_homepage_sections
@@ -13,6 +14,7 @@ from core.seo import seo_context
 
 
 @require_GET
+@never_cache
 def homepage_view(request: HttpRequest) -> HttpResponse:
     """Render the CMS-driven homepage with zero DB reads for section config."""
     sections = get_active_homepage_sections()

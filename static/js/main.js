@@ -1375,6 +1375,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.body.addEventListener('wishlistUpdated', function(event) {
     var data = event.detail || {};
+    syncWishlistChrome(data);
     if (data.product_id) {
       try {
         var wishlistState = JSON.parse(localStorage.getItem('jmWishlistState') || '{}');

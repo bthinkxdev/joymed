@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
+from django.views.decorators.cache import never_cache
 
 from accounts.exceptions import (
     GoogleAuthError,
@@ -718,6 +719,7 @@ def wishlist_shared_mutate_view(request: HttpRequest) -> HttpResponse:
     return JsonResponse({"error": "Authentication required."}, status=401)
 
 @require_GET
+@never_cache
 def wishlist_view(request: HttpRequest) -> HttpResponse:
     """Render the customer's wishlist page (guest or authenticated)."""
     if request.user.is_authenticated and hasattr(request.user, "customer_profile"):
