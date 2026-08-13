@@ -415,11 +415,22 @@
       rentBtn.addEventListener("change", window.refreshMode);
     }
 
-    document.body.addEventListener("cartItemAdded", function () {
-      const stickyBuyForm = document.getElementById("sticky-buy-form");
-      const stickyViewCartBtn = document.getElementById("pdp-sticky-view-cart-btn");
-      if (stickyBuyForm) stickyBuyForm.classList.add("d-none");
-      if (stickyViewCartBtn) stickyViewCartBtn.classList.remove("d-none");
+    document.body.addEventListener("cartItemAdded", function (e) {
+      if (e.detail && String(e.detail.product_id) === "{{ product.pk }}") {
+        const stickyBuyForm = document.getElementById("sticky-buy-form");
+        const stickyViewCartBtn = document.getElementById("pdp-sticky-view-cart-btn");
+        if (stickyBuyForm) stickyBuyForm.classList.add("d-none");
+        if (stickyViewCartBtn) stickyViewCartBtn.classList.remove("d-none");
+      }
+    });
+
+    document.body.addEventListener("cartItemRemoved", function (e) {
+      if (e.detail && String(e.detail.product_id) === "{{ product.pk }}") {
+        const stickyBuyForm = document.getElementById("sticky-buy-form");
+        const stickyViewCartBtn = document.getElementById("pdp-sticky-view-cart-btn");
+        if (stickyBuyForm) stickyBuyForm.classList.remove("d-none");
+        if (stickyViewCartBtn) stickyViewCartBtn.classList.add("d-none");
+      }
     });
 
     const buyboxOptions = document.querySelector("#purchase-actions-container");

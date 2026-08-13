@@ -142,6 +142,7 @@ def plp_view(request: HttpRequest, category_slug: str | None = None) -> HttpResp
 
 
 @require_GET
+@never_cache
 def pdp_view(request: HttpRequest, slug: str) -> HttpResponse:
     """Product detail page with gallery, variants, reviews, and delivery estimate."""
     product = get_product_detail(slug=slug)
