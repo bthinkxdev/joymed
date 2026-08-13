@@ -39,12 +39,4 @@
     {% include "catalog/partials/plp_filters.html" %}
   </div>
 </div>
-{% endblock %}
-{% block extra_js %}
-<script>
-  // this ensures the filter form and subcategory dropdown accurately reflect the URL state
-  document.body.addEventListener('htmx:historyRestore', function (evt) {
-    window.location.reload();
-  });
-</script>
-{% endblock %}
+{% endblock %}

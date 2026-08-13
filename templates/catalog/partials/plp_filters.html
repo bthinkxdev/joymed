@@ -1,7 +1,7 @@
 {% load i18n %}
 <form class="plp-filters card p-3" method="get" action="{{ request.path }}" hx-get="{{ request.path }}"
   hx-target="#product-grid" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#product-grid"
-  hx-trigger="submit">
+  hx-trigger="submit" autocomplete="off">
   <h2 class="h6 plp-filters-header">{% trans "Filters" %}</h2>
   <div class="plp-filters-body">
     <div class="mb-3">

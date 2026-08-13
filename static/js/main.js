@@ -88,8 +88,6 @@
       event.detail.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
       event.detail.headers['Pragma'] = 'no-cache';
       event.detail.headers['Expires'] = '0';
-      var sep = event.detail.path.indexOf('?') !== -1 ? '&' : '?';
-      event.detail.path += sep + 't=' + new Date().getTime();
     }
   });
 
@@ -111,11 +109,15 @@
 
   document.body.addEventListener('htmx:responseError', function (event) {
     console.error('[HTMX] responseError', event.detail);
+    hidePageLoader();
+    document.body.style.opacity = '1';
     showHtmxToast();
   });
 
   document.body.addEventListener('htmx:sendError', function (event) {
     console.error('[HTMX] sendError', event.detail);
+    hidePageLoader();
+    document.body.style.opacity = '1';
     showHtmxToast();
   });
 
@@ -123,12 +125,6 @@
     window.setTimeout(hidePageLoader, 320);
   });
 
-  // Handle Back-Forward Cache (bfcache) to prevent stale data on Back navigation
-  window.addEventListener('pageshow', function (event) {
-    if (event.persisted) {
-      window.location.reload();
-    }
-  });
 
   // Fallback if load already fired or assets cached
   if (document.readyState === 'complete') {
@@ -164,6 +160,9 @@
   }
 
   document.body.addEventListener('htmx:afterSwap', function (event) {
+    hidePageLoader();
+    document.body.style.opacity = '1';
+    
     if (event.detail.target && event.detail.target.id === 'cart-drawer-body') {
       event.detail.target.dataset.drawerHydrated = 'true';
     }
@@ -1374,6 +1373,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  document.body.addEventListener('wishlistUpdated', function(event) {
+    var data = event.detail || {};
+    if (data.product_id) {
+      try {
+        var wishlistState = JSON.parse(localStorage.getItem('jmWishlistState') || '{}');
+        wishlistState[data.product_id] = !!data.added;
+        localStorage.setItem('jmWishlistState', JSON.stringify(wishlistState));
+      } catch(e) {}
+    }
+  });
+
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted) {
+      try {
+        var wishlistState = JSON.parse(localStorage.getItem('jmWishlistState') || '{}');
+        Object.keys(wishlistState).forEach(function(productId) {
+          syncWishlistChrome({ product_id: productId, added: wishlistState[productId] });
+        });
+      } catch(e) {}
+    }
+  });
+
   function initSearchCategoryDropdown() {
     var root = document.querySelector('.jm-search__cat');
     if (!root || root.dataset.jmCatReady === '1') return;
@@ -1460,15 +1481,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initRailArrows(document);
   });
 
-  document.body.addEventListener('wishlistUpdated', function (event) {
-    syncWishlistChrome(event.detail || {});
-  });
-
-  window.addEventListener('pageshow', function (event) {
-    if (event.persisted) {
-      window.location.reload();
-    }
-  });
 
   function syncCartState(productId, inCart) {
     if (!productId) return;
