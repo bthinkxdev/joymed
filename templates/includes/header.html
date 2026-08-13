@@ -201,11 +201,7 @@
           </span>
         </button>
 
-        {% if user.is_authenticated and user.wholesaler_profile %}
-        <a href="{% url 'accounts:dashboard' %}" class="jm-header__wholesale d-lg-none" aria-label="{% trans 'Wholesaler account' %}">
-          <span>{% trans "Wholesaler?" %}</span>
-        </a>
-        {% else %}
+        {% if not user.is_authenticated or not user.wholesaler_profile %}
         <a href="{% url 'accounts:wholesaler-register' %}" class="jm-header__wholesale d-lg-none" aria-label="{% trans 'Wholesaler registration' %}">
           <span>{% trans "Wholesaler?" %}</span>
         </a>
@@ -281,9 +277,7 @@
         href="{% url 'core:about-us' %}">{% trans "About Us" %}</a>
       <a class="{% if request.resolver_match.url_name == 'contact-us' %}is-active{% endif %}"
         href="{% url 'core:contact-us' %}">{% trans "Contact Us" %}</a>
-      {% if user.is_authenticated and user.wholesaler_profile %}
-      <a href="{% url 'accounts:dashboard' %}" class="jm-mobile-nav__cta">{% trans "Wholesaler?" %}</a>
-      {% else %}
+      {% if not user.is_authenticated or not user.wholesaler_profile %}
       <a href="{% url 'accounts:wholesaler-register' %}" class="jm-mobile-nav__cta">{% trans "Wholesaler?" %}</a>
       {% endif %}
     </div>
