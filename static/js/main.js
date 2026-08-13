@@ -767,7 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
         qvAddBtn.type = 'button';
         qvAddBtn.disabled = true;
         qvAddBtn.classList.add('disabled');
-        qvAddBtn.textContent = 'Sold out';
+        qvAddBtn.textContent = 'Unavailable';
         qvAddBtn.style.cursor = 'not-allowed';
         qvAddBtn.style.opacity = '0.6';
         qvAddBtn.style.pointerEvents = 'auto';
@@ -1174,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         atcAddBtn.type = 'button';
         atcAddBtn.disabled = true;
         atcAddBtn.classList.add('disabled');
-        atcAddBtn.textContent = 'Sold out';
+        atcAddBtn.textContent = 'Unavailable';
         atcAddBtn.style.cursor = 'not-allowed';
       } else {
         atcAddBtn.type = 'submit';

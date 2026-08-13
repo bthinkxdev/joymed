@@ -142,7 +142,8 @@ def adjust_cart_item_quantity(
 
     new_quantity = item.quantity + delta
     if new_quantity < 1:
-        new_quantity = 1
+        item.delete()
+        return None
 
     max_stock = item.variant.stock_quantity if item.variant else item.product.stock_quantity
     if new_quantity > max_stock:

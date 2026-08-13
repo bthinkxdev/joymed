@@ -228,9 +228,11 @@ def cart_quantity_view(request: HttpRequest) -> HttpResponse:
         raise Http404("Cart not found.")
 
     product_id = None
+    variant_id = None
     item = cart.items.filter(pk=form.cleaned_data["cart_item_id"]).first()
     if item:
         product_id = item.product.pk
+        variant_id = item.variant.pk if item.variant else None
 
     try:
         updated_item = adjust_cart_item_quantity(
@@ -249,7 +251,7 @@ def cart_quantity_view(request: HttpRequest) -> HttpResponse:
 
     triggers = {"cartUpdated": None}
     if product_id and updated_item is None:
-        triggers["cartItemRemoved"] = {"product_id": product_id}
+        triggers["cartItemRemoved"] = {"product_id": product_id, "variant_id": variant_id}
 
     if is_drawer:
         return _cart_drawer_response(request, hx_triggers=triggers)

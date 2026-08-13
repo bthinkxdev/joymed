@@ -10,6 +10,7 @@
          data-product-image="{% if img and img.image %}{{ img.image.url }}{% else %}{% static 'img/product-placeholder.svg' %}{% endif %}"
          {% endwith %}
          data-product-variants="{{ product.quick_view_variants_json }}"
+         data-is-out-of-stock="{% if not product.is_in_stock %}true{% else %}false{% endif %}"
          data-in-cart="{% if cart_product_ids and product.pk in cart_product_ids %}true{% else %}false{% endif %}">
   {# Media: only the image sits inside .ratio so Bootstrap does not stretch badge/actions into a full-bleed blocker. #}
   <div class="jm-product-card__media">
