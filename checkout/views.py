@@ -59,13 +59,22 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
 
     addresses = []
     if profile:
-        from accounts.models import Address
-        dashboard_address = profile.default_address
-        if not dashboard_address:
-            dashboard_address = Address.objects.select_related("city").filter(customer_profile=profile).first()
-        if dashboard_address:
-            addresses = [dashboard_address]
-        elif hasattr(request.user, "wholesaler_profile"):
+        from accounts.selectors import get_saved_addresses
+        saved_addresses_page = get_saved_addresses(customer_profile=profile, page_size=10)
+        
+        # de-duplicate addresses based on line1, line2, and city_id
+        seen = set()
+        for addr in saved_addresses_page.get("results", []):
+            key = (
+                addr.line1.strip().lower(),
+                (addr.line2 or "").strip().lower(),
+                addr.city_id
+            )
+            if key not in seen:
+                addresses.append(addr)
+                seen.add(key)
+
+        if not addresses and hasattr(request.user, "wholesaler_profile"):
             from delivery.models import City
             from accounts.services import create_address
             wholesaler_addr = request.user.wholesaler_profile.address
