@@ -57,7 +57,7 @@
                   {% csrf_token %}
                   <input type="hidden" name="cart_item_id" value="{{ line.item.pk }}">
                   <input type="hidden" name="delta" value="1">
-                  <button class="qty-stepper__btn" type="submit" aria-label="{% trans 'Increase quantity' %}" {% if line.quantity >= line.max_stock %}disabled{% endif %}>&plus;</button>
+                  <button class="qty-stepper__btn" type="submit" aria-label="{% trans 'Increase quantity' %}">&plus;</button>
                 </form>
               </div>
 
