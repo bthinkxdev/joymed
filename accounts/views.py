@@ -909,12 +909,12 @@ def email_otp_request_view(request: HttpRequest) -> HttpResponse:
 @require_http_methods(["GET", "POST"])
 def email_otp_verify_view(request: HttpRequest) -> HttpResponse:
     """Verify email 4-digit OTP for signup (Wholesaler) or login (Customer/Wholesaler)."""
-    if request.user.is_authenticated:
-        return redirect("accounts:dashboard")
-
     email = request.GET.get("email") or request.POST.get("email", "")
     purpose = request.GET.get("purpose") or request.POST.get("purpose", OTPPurpose.LOGIN)
     next_url = request.GET.get("next") or request.POST.get("next", "")
+
+    if request.user.is_authenticated and purpose != OTPPurpose.SIGNUP:
+        return redirect("accounts:dashboard")
 
     if request.method == "GET":
         form = EmailOTPVerifyForm(initial={"email": email})
