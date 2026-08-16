@@ -90,21 +90,18 @@ def order_transition(request: HttpRequest, pk: int) -> HttpResponse:
             order=order, new_status=new_status, actor=request.user, note=note
         )
         
+        from django.utils import timezone
         from payments.models import PaymentStatus
-        tx = order.payment_transactions.last()
-        if tx:
-            if new_status == OrderStatus.DELIVERED and tx.status == PaymentStatus.PENDING:
-                tx.status = PaymentStatus.SUCCESS
-                tx.save(update_fields=["status", "updated_at"])
-            elif new_status == OrderStatus.CANCELLED and tx.status == PaymentStatus.PENDING:
-                if hasattr(PaymentStatus, 'CANCELLED'):
-                    tx.status = PaymentStatus.CANCELLED
-                    tx.save(update_fields=["status", "updated_at"])
-            elif new_status == OrderStatus.REFUNDED and tx.status in (PaymentStatus.SUCCESS, PaymentStatus.PENDING):
-                if hasattr(PaymentStatus, 'REFUNDED'):
-                    tx.status = PaymentStatus.REFUNDED
-                    tx.save(update_fields=["status", "updated_at"])
-                    
+        
+        if new_status == OrderStatus.DELIVERED:
+            order.payment_transactions.filter(status=PaymentStatus.PENDING).update(status=PaymentStatus.SUCCESS, updated_at=timezone.now())
+        elif new_status == OrderStatus.CANCELLED:
+            if hasattr(PaymentStatus, 'CANCELLED'):
+                order.payment_transactions.filter(status=PaymentStatus.PENDING).update(status=PaymentStatus.CANCELLED, updated_at=timezone.now())
+        elif new_status == OrderStatus.REFUNDED:
+            if hasattr(PaymentStatus, 'REFUNDED'):
+                order.payment_transactions.filter(status__in=[PaymentStatus.SUCCESS, PaymentStatus.PENDING]).update(status=PaymentStatus.REFUNDED, updated_at=timezone.now())
+                
         messages.success(
             request, f"Order moved to {dict(OrderStatus.choices).get(new_status, new_status)}."
         )

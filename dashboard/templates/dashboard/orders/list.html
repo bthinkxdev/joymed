@@ -12,7 +12,7 @@
         {% if search_query %}
         <a href="?{% if current_status %}status={{ current_status }}{% endif %}" class="btn btn-outline-secondary" title="Clear"><i class="ti ti-x"></i></a>
         {% endif %}
-        <button type="submit" class="btn btn-outline-secondary"><i class="ti ti-search"></i></button>
+        <button type="submit" id="searchBtn" class="btn btn-outline-secondary" {% if not search_query %}disabled{% endif %}><i class="ti ti-search"></i></button>
       </div>
       <select name="status" class="form-select" style="max-width: 220px;" onchange="this.form.submit()">
         <option value="">All statuses</option>
@@ -69,4 +69,16 @@
     {% include "dashboard/partials/_pagination.html" %}
   </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.querySelector('input[name="q"]');
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchInput && searchBtn) {
+        searchInput.addEventListener('input', function() {
+            searchBtn.disabled = this.value.trim() === '';
+        });
+    }
+});
+</script>
 {% endblock %}

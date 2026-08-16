@@ -118,7 +118,9 @@
             <select name="new_status" class="form-select" required>
               <option value="pending" {% if payments.last.status == 'pending' %}selected{% endif %}>Pending</option>
               <option value="success" {% if payments.last.status == 'success' %}selected{% endif %}>Success / Paid</option>
-              <option value="failed" {% if payments.last.status == 'failed' %}selected{% endif %}>Failed / Cancelled</option>
+              <option value="failed" {% if payments.last.status == 'failed' %}selected{% endif %}>Failed</option>
+              <option value="cancelled" {% if payments.last.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+              <option value="refunded" {% if payments.last.status == 'refunded' %}selected{% endif %}>Refunded</option>
             </select>
           </div>
           <button type="submit" class="btn btn-primary w-100">Update Payment</button>

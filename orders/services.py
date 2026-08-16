@@ -25,7 +25,7 @@ ALLOWED_STATUS_TRANSITIONS: dict[str, set[str]] = {
     OrderStatus.READY: _EARLY_STATES | {OrderStatus.DELIVERED, OrderStatus.CANCELLED},
     OrderStatus.OUT_FOR_DELIVERY: _EARLY_STATES | {OrderStatus.DELIVERED, OrderStatus.CANCELLED},
     OrderStatus.DELIVERED: {OrderStatus.REFUNDED},
-    OrderStatus.CANCELLED: set(),
+    OrderStatus.CANCELLED: {OrderStatus.REFUNDED},
     OrderStatus.REFUNDED: set(),
 }
 
