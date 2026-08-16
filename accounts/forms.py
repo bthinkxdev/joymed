@@ -159,12 +159,20 @@ class ResetPasswordEmailForm(forms.Form):
         }),
     )
     new_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "New Password"}),
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control", 
+            "placeholder": "New Password",
+            "autocomplete": "new-password",
+        }),
         min_length=8,
         label="New Password",
     )
     confirm_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Confirm Password"}),
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control", 
+            "placeholder": "Confirm Password",
+            "autocomplete": "new-password",
+        }),
         min_length=8,
         label="Confirm Password",
     )
