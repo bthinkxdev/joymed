@@ -100,7 +100,7 @@
     left: -50px;
     width: 150px;
     height: 150px;
-    background: radial-gradient(circle, rgba(212, 165, 116, 0.2) 0%, rgba(212, 165, 116, 0) 70%);
+    background: radial-gradient(circle, rgba(156, 39, 76, 0.2) 0%, rgba(156, 39, 76, 0) 70%);
     border-radius: 50%;
     z-index: 0;
     pointer-events: none;
@@ -128,8 +128,8 @@
     width: 72px;
     height: 72px;
     border-radius: 20px;
-    background: rgba(212, 165, 116, 0.12);
-    color: #D4A574;
+    background: rgba(156, 39, 76, 0.12);
+    color: #9C274C;
     animation: floatIcon 3.5s ease-in-out infinite;
   }
   @keyframes floatIcon {
@@ -162,48 +162,56 @@
   }
   .otp-digit-field:focus {
     color: #1E293B;
-    border-color: #D4A574 !important;
+    border-color: #9C274C !important;
     background-color: #FFFFFF !important;
-    box-shadow: 0 0 0 4px rgba(212, 165, 116, 0.15) !important;
+    box-shadow: 0 0 0 4px rgba(156, 39, 76, 0.15) !important;
     transform: translateY(-3px);
     outline: none;
   }
   .otp-digit-field.filled {
-    border-color: rgba(212, 165, 116, 0.5) !important;
+    border-color: rgba(156, 39, 76, 0.5) !important;
     background-color: #FFFDF9 !important;
   }
   .btn-floward-premium {
-    background: #D4A574;
+    background: #9C274C;
     color: #FFFFFF;
     border: none;
     border-radius: 16px;
     font-weight: 600;
     letter-spacing: 0.025em;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 8px 20px -6px rgba(212, 165, 116, 0.4);
+    box-shadow: 0 8px 20px -6px rgba(156, 39, 76, 0.4);
   }
-  .btn-floward-premium:hover {
-    background: #C49564;
+  .btn-floward-premium:hover:not(:disabled) {
+    background: #7A1F3B;
     color: #FFFFFF;
-    box-shadow: 0 10px 24px -4px rgba(212, 165, 116, 0.5);
+    box-shadow: 0 10px 24px -4px rgba(156, 39, 76, 0.5);
     transform: translateY(-2px);
   }
-  .btn-floward-premium:hover .arrow-icon {
+  .btn-floward-premium:disabled {
+    background: #E2E8F0;
+    color: #94A3B8;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .btn-floward-premium:hover:not(:disabled) .arrow-icon {
     transform: translateX(4px);
   }
   .arrow-icon {
     transition: transform 0.25s ease;
   }
   .btn-resend-link {
-    color: #D4A574;
+    color: #9C274C;
     font-weight: 700;
     transition: color 0.2s ease;
     padding: 0.5rem 1rem;
     border-radius: 10px;
   }
   .btn-resend-link:hover {
-    color: #C49564;
-    background-color: rgba(212, 165, 116, 0.05);
+    color: #7A1F3B;
+    background-color: rgba(156, 39, 76, 0.05);
   }
   .text-slate-800 {
     color: #1E293B;
@@ -212,10 +220,10 @@
     color: #0F172A;
   }
   .text-floward-accent {
-    background-color: #D4A574;
+    background-color: #9C274C;
   }
   .text-floward {
-    color: #D4A574 !important;
+    color: #9C274C !important;
   }
   @media (max-width: 480px) {
     .otp-digit-field {
@@ -347,6 +355,16 @@
 
     if (digitFields.length > 0) {
       digitFields[0].focus();
+    }
+    
+    if (otpForm) {
+      otpForm.addEventListener('submit', function(e) {
+        var verifyBtn = document.getElementById('verify-btn');
+        if (verifyBtn && verifyBtn.disabled) {
+          e.preventDefault();
+          return false;
+        }
+      });
     }
 
     if (hiddenOtpInput && hiddenOtpInput.value) {
