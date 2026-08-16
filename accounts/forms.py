@@ -21,6 +21,22 @@ class EmailLoginForm(AuthenticationForm):
         ),
     )
 
+    def clean_username(self):
+        username = self.cleaned_data.get("username")
+        if username:
+            return username.strip().lower()
+        return username
+
+    def clean(self):
+        password = self.cleaned_data.get("password")
+        if password:
+            # users often copy-paste the generated password with a trailing space
+            self.cleaned_data["password"] = password.strip()
+            # we must also update request.POST or data if AuthenticationForm relies on it
+            # actually AuthenticationForm uses self.cleaned_data.get("password")
+            
+        return super().clean()
+
 
 class OTPRequestForm(forms.Form):
     """Form to request an OTP for phone-based authentication."""

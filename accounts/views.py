@@ -185,6 +185,12 @@ def email_login_view(request: HttpRequest) -> HttpResponse:
         return render(request, "accounts/login.html", {"form": EmailLoginForm()})
 
     data = _json_body(request) or request.POST.dict()
+    if "email" in data and "username" not in data:
+        # create a mutable copy of data if it's immutable
+        if hasattr(data, 'copy'):
+            data = data.copy()
+            data["username"] = data["email"]
+            
     identifier = (
         (data.get("email") or data.get("username") or request.META.get("REMOTE_ADDR", "anon"))
         .strip()

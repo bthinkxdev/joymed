@@ -110,6 +110,20 @@ class WholesalerUpdateView(DashboardUpdateView):
                 user.set_password(password)
                 user.save()
 
+                #prevent the wholesaler from being logged out by updating their session auth hash
+                from django.contrib.sessions.models import Session
+                from django.utils import timezone
+                from importlib import import_module
+                
+                session_engine = getattr(settings, 'SESSION_ENGINE', 'django.contrib.sessions.backends.db')
+                SessionStore = import_module(session_engine).SessionStore
+                
+                for session_obj in Session.objects.filter(expire_date__gte=timezone.now()):
+                    s = SessionStore(session_key=session_obj.session_key)
+                    if s.get('_auth_user_id') == str(user.pk):
+                        s['_auth_user_hash'] = user.get_session_auth_hash()
+                        s.save()
+
                 #ensure customer profile
                 ensure_customer_profile_for_user(user=user)
 
